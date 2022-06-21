@@ -3,74 +3,28 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:fquery/fquery/core/query_cache.dart';
+import 'package:fquery/fquery/core/query_client.dart';
 import 'package:fquery/fquery/fquery.dart';
 
-class QueryScope extends StatefulWidget {
-  const QueryScope({Key? key, required this.child}) : super(key: key);
-  final Widget child;
-
-  @override
-  State<QueryScope> createState() => _QueryScopeState();
-}
-
-class _QueryScopeState extends State<QueryScope> {
-  Map<String, Query> queries = {};
-
-  void setQueries(Map<String, Query> newQueries) {
-    setState(() {
-      queries = newQueries;
-    });
-  }
-
-  Query<T>? get<T>(String queryKey) {
-    final query = queries[queryKey];
-    return query as Query<T>?;
-  }
-
-  Query<T> buildQuery<T>(
-    String queryKey,
-    Future<T> Function() fetch, {
-    UseQueryOptions? options,
-  }) {
-    Query<T>? query = get<T>(queryKey);
-    if (query == null) {
-      query = Query<T>(
-        queryKey: queryKey,
-        queryFn: fetch,
-        options: options ?? UseQueryOptions(),
-      );
-      setQueries(queries..[queryKey] = query);
-    }
-    return query;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return QueryCache(
-        child: widget.child, queries: queries, setQueries: setQueries);
-  }
-}
-
-class QueryCache extends InheritedWidget {
-  const QueryCache({
+class QueryClientProvider extends InheritedWidget {
+  const QueryClientProvider({
     Key? key,
     required Widget child,
-    required this.queries,
-    required this.setQueries,
+    required this.queryClient,
   }) : super(key: key, child: child);
 
-  final Map<String, Query> queries;
-  final void Function(Map<String, Query<dynamic>> newQueries) setQueries;
+  final QueryClient queryClient;
 
-  static QueryCache of(BuildContext context) {
-    final QueryCache? result =
-        context.dependOnInheritedWidgetOfExactType<QueryCache>();
-    assert(result != null, 'No QueryCache found in context');
+  static QueryClientProvider of(BuildContext context) {
+    final QueryClientProvider? result =
+        context.dependOnInheritedWidgetOfExactType<QueryClientProvider>();
+    assert(result != null, 'No QueryClient found in context');
     return result!;
   }
 
   @override
-  bool updateShouldNotify(QueryCache old) => true;
+  bool updateShouldNotify(QueryClientProvider oldWidget) => true;
 }
 
 class User {
@@ -126,12 +80,15 @@ Future<List<User>> fetchUsers() async {
   return data;
 }
 
+final queryClient = QueryClient();
+
 class App extends StatelessWidget {
   const App({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return QueryScope(
+    return QueryClientProvider(
+      queryClient: queryClient,
       child: MaterialApp(
         title: 'FQuery',
         home: Scaffold(
