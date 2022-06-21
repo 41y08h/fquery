@@ -1,18 +1,18 @@
 class Subscribable<TListener extends Function> {
-  final List<TListener> _listeners = [];
+  final List<TListener> listeners = [];
 
   Subscribable();
 
   void Function() subscribe(TListener listener) {
-    _listeners.add(listener);
+    listeners.add(listener);
 
     onSubscribe();
 
-    return () => {_listeners.remove(listener), onUnsubscribe()};
+    return () => {listeners.remove(listener), onUnsubscribe()};
   }
 
   bool hasListeners() {
-    return _listeners.isNotEmpty;
+    return listeners.isNotEmpty;
   }
 
   onSubscribe() {}
