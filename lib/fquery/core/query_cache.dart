@@ -25,9 +25,11 @@ class QueryCache extends Subscribable {
   Map<QueryKey, Query> queriesMap = {};
   List<Query> queries = [];
 
-  Query<TData, TError, TQueryKey>? get<TData, TError, TQueryKey>(
-      TQueryKey queryKey) {
-    return queriesMap[queryKey];
+  Query<TQueryFnData, TError, TData, TQueryKey>?
+      get<TQueryFnData, TData, TError, TQueryKey extends QueryKey>(
+          TQueryKey queryKey) {
+    return queriesMap[queryKey]
+        as Query<TQueryFnData, TError, TData, TQueryKey>;
   }
 
   void add(Query query) {
@@ -41,7 +43,7 @@ class QueryCache extends Subscribable {
   }
 
   notify(QueryCacheNotifyEvent event) {
-    notifyManager.batch(
+    NotifyManager().batch(
       () => listeners.forEach(
         (listener) => {listener(event)},
       ),
@@ -67,5 +69,13 @@ class QueryCache extends Subscribable {
         ),
       );
     }
+  }
+
+  void onOnline() {
+    NotifyManager().batch(
+      () => {
+        for (var query in queries) {query.onOnline()}
+      },
+    );
   }
 }

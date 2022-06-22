@@ -1,3 +1,4 @@
+import 'package:fquery/fquery/core/online_manager.dart';
 import 'package:fquery/fquery/core/query_cache.dart';
 
 class QueryClient {
@@ -5,4 +6,10 @@ class QueryClient {
   QueryClient({
     QueryCache? queryCache,
   }) : _queryCache = queryCache ?? QueryCache();
+
+  void mount() {
+    OnlineManager().addListener(
+      () => {_queryCache.onOnline()},
+    );
+  }
 }

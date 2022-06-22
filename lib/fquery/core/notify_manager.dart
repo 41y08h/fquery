@@ -3,6 +3,10 @@ typedef NotifyFunction = void Function(NotifyCallback callback);
 typedef BatchNotifyFunction = void Function(NotifyCallback callback);
 
 class NotifyManager {
+  static final NotifyManager _instance = NotifyManager._();
+  NotifyManager._();
+  factory NotifyManager() => _instance;
+
   List<NotifyCallback> _queue = [];
   int transactions = 0;
 
@@ -62,5 +66,3 @@ class NotifyManager {
     _batchNotifyFn = batchNotifyFn;
   }
 }
-
-final notifyManager = NotifyManager();

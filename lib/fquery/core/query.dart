@@ -1,4 +1,6 @@
 import 'package:fquery/fquery/core/logger.dart';
+import 'package:fquery/fquery/core/notify_manager.dart';
+import 'package:fquery/fquery/core/online_manager.dart';
 import 'package:fquery/fquery/core/query_cache.dart';
 import 'package:fquery/fquery/core/query_observer.dart';
 import 'package:fquery/fquery/core/removable.dart';
@@ -49,7 +51,7 @@ class QueryState<TData extends dynamic, TError extends dynamic> {
     required this.fetchStatus,
   });
 
-  QueryState copyWith({
+  QueryState<TData, TError> copyWith({
     TData? data,
     TError? error,
     int? dataUpdateCount,
@@ -313,38 +315,89 @@ class Query<TQueryFunctionData extends dynamic, TError extends dynamic,
     final data = replaceData(state.data, newData, this.options);
 
     // Set data and mark it as cached
+    dispatch(DispatchAction.success, {
+      'data': data,
+      'dataUpdatedAt': options?.updatedAt,
+      'manual': options?.manual,
+    });
+
+    return data;
   }
 
- QueryState reducer (QueryState state, DispatchAction action, dynamic data ) {
-      switch (action) {
-        case DispatchAction.failed:
-          return state.copyWith(
-            fetchFailureCount: state.fetchFailureCount + 1,
-          );
-          case DispatchAction.pause:
-            return state.copyWith(
-              fetchStatus: FetchStatus.paused,
-            );
+  QueryState<TData, TError> reducer(
+      QueryState<TData, TError> state, DispatchAction action, dynamic data) {
+    switch (action) {
+      case DispatchAction.failed:
+        return state.copyWith(
+          fetchFailureCount: state.fetchFailureCount + 1,
+        );
+      case DispatchAction.pause:
+        return state.copyWith(
+          fetchStatus: FetchStatus.paused,
+        );
 
-          case DispatchAction.continueAction:
-          return state.copyWith(
-            fetchStatus: FetchStatus.fetching,
-          );
-          case DispatchAction.fetch:
-            return state.copyWith(
-              fetchFailureCount: 0,
-              fetchMeta: data['meta'] ,
-              fetchStatus: 
+      case DispatchAction.continueAction:
+        return state.copyWith(
+          fetchStatus: FetchStatus.fetching,
+        );
+      case DispatchAction.fetch:
+        return state.copyWith(
+          fetchFailureCount: 0,
+          fetchMeta: data['meta'],
+          fetchStatus: canFetch(options.networkMode)
+              ? FetchStatus.fetching
+              : FetchStatus.paused,
+        );
+      case DispatchAction.success:
+        final baseUpdate = state.copyWith(
+          data: data['data'],
+          dataUpdateCount: state.dataUpdateCount + 1,
+          dataUpdatedAt: data['dataUpdatedAt'] ?? DateTime.now(),
+          error: null,
+          isInvalidated: false,
+          status: QueryStatus.success,
+        );
+        return data['manual'] == false
+            ? baseUpdate.copyWith(
+                fetchStatus: FetchStatus.idle,
+                fetchFailureCount: 0,
+              )
+            : baseUpdate;
+      case DispatchAction.error:
+        final error = data['error'];
+        if (error.runtimeType == CancelledError &&
+            error.revert &&
+            revertState != null) {
+          return revertState as QueryState<TData, TError>;
+        }
 
-            );
-
-      }
+        return state.copyWith(
+          error: error as TError,
+          errorUpdateCount: state.errorUpdateCount + 1,
+          errorUpdatedAt: DateTime.now(),
+          fetchFailureCount: state.fetchFailureCount + 1,
+          fetchStatus: FetchStatus.idle,
+          status: QueryStatus.error,
+        );
+      case DispatchAction.invalidate:
+        return state.copyWith(
+          isInvalidated: true,
+        );
+      case DispatchAction.setState:
+        return data['state'] as QueryState<TData, TError>;
     }
-
-  void dispatch<TData extends dynamic, TError>(
-      DispatchAction action, dynamic data) {
-   
   }
+
+  void dispatch(DispatchAction action, dynamic data) {
+    state = reducer(state, action, data);
+    NotifyManager().batch(
+      () => _observers.forEach(
+        (observer) => observer.onQueryUpdate(action, data),
+      ),
+    );
+  }
+
+  void onOnline() {}
 }
 
 QueryState<TData, TError>
