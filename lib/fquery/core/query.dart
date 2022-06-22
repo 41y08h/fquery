@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fquery/fquery/core/logger.dart';
 import 'package:fquery/fquery/core/notify_manager.dart';
 import 'package:fquery/fquery/core/online_manager.dart';
@@ -14,7 +16,7 @@ enum QueryNetworkMode {
   offlineFirst,
 }
 
-typedef QueryFunction<T extends dynamic, TQueryKey extends dynamic> = Future<T>
+typedef QueryFunction<T extends dynamic, TQueryKey extends QueryKey> = Future<T>
     Function(QueryFunctionContext<TQueryKey, dynamic> context);
 typedef QueryMeta = Map<String, dynamic>;
 typedef QueryKeyHashFunction<TQueryKey extends QueryKey> = String Function(
@@ -248,6 +250,11 @@ enum DispatchAction {
   success
 }
 
+class SetStateOptions {
+  dynamic meta;
+  SetStateOptions({this.meta});
+}
+
 class Query<TQueryFunctionData extends dynamic, TError extends dynamic,
     TData extends dynamic, TQueryKey extends QueryKey> extends Removable {
   late TQueryKey queryKey;
@@ -261,7 +268,7 @@ class Query<TQueryFunctionData extends dynamic, TError extends dynamic,
 
   late QueryCache _cache;
   late Logger _logger;
-  Future? _future;
+  Future<TData>? _future;
   Retryer<TData>? _retryer;
   final List<QueryObserver> _observers = [];
   QueryOptions<TQueryFunctionData, TError, TData, TQueryKey>? _defaultOptions;
@@ -324,6 +331,202 @@ class Query<TQueryFunctionData extends dynamic, TError extends dynamic,
     return data;
   }
 
+  void setState(
+      QueryState<TData, TError> state, SetStateOptions? setStateOptions) {
+    dispatch(DispatchAction.setState, {
+      'state': state,
+      'meta': setStateOptions?.meta,
+    });
+  }
+
+  Future<void> cancel(CancelOptions? options) {
+    final future = _future;
+    _retryer?.cancel(options);
+    return future != null
+        ? future.then((_) => {}).catchError((_) {})
+        : Future.value();
+  }
+
+  @override
+  void destroy() {
+    super.destroy();
+
+    cancel(CancelOptions(silent: true));
+  }
+
+  void reset() {
+    destroy();
+    setState(initialState, null);
+  }
+
+  bool isActive() {
+    // TODO: After implementing observer class
+    return true;
+  }
+
+  bool isDisabled() {
+    // TODO: After implementing observer class
+    return false;
+  }
+
+  bool isStale() {
+    // TODO: After implementing observer class
+    return (state.isInvalidated || state.dataUpdatedAt == null);
+  }
+
+  bool isStaleByDuration(Duration staleDuration) {
+    return (state.isInvalidated ||
+            state.dataUpdatedAt == null ||
+            durationUntilStale(
+                    state.dataUpdatedAt ?? DateTime.now(), staleDuration)
+                .isNegative
+        ? true
+        : false);
+  }
+
+  void onOnline() {
+    // TODO: After implementing observer class
+  }
+
+  void addObserver(QueryObserver observer) {
+    if (_observers.contains(observer)) return;
+
+    _observers.add(observer);
+
+    // Stop the query from being garbage collected
+    clearGcTimer();
+    _cache.notify(
+        QueryCacheNotifyEvent(event: NotifyEvent.queryObserverAdded, data: {
+      'query': this,
+      'observer': observer,
+    }));
+  }
+
+  void removeObserver(QueryObserver observer) {
+    if (!_observers.contains(observer)) return;
+
+    _observers.remove(observer);
+
+    // Stop the query from being garbage collected
+    clearGcTimer();
+
+    if (_observers.isEmpty) {
+      // If the transport layer does not support cancellation
+      // we'll let the query continue so the result can be cached
+      if (_retryer != null) {
+        if (abortSignalConsumed) {
+          _retryer?.cancel(CancelOptions(revert: true));
+        } else {
+          _retryer?.cancelRetry();
+        }
+      }
+
+      scheduleGc();
+    }
+
+    _cache.notify(
+        QueryCacheNotifyEvent(event: NotifyEvent.queryObserverRemoved, data: {
+      'query': this,
+      'observer': observer,
+    }));
+  }
+
+  int getObserversCount() {
+    return _observers.length;
+  }
+
+  void invalidate() {
+    if (state.isInvalidated == false) dispatch(DispatchAction.invalidate, null);
+  }
+
+  Future<TData> fetch(
+      QueryOptions<TQueryFunctionData, TError, TData, TQueryKey>? options,
+      FetchOptions? fetchOptions) async {
+    if (state.fetchStatus != FetchStatus.idle) {
+      if (state.dataUpdatedAt != null && fetchOptions?.cancelRefetch != null) {
+        // Silently cancel current fetch if the user wants to cancel refetches
+        cancel(CancelOptions(silent: true));
+      } else if (_future != null) {
+        // make sure that retries that were potentially cancelled due to unmounts can continue
+        _retryer?.continueRetry();
+        // Return current Future if we are already fetching
+        return _future as Future<TData>;
+      }
+    }
+
+    // Update config if passed, otherwise the config from the last execution is used
+    if (options != null) {
+      setOptions(options);
+    }
+
+    // Use the options from the first observer with a query function if no function is found.
+    // This can happen when the query is hydrated or created with setQueryData.
+    if (this.options.queryFunction == null) {
+      // TODO: After implementing observer class
+    }
+
+    final queryFnContext =
+        QueryFunctionContext<TQueryKey, void>(queryKey: queryKey, meta: meta);
+
+    Future<TQueryFunctionData> fetchFn() {
+      if (this.options.queryFunction == null) {
+        return Future.error(Exception('Missing queryFn'));
+      }
+      abortSignalConsumed = false;
+      return this.options.queryFunction?.call(queryFnContext)
+          as Future<TQueryFunctionData>;
+    }
+
+    final FetchContext<TQueryFunctionData, TError, TData, TQueryKey> context =
+        FetchContext(
+      fetchOptions: fetchOptions,
+      queryOptions: this.options,
+      queryKey: queryKey,
+      state: state,
+      fetchFn: fetchFn,
+      meta: meta,
+    );
+
+    this.options.behavior?.onFetch(context);
+
+    // Store state in case the current fetch needs to be reverted
+    revertState = state;
+
+    // Set to fetching state if not already in it
+    if (state.fetchStatus == FetchStatus.idle ||
+        state.fetchMeta != context.fetchOptions?.meta) {
+      dispatch(DispatchAction.fetch, {
+        'meta': context.fetchOptions?.meta,
+      });
+    }
+
+    void onError(dynamic error) {
+      enforceTypes([TError, CancelOptions], error, 'error');
+      // Optimistically update state if needed
+      if (error.runtimeType != CancelledError && error.silent == true) {
+        dispatch(DispatchAction.error, error);
+      }
+
+      if (error.runtimeType != CancelledError) {
+        // Notify cache callback
+        // TODO: After implementing observer class
+
+        _logger.error(error);
+      }
+
+      if (isFetchingOptimistic != null) {
+        // Schedule query gc after fetching
+        scheduleGc();
+      }
+      isFetchingOptimistic = false;
+    }
+
+    _retryer = Retryer(
+      fn: context.fetchFn as Future<TData> Function(),
+      continueFn: () => dispatch(DispatchAction.continueAction, null),
+    );
+  }
+
   QueryState<TData, TError> reducer(
       QueryState<TData, TError> state, DispatchAction action, dynamic data) {
     switch (action) {
@@ -371,7 +574,7 @@ class Query<TQueryFunctionData extends dynamic, TError extends dynamic,
               )
             : baseUpdate;
       case DispatchAction.error:
-        final error = data['error'];
+        final error = data;
         if (error.runtimeType == CancelledError &&
             error.revert &&
             revertState != null) {
@@ -403,8 +606,6 @@ class Query<TQueryFunctionData extends dynamic, TError extends dynamic,
       ),
     );
   }
-
-  void onOnline() {}
 }
 
 QueryState<TData, TError>
