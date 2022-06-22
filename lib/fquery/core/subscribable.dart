@@ -1,20 +1,18 @@
-class Subscribable<TListener extends Function> {
-  final List<TListener> listeners = [];
+import 'package:flutter/foundation.dart';
 
-  Subscribable();
+class Subscribable extends Listenable {
+  final List<Function> listeners = [];
 
-  void Function() subscribe(TListener listener) {
+  @override
+  void Function() addListener(Function listener) {
     listeners.add(listener);
-
-    onSubscribe();
-
-    return () => {listeners.remove(listener), onUnsubscribe()};
+    return () {
+      listeners.remove(listener);
+    };
   }
 
-  bool hasListeners() {
-    return listeners.isNotEmpty;
+  @override
+  void removeListener(Function listener) {
+    listeners.remove(listener);
   }
-
-  onSubscribe() {}
-  onUnsubscribe() {}
 }

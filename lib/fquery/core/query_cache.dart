@@ -21,7 +21,7 @@ class QueryCacheNotifyEvent<TData extends dynamic> {
 
 typedef QueryCacheListener = void Function(QueryCacheNotifyEvent event);
 
-class QueryCache extends Subscribable<QueryCacheListener> {
+class QueryCache extends Subscribable {
   Map<QueryKey, Query> queriesMap = {};
   List<Query> queries = [];
 
