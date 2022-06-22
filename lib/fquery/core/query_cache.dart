@@ -67,9 +67,5 @@ class QueryCache extends Subscribable<QueryCacheListener> {
         ),
       );
     }
-
-    queriesMap.remove(query.queryKey);
-    queries.remove(query);
-    notify(QueryCacheNotifyEvent(event: NotifyEvent.queryRemoved, data: query));
   }
 }
