@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:fquery/fquery/core/constants.dart';
+
 abstract class Removable {
   late Duration cacheTime;
   Timer? _gcTimer;
@@ -16,8 +18,8 @@ abstract class Removable {
     });
   }
 
-  void updateCacheTime(Duration cacheTime) {
-    this.cacheTime = cacheTime;
+  void updateCacheTime(Duration? cacheTime) {
+    this.cacheTime = cacheTime ?? kDefaultCacheDuration;
   }
 
   void clearGcTimer() {

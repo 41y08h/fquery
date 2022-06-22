@@ -1,11 +1,10 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fquery/fquery/core/query_cache.dart';
 import 'package:fquery/fquery/core/query_client.dart';
-import 'package:fquery/fquery/fquery.dart';
 
 class QueryClientProvider extends InheritedWidget {
   const QueryClientProvider({
@@ -81,12 +80,16 @@ Future<List<User>> fetchUsers() async {
 }
 
 final queryClient = QueryClient();
+final counterr = Counter();
 
-class App extends StatelessWidget {
+class App extends HookWidget {
   const App({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    print("app rebuild");
+
+    final count = useCounter();
     return QueryClientProvider(
       queryClient: queryClient,
       child: MaterialApp(
@@ -94,7 +97,7 @@ class App extends StatelessWidget {
         home: Scaffold(
           floatingActionButton: FloatingActionButton(
             onPressed: () {},
-            child: const Icon(Icons.add),
+            child: Text(count.toString()),
           ),
           body: const Outer(),
         ),
@@ -103,54 +106,57 @@ class App extends StatelessWidget {
   }
 }
 
-class Outer extends StatelessWidget {
+class Outer extends HookWidget {
   const Outer({
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          Random().nextInt(10).toString(),
-        ),
-        const Expanded(child: Users()),
-      ],
+    print('outer rebuild');
+    const count = 1;
+    return Center(
+      child: Text(
+        '$count',
+        style: Theme.of(context).textTheme.headline4,
+      ),
     );
   }
 }
 
-class Users extends HookWidget {
-  const Users({
-    Key? key,
-  }) : super(key: key);
+class Subscribable implements Listenable {
+  final List<Function> _listeners = [];
 
   @override
-  Widget build(BuildContext context) {
-    final query = useQuery(
-      'users',
-      () => Future.delayed(
-        const Duration(seconds: 1),
-        fetchUsers,
-      ),
-    );
+  void addListener(VoidCallback listener) {
+    _listeners.add(listener);
+  }
 
-    return Builder(builder: (context) {
-      if (query.isLoading) {
-        return const Center(child: CircularProgressIndicator());
+  @override
+  void removeListener(VoidCallback listener) {
+    _listeners.remove(listener);
+  }
+}
+
+int useCounter() {
+  final counter = useState(counterr);
+  useListenable(counter.value);
+
+  return counter.value.count;
+}
+
+class Counter extends Subscribable {
+  int _count = 0;
+  int get count => _count;
+
+  Counter() {
+    // increase count every 2 seconds
+    Timer.periodic(const Duration(seconds: 2), (timer) {
+      print('increased');
+      _count++;
+      for (var listener in _listeners) {
+        listener();
       }
-      return ListView.builder(
-        itemCount: query.data.length,
-        itemBuilder: (context, index) {
-          final user = query.data[index];
-          return ListTile(
-            title: Text(user.name),
-            subtitle: Text(user.username),
-            trailing: Text(user.email),
-          );
-        },
-      );
     });
   }
 }
