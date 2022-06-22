@@ -259,9 +259,12 @@ class Query<TQueryFunctionData extends dynamic, TError extends dynamic,
     updateCacheTime(this.options.cacheTime);
   }
 
+  // This is called for garbage collection by the [Removable] class.
   @override
   void optionalRemove() {
-    if (_observers.isNotEmpty && state.fetchStatus == FetchStatus.idle) {}
+    if (_observers.isNotEmpty && state.fetchStatus == FetchStatus.idle) {
+      _cache.remove(this);
+    }
   }
 }
 
