@@ -48,6 +48,34 @@ class QueryState<TData extends dynamic, TError extends dynamic> {
     required this.status,
     required this.fetchStatus,
   });
+
+  QueryState copyWith({
+    TData? data,
+    TError? error,
+    int? dataUpdateCount,
+    DateTime? dataUpdatedAt,
+    int? errorUpdateCount,
+    DateTime? errorUpdatedAt,
+    int? fetchFailureCount,
+    dynamic fetchMeta,
+    bool? isInvalidated,
+    QueryStatus? status,
+    FetchStatus? fetchStatus,
+  }) {
+    return QueryState(
+      data: data ?? this.data,
+      error: error ?? this.error,
+      dataUpdateCount: dataUpdateCount ?? this.dataUpdateCount,
+      dataUpdatedAt: dataUpdatedAt ?? this.dataUpdatedAt,
+      errorUpdateCount: errorUpdateCount ?? this.errorUpdateCount,
+      errorUpdatedAt: errorUpdatedAt ?? this.errorUpdatedAt,
+      fetchFailureCount: fetchFailureCount ?? this.fetchFailureCount,
+      fetchMeta: fetchMeta ?? this.fetchMeta,
+      isInvalidated: isInvalidated ?? this.isInvalidated,
+      status: status ?? this.status,
+      fetchStatus: fetchStatus ?? this.fetchStatus,
+    );
+  }
 }
 
 class FetchOptions {
@@ -207,6 +235,17 @@ class QueryConfig<TQueryFnData, TError, TData, TQueryKey extends QueryKey> {
   });
 }
 
+enum DispatchAction {
+  continueAction,
+  error,
+  failed,
+  fetch,
+  invalidate,
+  pause,
+  setState,
+  success
+}
+
 class Query<TQueryFunctionData extends dynamic, TError extends dynamic,
     TData extends dynamic, TQueryKey extends QueryKey> extends Removable {
   late TQueryKey queryKey;
@@ -265,6 +304,46 @@ class Query<TQueryFunctionData extends dynamic, TError extends dynamic,
     if (_observers.isNotEmpty && state.fetchStatus == FetchStatus.idle) {
       _cache.remove(this);
     }
+  }
+
+  TData setData(
+    TData newData,
+    SetDataOptions? options,
+  ) {
+    final data = replaceData(state.data, newData, this.options);
+
+    // Set data and mark it as cached
+  }
+
+ QueryState reducer (QueryState state, DispatchAction action, dynamic data ) {
+      switch (action) {
+        case DispatchAction.failed:
+          return state.copyWith(
+            fetchFailureCount: state.fetchFailureCount + 1,
+          );
+          case DispatchAction.pause:
+            return state.copyWith(
+              fetchStatus: FetchStatus.paused,
+            );
+
+          case DispatchAction.continueAction:
+          return state.copyWith(
+            fetchStatus: FetchStatus.fetching,
+          );
+          case DispatchAction.fetch:
+            return state.copyWith(
+              fetchFailureCount: 0,
+              fetchMeta: data['meta'] ,
+              fetchStatus: 
+
+            );
+
+      }
+    }
+
+  void dispatch<TData extends dynamic, TError>(
+      DispatchAction action, dynamic data) {
+   
   }
 }
 
