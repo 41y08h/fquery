@@ -9,12 +9,12 @@ bool canFetch(QueryNetworkMode? networkMode) {
 }
 
 class CancelOptions {
-  final bool revert;
-  final bool silent;
+  bool? revert;
+  bool? silent;
 
   CancelOptions({
-    required this.revert,
-    required this.silent,
+    this.revert,
+    this.silent,
   });
 }
 
@@ -31,14 +31,14 @@ class CancelledError {
 }
 
 class Retryer<TData> {
-  Future<TData> future;
+  Future<TData> Function() fn;
   void Function(CancelOptions? cancelOptions) cancel;
   void Function() continueFn;
   void Function() cancelRetry;
   void Function() continueRetry;
 
   Retryer({
-    required this.future,
+    required this.fn,
     required this.cancel,
     required this.continueFn,
     required this.cancelRetry,

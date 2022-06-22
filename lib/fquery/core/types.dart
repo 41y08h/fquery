@@ -1,4 +1,4 @@
-typedef QueryKey = dynamic;
+typedef QueryKey = List<dynamic>;
 typedef QueryObserverResult = dynamic;
 
 typedef GetPreviousPageParamFunction<TQueryFnData extends dynamic> = Function(

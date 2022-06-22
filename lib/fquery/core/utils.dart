@@ -20,3 +20,9 @@ TData replaceData<TData, TOptions extends QueryOptions>(
 
   return data;
 }
+
+Duration durationUntilStale(DateTime updatedAt, Duration? staleDuration) {
+  return updatedAt.add(staleDuration ?? const Duration(seconds: 0)).difference(
+        DateTime.now(),
+      );
+}

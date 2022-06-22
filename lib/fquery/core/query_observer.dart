@@ -7,8 +7,8 @@ import 'package:fquery/fquery/core/types.dart';
 typedef QueryObserverListener<TData, TError> = void Function(
     QueryObserverResult result);
 
-class QueryObserver<TData extends dynamic, TError extends dynamic,
-    TQueryKey extends QueryKey> extends Subscribable {
+class QueryObserver<TQueryFnData extends dynamic, TData extends dynamic,
+    TError extends dynamic, TQueryKey extends QueryKey> extends Subscribable {
   late QueryClient _client;
   QueryObserver({required QueryClient client}) {
     client = client;
