@@ -27,7 +27,7 @@ class QueryCache extends Subscribable<QueryCacheListener> {
 
   Query<TData, TError, TQueryKey>? get<TData, TError, TQueryKey>(
       TQueryKey queryKey) {
-    return queriesMap[queryKey] as Query<TData, TError, TQueryKey>?;
+    return queriesMap[queryKey];
   }
 
   void add(Query query) {
@@ -48,22 +48,28 @@ class QueryCache extends Subscribable<QueryCacheListener> {
     );
   }
 
-  Query<TData, TError, TQueryKey> build<TData, TError, TQueryKey>(
-      QueryClient client,
-      TQueryKey queryKey,
-      Future<TData> Function() queryFn) {
-    late Query<TData, TError, TQueryKey> query;
-    Query? existingQuery = queriesMap[queryKey];
-    if (existingQuery != null) {
-      query = existingQuery as Query<TData, TError, TQueryKey>;
-    } else {
-      query = Query<TData, TError, TQueryKey>(
-        queryFn: queryFn,
-        queryKey: queryKey,
+  void remove(Query query) {
+    final queryInMap = queriesMap[query.queryKey];
+
+    if (queryInMap != null) {
+      query.destroy();
+
+      queries = queries.where((q) => q != query).toList();
+
+      if (queryInMap == query) {
+        queriesMap.remove(query.queryKey);
+      }
+
+      notify(
+        QueryCacheNotifyEvent(
+          event: NotifyEvent.queryRemoved,
+          data: query,
+        ),
       );
     }
 
-    add(query);
-    return query;
+    queriesMap.remove(query.queryKey);
+    queries.remove(query);
+    notify(QueryCacheNotifyEvent(event: NotifyEvent.queryRemoved, data: query));
   }
 }
