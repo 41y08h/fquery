@@ -27,10 +27,10 @@ enum FetchStatus { fetching, paused, idle }
 class QueryState<TData extends dynamic, TError extends dynamic> {
   TData? data;
   int dataUpdateCount;
-  DateTime dataUpdatedAt;
+  DateTime? dataUpdatedAt;
   TError? error;
   int errorUpdateCount;
-  DateTime errorUpdatedAt;
+  DateTime? errorUpdatedAt;
   int fetchFailureCount;
   dynamic fetchMeta;
   bool isInvalidated;
@@ -41,9 +41,9 @@ class QueryState<TData extends dynamic, TError extends dynamic> {
     this.data,
     this.error,
     required this.dataUpdateCount,
-    required this.dataUpdatedAt,
+    this.dataUpdatedAt,
     required this.errorUpdateCount,
-    required this.errorUpdatedAt,
+    this.errorUpdatedAt,
     required this.fetchFailureCount,
     required this.fetchMeta,
     required this.isInvalidated,
@@ -341,13 +341,20 @@ class Query<TQueryFunctionData extends dynamic, TError extends dynamic,
           fetchStatus: FetchStatus.fetching,
         );
       case DispatchAction.fetch:
-        return state.copyWith(
+        final baseUpdate = state.copyWith(
           fetchFailureCount: 0,
           fetchMeta: data['meta'],
           fetchStatus: canFetch(options.networkMode)
               ? FetchStatus.fetching
               : FetchStatus.paused,
         );
+        return state.dataUpdatedAt == null
+            ? baseUpdate.copyWith(
+                error: null,
+                status: QueryStatus.loading,
+              )
+            : baseUpdate;
+
       case DispatchAction.success:
         final baseUpdate = state.copyWith(
           data: data['data'],

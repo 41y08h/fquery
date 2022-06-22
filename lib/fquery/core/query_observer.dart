@@ -8,7 +8,7 @@ typedef QueryObserverListener<TData, TError> = void Function(
     QueryObserverResult result);
 
 class QueryObserver<TData extends dynamic, TError extends dynamic,
-    TQueryKey extends QueryKey> extends Subscribable<QueryObserverListener> {
+    TQueryKey extends QueryKey> extends Subscribable {
   late QueryClient _client;
   QueryObserver({required QueryClient client}) {
     client = client;
