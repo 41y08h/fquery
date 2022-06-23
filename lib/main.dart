@@ -35,6 +35,7 @@ class QueryState {
             isLoading: true,
             queryKey: queryKey,
             getData: getData,
+            isFetching: true,
           ),
         );
   }
@@ -50,6 +51,7 @@ class QueryState {
 class Query<TData, TError> extends Subscribable {
   final String queryKey;
   bool isLoading;
+  bool isFetching;
   TData? data;
   dynamic error;
   Future<TData> Function() getData;
@@ -60,10 +62,12 @@ class Query<TData, TError> extends Subscribable {
     required this.data,
     required this.error,
     required this.getData,
+    required this.isFetching,
   });
 
   Future<void> fetchData() async {
-    isLoading = true;
+    isLoading = data != null ? false : true;
+    isFetching = true;
     notifyListeners();
 
     try {
@@ -74,6 +78,7 @@ class Query<TData, TError> extends Subscribable {
       notifyListeners();
     } finally {
       isLoading = false;
+      isFetching = false;
       notifyListeners();
     }
   }
