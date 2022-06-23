@@ -13,4 +13,10 @@ class Subscribable extends Listenable {
   void removeListener(VoidCallback listener) {
     listeners.remove(listener);
   }
+
+  void notifyListeners() {
+    for (final listener in listeners) {
+      listener();
+    }
+  }
 }

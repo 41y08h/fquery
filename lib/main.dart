@@ -1,15 +1,17 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:fquery/fquery/connection_status.dart';
 import 'package:fquery/fquery/subscribable.dart';
 
 main() {
   runApp(const App());
 }
 
-class QueryState {
+class QueryClient {
   final Map<String, Query> queries = {};
 
   Query<TData, TError>? getQuery<TData, TError>(String queryKey) {
@@ -30,12 +32,9 @@ class QueryState {
         addQuery(
           queryKey,
           Query<TData, TError>(
-            data: null,
-            error: null,
-            isLoading: true,
             queryKey: queryKey,
             getData: getData,
-            isFetching: true,
+            state: QueryState(),
           ),
         );
   }
@@ -43,46 +42,61 @@ class QueryState {
   void setQueryData<TData>(
       String queryKey, TData Function(TData previous) updater) {
     final query = getQuery(queryKey);
-    query?.data = updater(query.data);
+    query?.state.data = updater(query.state.data);
     query?.notifyListeners();
   }
 }
 
-class Query<TData, TError> extends Subscribable {
-  final String queryKey;
+class QueryState<TData extends dynamic, TError extends dynamic> {
   bool isLoading;
   bool isFetching;
   TData? data;
-  dynamic error;
+  TError? error;
+  DateTime? dataUpdatedAt;
+  DateTime? errorUpdatedAt;
+
+  QueryState({
+    this.isLoading = true,
+    this.isFetching = true,
+    this.data,
+    this.error,
+    this.dataUpdatedAt,
+    this.errorUpdatedAt,
+  });
+}
+
+class Query<TData, TError> extends Subscribable {
+  final String queryKey;
+  QueryState<TData, TError> state;
   Future<TData> Function() getData;
 
   Query({
     required this.queryKey,
-    required this.isLoading,
-    required this.data,
-    required this.error,
+    required this.state,
     required this.getData,
-    required this.isFetching,
   });
 
   Future<void> fetchData() async {
-    isLoading = data != null ? false : true;
-    isFetching = true;
+    state.isLoading = state.data != null ? false : true;
+    state.isFetching = true;
     notifyListeners();
 
     try {
-      data = await getData();
+      state.data = await getData();
+      state.dataUpdatedAt = DateTime.now();
       notifyListeners();
     } catch (e) {
-      error = e;
+      state.error = e as TError;
+      state.errorUpdatedAt = DateTime.now();
       notifyListeners();
     } finally {
-      isLoading = false;
-      isFetching = false;
+      state.isLoading = false;
+      state.isFetching = false;
       notifyListeners();
     }
   }
 
+  @override
   void notifyListeners() {
     for (final listener in listeners) {
       listener();
@@ -90,22 +104,46 @@ class Query<TData, TError> extends Subscribable {
   }
 }
 
-final queryState = QueryState();
+final queryState = QueryClient();
 
-Query<TData, TError> useQuery<TData, TError>(
+enum RefetchOnReconnect {
+  always,
+  ifStale,
+  never,
+}
+
+QueryState<TData, TError> useQuery<TData, TError>(
   String queryKey,
   Future<TData> Function() getData, {
+  Duration staleDuration = Duration.zero,
   Duration? refetchInterval,
+  RefetchOnReconnect refetchOnReconnect = RefetchOnReconnect.ifStale,
 }) {
   final query = useListenable(
     queryState.buildQuery<TData, TError>(queryKey, getData),
   );
+  final connectionStatus = useListenable(ConnectionStatus());
 
   useEffect(() {
-    if (query.isLoading) {
+    if (query.state.isLoading) {
       query.fetchData();
     }
   }, []);
+
+  useEffect(() {
+    if (!connectionStatus.isOnline) return;
+    if (refetchOnReconnect == RefetchOnReconnect.never) return;
+    if (refetchOnReconnect == RefetchOnReconnect.always) {
+      query.fetchData();
+      return;
+    } else if (refetchOnReconnect == RefetchOnReconnect.ifStale) {
+      final staleTime = query.state.dataUpdatedAt?.add(staleDuration);
+
+      if (staleTime != null ? staleTime.isBefore(DateTime.now()) : false) {
+        query.fetchData();
+      }
+    }
+  }, [connectionStatus.isOnline]);
 
   useEffect(() {
     if (refetchInterval != null) {
@@ -115,7 +153,7 @@ Query<TData, TError> useQuery<TData, TError>(
       return () => timer.cancel();
     }
   }, [refetchInterval]);
-  return query;
+  return query.state;
 }
 
 class App extends HookWidget {
@@ -143,7 +181,11 @@ class Page1 extends HookWidget {
     final query = useQuery(
       'names',
       () => Future.delayed(
-          const Duration(seconds: 1), () => Random().nextInt(10)),
+        const Duration(seconds: 1),
+        () => Random().nextInt(10),
+      ),
+      refetchOnReconnect: RefetchOnReconnect.ifStale,
+      staleDuration: const Duration(seconds: 5),
     );
 
     return Scaffold(
