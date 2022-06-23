@@ -269,7 +269,7 @@ class Query<TQueryFunctionData extends dynamic, TError extends dynamic,
   late QueryCache _cache;
   late Logger _logger;
   Future<TData>? _future;
-  Retryer<TData>? _retryer;
+  Retryer<TData, TError>? _retryer;
   final List<QueryObserver> _observers = [];
   QueryOptions<TQueryFunctionData, TError, TData, TQueryKey>? _defaultOptions;
   bool abortSignalConsumed = false;
@@ -521,10 +521,44 @@ class Query<TQueryFunctionData extends dynamic, TError extends dynamic,
       isFetchingOptimistic = false;
     }
 
-    _retryer = Retryer(
+    _retryer = Retryer<TData, TError>(
       fn: context.fetchFn as Future<TData> Function(),
-      continueFn: () => dispatch(DispatchAction.continueAction, null),
+      abort: () => {},
+      onSuccess: (data) {
+        if (data == null) {
+          onError(Exception('Query data cannot be undefined'));
+          return;
+        }
+
+        setData(data, null);
+
+        // Notify cache callback
+        // TODO: After implementing the query cache class
+
+        if (isFetchingOptimistic) {
+          // Schedule query gc after fetching
+          scheduleGc();
+        }
+        isFetchingOptimistic = false;
+      },
+      onError: onError,
+      onFail: (failureCount, error) {
+        dispatch(DispatchAction.failed, null);
+      },
+      onPause: () {
+        dispatch(DispatchAction.pause, null);
+      },
+      onContinue: () {
+        dispatch(DispatchAction.continueAction, null);
+      },
+      retry: context.queryOptions.retry,
+      retryDelay: context.queryOptions.retryDelay,
+      networkMode: context.queryOptions.networkMode,
     );
+
+    _future = _retryer?.future;
+
+    return _future as Future<TData>;
   }
 
   QueryState<TData, TError> reducer(

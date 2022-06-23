@@ -53,7 +53,7 @@ class Retryer<TData, TError> {
   Future<TData> Function() fn;
   void Function()? abort;
   void Function(TError error)? onError;
-  void Function(TData data)? onSuccess;
+  void Function(TData? data)? onSuccess;
   void Function(int failureCount, TError error)? onFail;
   void Function()? onPause;
   void Function()? onContinue;
@@ -62,7 +62,7 @@ class Retryer<TData, TError> {
   QueryNetworkMode? networkMode;
 
   final _completer = Completer<TData>();
-  get future => _completer.future;
+  Future<TData> get future => _completer.future;
 
   Retryer({
     required this.fn,
