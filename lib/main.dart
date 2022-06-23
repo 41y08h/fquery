@@ -5,7 +5,9 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery/connection_status.dart';
+import 'package:fquery/fquery/query_client_provider.dart';
 import 'package:fquery/fquery/subscribable.dart';
+import 'package:fquery/fquery/types.dart';
 
 main() {
   runApp(const App());
@@ -13,30 +15,35 @@ main() {
 
 class QueryClient {
   final Map<String, Query> queries = {};
+  final QueryClientDefaultOptions? defaultOptions;
+  QueryClient({this.defaultOptions});
 
-  Query<TData, TError>? getQuery<TData, TError>(String queryKey) {
-    return queries[queryKey] as Query<TData, TError>;
+  Query? getQuery<TData, TError>(String queryKey) {
+    return queries[queryKey];
   }
 
-  Query<TData, TError> addQuery<TData, TError>(
-      String queryKey, Query<TData, TError> query) {
+  Query addQuery<TData, TError>(String queryKey, Query query) {
     if (queries[queryKey] != null) {
-      return queries[queryKey] as Query<TData, TError>;
+      return queries[queryKey] as Query;
     }
     return queries[queryKey] = query;
   }
 
-  Query<TData, TError> buildQuery<TData, TError>(
-      String queryKey, Future<TData> Function() getData) {
-    return getQuery(queryKey) ??
+  Query buildQuery(String queryKey, QueryFn? queryFn) {
+    final queryFunction = queryFn ?? defaultOptions?.queryFn;
+    if (queryFunction == null) {
+      throw Exception('QueryFn is missing');
+    }
+
+    return (getQuery(queryKey) ??
         addQuery(
           queryKey,
-          Query<TData, TError>(
+          Query(
             queryKey: queryKey,
-            getData: getData,
+            queryFn: queryFunction,
             state: QueryState(),
           ),
-        );
+        ));
   }
 
   void setQueryData<TData>(
@@ -47,33 +54,15 @@ class QueryClient {
   }
 }
 
-class QueryState<TData extends dynamic, TError extends dynamic> {
-  bool isLoading;
-  bool isFetching;
-  TData? data;
-  TError? error;
-  DateTime? dataUpdatedAt;
-  DateTime? errorUpdatedAt;
-
-  QueryState({
-    this.isLoading = true,
-    this.isFetching = true,
-    this.data,
-    this.error,
-    this.dataUpdatedAt,
-    this.errorUpdatedAt,
-  });
-}
-
-class Query<TData, TError> extends Subscribable {
+class Query extends Subscribable {
   final String queryKey;
-  QueryState<TData, TError> state;
-  Future<TData> Function() getData;
+  QueryState state;
+  QueryFn<dynamic> queryFn;
 
   Query({
     required this.queryKey,
     required this.state,
-    required this.getData,
+    required this.queryFn,
   });
 
   Future<void> fetchData() async {
@@ -82,11 +71,11 @@ class Query<TData, TError> extends Subscribable {
     notifyListeners();
 
     try {
-      state.data = await getData();
+      state.data = await queryFn();
       state.dataUpdatedAt = DateTime.now();
       notifyListeners();
     } catch (e) {
-      state.error = e as TError;
+      state.error = e;
       state.errorUpdatedAt = DateTime.now();
       notifyListeners();
     } finally {
@@ -104,23 +93,25 @@ class Query<TData, TError> extends Subscribable {
   }
 }
 
-final queryState = QueryClient();
+final queryClient = QueryClient(
+  defaultOptions: QueryClientDefaultOptions(
+    queryFn: () async {
+      print("default queryFn called");
+      await Future.delayed(const Duration(seconds: 1));
+      return 'data is here';
+    },
+  ),
+);
 
-enum RefetchOnReconnect {
-  always,
-  ifStale,
-  never,
-}
-
-QueryState<TData, TError> useQuery<TData, TError>(
-  String queryKey,
-  Future<TData> Function() getData, {
+QueryState useQuery(
+  String queryKey, {
+  QueryFn? fetch,
   Duration staleDuration = Duration.zero,
   Duration? refetchInterval,
   RefetchOnReconnect refetchOnReconnect = RefetchOnReconnect.ifStale,
 }) {
   final query = useListenable(
-    queryState.buildQuery<TData, TError>(queryKey, getData),
+    queryClient.buildQuery(queryKey, fetch),
   );
   final connectionStatus = useListenable(ConnectionStatus());
 
@@ -160,12 +151,15 @@ class App extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return QueryClientProvider(
+      queryClient: queryClient,
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: const Page1(),
       ),
-      home: const Page1(),
     );
   }
 }
@@ -179,10 +173,10 @@ class Page1 extends HookWidget {
   Widget build(BuildContext context) {
     final query = useQuery(
       'names',
-      () => Future.delayed(
-        const Duration(seconds: 1),
-        () => Random().nextInt(10),
-      ),
+      fetch: () async {
+        await Future.delayed(const Duration(seconds: 1));
+        return ['a', 'b', 'c'];
+      },
       refetchInterval: const Duration(seconds: 8),
       refetchOnReconnect: RefetchOnReconnect.ifStale,
       staleDuration: const Duration(seconds: 5),
@@ -228,7 +222,7 @@ class Page2 extends HookWidget {
   Widget build(BuildContext context) {
     final query = useQuery(
       'names',
-      () => Future.delayed(
+      fetch: () => Future.delayed(
         const Duration(seconds: 1),
         () => Random().nextInt(10),
       ),
@@ -251,7 +245,7 @@ class Page2 extends HookWidget {
             }),
             TextButton(
                 onPressed: () {
-                  queryState.setQueryData<int>(
+                  queryClient.setQueryData<int>(
                     'names',
                     (previous) => 1,
                   );
