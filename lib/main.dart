@@ -146,12 +146,11 @@ QueryState<TData, TError> useQuery<TData, TError>(
   }, [connectionStatus.isOnline]);
 
   useEffect(() {
-    if (refetchInterval != null) {
-      final timer = Timer.periodic(refetchInterval, (_) {
-        query.fetchData();
-      });
-      return () => timer.cancel();
-    }
+    if (refetchInterval == null) return null;
+    final timer = Timer.periodic(refetchInterval, (_) {
+      query.fetchData();
+    });
+    return () => timer.cancel();
   }, [refetchInterval]);
   return query.state;
 }
@@ -184,6 +183,7 @@ class Page1 extends HookWidget {
         const Duration(seconds: 1),
         () => Random().nextInt(10),
       ),
+      refetchInterval: const Duration(seconds: 8),
       refetchOnReconnect: RefetchOnReconnect.ifStale,
       staleDuration: const Duration(seconds: 5),
     );
