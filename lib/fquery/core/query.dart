@@ -635,9 +635,13 @@ class Query<TQueryFunctionData extends dynamic, TError extends dynamic,
   void dispatch(DispatchAction action, dynamic data) {
     state = reducer(state, action, data);
     NotifyManager().batch(
-      () => _observers.forEach(
-        (observer) => observer.onQueryUpdate(action, data),
-      ),
+      () => {
+        _observers.forEach(
+          (observer) => observer.onQueryUpdate(action, data),
+        ),
+        _cache.notify(QueryCacheNotifyEvent(
+            event: NotifyEvent.queryUpdated, data: action))
+      },
     );
   }
 }
