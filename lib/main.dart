@@ -1,22 +1,12 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:fquery/fquery/subscribable.dart';
 
 main() {
   runApp(const App());
-}
-
-class Subscribable extends Listenable {
-  final listeners = <Function>[];
-
-  @override
-  void addListener(Function listener) {
-    listeners.add(listener);
-  }
-
-  @override
-  void removeListener(VoidCallback listener) {
-    listeners.remove(listener);
-  }
 }
 
 class QueryState {
@@ -47,6 +37,13 @@ class QueryState {
             getData: getData,
           ),
         );
+  }
+
+  void setQueryData<TData>(
+      String queryKey, TData Function(TData previous) updater) {
+    final query = getQuery(queryKey);
+    query?.data = updater(query.data);
+    query?.notifyListeners();
   }
 }
 
@@ -91,15 +88,28 @@ class Query<TData, TError> extends Subscribable {
 final queryState = QueryState();
 
 Query<TData, TError> useQuery<TData, TError>(
-    String queryKey, Future<TData> Function() getData) {
-  final query =
-      useListenable(queryState.buildQuery<TData, TError>(queryKey, getData));
+  String queryKey,
+  Future<TData> Function() getData, {
+  Duration? refetchInterval,
+}) {
+  final query = useListenable(
+    queryState.buildQuery<TData, TError>(queryKey, getData),
+  );
 
   useEffect(() {
     if (query.isLoading) {
       query.fetchData();
     }
   }, []);
+
+  useEffect(() {
+    if (refetchInterval != null) {
+      final timer = Timer.periodic(refetchInterval, (_) {
+        query.fetchData();
+      });
+      return () => timer.cancel();
+    }
+  }, [refetchInterval]);
   return query;
 }
 
@@ -127,7 +137,8 @@ class Page1 extends HookWidget {
   Widget build(BuildContext context) {
     final query = useQuery(
       'names',
-      () => Future.delayed(const Duration(seconds: 1), () => ['a', 'b']),
+      () => Future.delayed(
+          const Duration(seconds: 1), () => Random().nextInt(10)),
     );
 
     return Scaffold(
@@ -168,8 +179,14 @@ class Page2 extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final query = useQuery('names',
-        () => Future.delayed(const Duration(seconds: 1), () => ['a', 'b']));
+    final query = useQuery(
+      'names',
+      () => Future.delayed(
+        const Duration(seconds: 1),
+        () => Random().nextInt(10),
+      ),
+      refetchInterval: const Duration(seconds: 3),
+    );
 
     return Scaffold(
       body: Center(
@@ -185,6 +202,14 @@ class Page2 extends HookWidget {
               }
               return Text('Data: ${query.data}');
             }),
+            TextButton(
+                onPressed: () {
+                  queryState.setQueryData<int>(
+                    'names',
+                    (previous) => 1,
+                  );
+                },
+                child: const Text("Remove last")),
             TextButton(
                 onPressed: () {
                   Navigator.pop(context);
