@@ -46,6 +46,15 @@ class QueryClient {
         ));
   }
 
+  void invalidateQueries(List<String> queryKeys) {
+    for (var queryKey in queryKeys) {
+      final query = getQuery(queryKey);
+      if (query != null) {
+        query.invalidate();
+      }
+    }
+  }
+
   void setQueryData<TData>(
       String queryKey, TData Function(TData previous) updater) {
     final query = getQuery(queryKey);
@@ -66,23 +75,39 @@ class Query extends Subscribable {
   });
 
   Future<void> fetchData() async {
-    state.isLoading = state.data != null ? false : true;
-    state.isFetching = true;
+    state = state.copyWith(
+      isLoading: state.data != null ? false : true,
+      isFetching: true,
+    );
     notifyListeners();
 
     try {
-      state.data = await queryFn();
-      state.dataUpdatedAt = DateTime.now();
+      state = state.copyWith(
+        data: await queryFn(),
+        dataUpdatedAt: DateTime.now(),
+      );
       notifyListeners();
     } catch (e) {
-      state.error = e;
-      state.errorUpdatedAt = DateTime.now();
+      state = state.copyWith(
+        error: e,
+        errorUpdatedAt: DateTime.now(),
+      );
       notifyListeners();
     } finally {
-      state.isLoading = false;
-      state.isFetching = false;
+      state = state.copyWith(
+        isFetching: false,
+        isLoading: false,
+      );
       notifyListeners();
     }
+  }
+
+  void invalidate() {
+    state.copyWith(
+      isStale: true,
+    );
+    notifyListeners();
+    fetchData();
   }
 
   @override
@@ -98,7 +123,7 @@ final queryClient = QueryClient(
     queryFn: () async {
       print("default queryFn called");
       await Future.delayed(const Duration(seconds: 1));
-      return 'data is here';
+      return 'data is here ${Random().nextInt(10)}';
     },
   ),
 );
@@ -151,10 +176,12 @@ class App extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final query = useQuery('home');
+
     return QueryClientProvider(
       queryClient: queryClient,
       child: MaterialApp(
-        title: 'Flutter Demo',
+        title: '${query.data}',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
@@ -220,6 +247,7 @@ class Page2 extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final queryClient = useQueryClient();
     final query = useQuery(
       'names',
       fetch: () => Future.delayed(
@@ -251,6 +279,11 @@ class Page2 extends HookWidget {
                   );
                 },
                 child: const Text("Remove last")),
+            TextButton(
+                onPressed: () {
+                  queryClient.invalidateQueries(['home']);
+                },
+                child: const Text("Refetch home query")),
             TextButton(
                 onPressed: () {
                   Navigator.pop(context);
