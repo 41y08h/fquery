@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 class Subscribable extends Listenable {
   final List<Function> listeners = [];
+  bool get hasListeners => listeners.isNotEmpty;
 
   @override
   void Function() addListener(Function listener) {
