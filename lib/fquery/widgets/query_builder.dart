@@ -20,7 +20,7 @@ class QueryBuilder extends StatelessWidget {
     return Builder(
       builder: (context) {
         if (query.isLoading) return loading();
-        if (query.error != null) return error(query.error);
+        if (query.isError) return error(query.error);
         return data(query.data);
       },
     );

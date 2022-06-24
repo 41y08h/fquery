@@ -65,13 +65,15 @@ class HomePage extends HookWidget {
     return Scaffold(
       body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (query.isFetching) const LinearProgressIndicator(),
-            Expanded(
-              child: query.when<List<Todo>, dynamic>(
-                inLoading: () => const CircularProgressIndicator(),
-                inError: (error) => const Text('Error'),
-                inData: (data) => ListView.builder(
+            if (query.isFetching && !query.isLoading)
+              const LinearProgressIndicator(),
+            query.when<List<Todo>, dynamic>(
+              inLoading: () => const CircularProgressIndicator(),
+              inError: (error) => const Text('Error'),
+              inData: (data) => Expanded(
+                child: ListView.builder(
                   itemCount: query.data.length,
                   itemBuilder: (context, index) {
                     final todo = query.data[index];

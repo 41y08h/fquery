@@ -6,7 +6,7 @@ class ConnectionStatus extends ChangeNotifier {
 
   factory ConnectionStatus() => _instance;
 
-  bool _isOnline = false;
+  bool _isOnline = true;
   bool get isOnline => _isOnline;
 
   ConnectionStatus._internal() {

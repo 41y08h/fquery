@@ -7,6 +7,10 @@ enum RefetchOnReconnect {
 class QueryState {
   bool isLoading;
   bool isFetching;
+  int fetchFailureCount;
+  bool isError;
+  bool isFetched;
+
   dynamic data;
   dynamic error;
   DateTime? dataUpdatedAt;
@@ -21,6 +25,9 @@ class QueryState {
     this.dataUpdatedAt,
     this.errorUpdatedAt,
     this.isStale = false,
+    this.fetchFailureCount = 0,
+    this.isError = false,
+    this.isFetched = false,
   });
 
   QueryState copyWith({
@@ -31,6 +38,9 @@ class QueryState {
     DateTime? dataUpdatedAt,
     DateTime? errorUpdatedAt,
     bool? isStale,
+    int? fetchFailureCount,
+    bool? isError,
+    bool? isFetched,
   }) {
     return QueryState(
       isLoading: isLoading ?? this.isLoading,
@@ -40,6 +50,9 @@ class QueryState {
       dataUpdatedAt: dataUpdatedAt ?? this.dataUpdatedAt,
       errorUpdatedAt: errorUpdatedAt ?? this.errorUpdatedAt,
       isStale: isStale ?? this.isStale,
+      fetchFailureCount: fetchFailureCount ?? this.fetchFailureCount,
+      isError: isError ?? this.isError,
+      isFetched: isFetched ?? this.isFetched,
     );
   }
 }
