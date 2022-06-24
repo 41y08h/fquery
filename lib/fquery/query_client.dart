@@ -17,34 +17,39 @@ class QueryClient {
     return queries[queryKey] = query;
   }
 
-  Query buildQuery(String queryKey,
-      {QueryFn? queryFn, dynamic Function(dynamic data)? transform}) {
-    final queryFunction = queryFn ?? defaultOptions?.queryFn;
-    if (queryFunction == null) {
+  Query buildQuery(
+    String queryKey, {
+    QueryFn? queryFn,
+    Duration staleDuration = Duration.zero,
+    Duration? refetchInterval,
+    RefetchOnReconnect refetchOnReconnect = RefetchOnReconnect.ifStale,
+    dynamic Function(dynamic data)? select,
+    dynamic Function(dynamic data)? transform,
+    bool enabled = true,
+  }) {
+    final isQueryFnMissing = (queryFn ?? defaultOptions?.queryFn) == null;
+    if (isQueryFnMissing) {
       throw Exception('QueryFn is missing, please provide one');
     }
-    final existingQuery = getQuery(queryKey);
+    var query = getQuery(queryKey);
+    query ??= Query(
+      client: this,
+      queryKey: queryKey,
+      queryFn: queryFn,
+      transform: transform,
+      state: QueryState(
+        status: enabled ? QueryStatus.loading : QueryStatus.idle,
+      ),
+    );
 
-    return existingQuery ??
-        addQuery(
-          queryKey,
-          Query(
-            queryKey: queryKey,
-            queryFn: () => queryFunction == defaultOptions?.queryFn
-                ? queryFunction(queryKey)
-                : queryFunction(),
-            transform: transform,
-            state: QueryState(),
-          ),
-        );
+    // Add query to the cache
+    return addQuery(queryKey, query);
   }
 
   void invalidateQueries(List<String> queryKeys) {
     for (var queryKey in queryKeys) {
       final query = getQuery(queryKey);
-      if (query != null) {
-        query.invalidate();
-      }
+      query?.invalidate();
     }
   }
 

@@ -4,34 +4,40 @@ enum RefetchOnReconnect {
   never,
 }
 
+enum QueryStatus {
+  idle,
+  loading,
+  error,
+  success,
+}
+
 class QueryState {
-  bool isLoading;
   bool isFetching;
   int fetchFailureCount;
-  bool isError;
-  bool isFetched;
+
+  bool get isIdle => status == QueryStatus.idle;
+  bool get isError => status == QueryStatus.error;
+  bool get isLoading => status == QueryStatus.loading;
 
   dynamic data;
   dynamic error;
   DateTime? dataUpdatedAt;
   DateTime? errorUpdatedAt;
   bool isStale;
+  QueryStatus status;
 
   QueryState({
-    this.isLoading = true,
-    this.isFetching = true,
-    this.data,
-    this.error,
+    this.isFetching = false,
+    this.data = false,
+    this.error = false,
     this.dataUpdatedAt,
     this.errorUpdatedAt,
     this.isStale = false,
     this.fetchFailureCount = 0,
-    this.isError = false,
-    this.isFetched = false,
+    required this.status,
   });
 
   QueryState copyWith({
-    bool? isLoading,
     bool? isFetching,
     dynamic data,
     dynamic error,
@@ -39,11 +45,9 @@ class QueryState {
     DateTime? errorUpdatedAt,
     bool? isStale,
     int? fetchFailureCount,
-    bool? isError,
-    bool? isFetched,
+    QueryStatus? status,
   }) {
     return QueryState(
-      isLoading: isLoading ?? this.isLoading,
       isFetching: isFetching ?? this.isFetching,
       data: data ?? this.data,
       error: error ?? this.error,
@@ -51,13 +55,12 @@ class QueryState {
       errorUpdatedAt: errorUpdatedAt ?? this.errorUpdatedAt,
       isStale: isStale ?? this.isStale,
       fetchFailureCount: fetchFailureCount ?? this.fetchFailureCount,
-      isError: isError ?? this.isError,
-      isFetched: isFetched ?? this.isFetched,
+      status: status ?? this.status,
     );
   }
 }
 
-typedef QueryFn<T> = Future<T> Function();
+typedef QueryFn<T> = Future<T> Function(String queryKey);
 
 class QueryClientDefaultOptions<TQueryFnData> {
   Future<dynamic> Function(String queryKey) queryFn;

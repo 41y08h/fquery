@@ -49,7 +49,6 @@ class HomePage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final queryClient = useQueryClient();
     final query = useQuery(
       '/todos',
       transform: (data) {
@@ -64,45 +63,11 @@ class HomePage extends HookWidget {
 
     return Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (query.isFetching && !query.isLoading)
-              const LinearProgressIndicator(),
-            query.when<List<Todo>, dynamic>(
-              inLoading: () => const CircularProgressIndicator(),
-              inError: (error) => const Text('Error'),
-              inData: (data) => Expanded(
-                child: ListView.builder(
-                  itemCount: query.data.length,
-                  itemBuilder: (context, index) {
-                    final todo = query.data[index];
-                    return ListTile(
-                      title: Text(
-                        todo.title,
-                        style: TextStyle(
-                          decoration: todo.completed
-                              ? TextDecoration.lineThrough
-                              : null,
-                        ),
-                      ),
-                      subtitle: Text(todo.id.toString()),
-                      onTap: () {
-                        queryClient.setQueryData<List<Todo>>(
-                          '/todos',
-                          (previous) => previous.map<Todo>((item) {
-                            return item.id == todo.id
-                                ? todo.copyWith(completed: !todo.completed)
-                                : item;
-                          }).toList(),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
+        child: Text(
+          query.status.toString(),
+          style: const TextStyle(
+            fontSize: 24,
+          ),
         ),
       ),
     );

@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
-import 'package:fquery/fquery/types.dart';
+import 'package:fquery/fquery/fquery.dart';
+import 'package:fquery/fquery/query_observer.dart';
 
 enum DispatchAction {
   fetch,
@@ -9,24 +9,32 @@ enum DispatchAction {
   setState,
 }
 
-class Query extends ChangeNotifier {
+class Query {
   final String queryKey;
+  final QueryClient client;
+  List<QueryObserver> observers = [];
+
   QueryState state;
-  QueryFn<dynamic> queryFn;
+  QueryFn? queryFn;
   dynamic Function(dynamic data)? transform;
 
   Query({
+    required this.client,
     required this.queryKey,
     required this.state,
-    required this.queryFn,
+    this.queryFn,
     this.transform,
-  });
+  }) {
+    queryFn = queryFn ?? client.defaultOptions?.queryFn;
+    if (queryFn == null) {
+      throw Exception('QueryFn is missing, please provide one');
+    }
+  }
 
   Future<void> fetchData() async {
-    print("fetching");
     dispatch(DispatchAction.fetch, null);
     try {
-      final data = await queryFn();
+      final data = await queryFn?.call(queryKey);
       setData((previous) {
         return transform == null ? data : transform?.call(data);
       });
@@ -48,7 +56,7 @@ class Query extends ChangeNotifier {
     switch (action) {
       case DispatchAction.fetch:
         return state.copyWith(
-          isLoading: state.data != null ? false : true,
+          status: state.data == null ? QueryStatus.loading : QueryStatus.idle,
           isFetching: true,
         );
       case DispatchAction.error:
@@ -58,9 +66,8 @@ class Query extends ChangeNotifier {
         );
       case DispatchAction.success:
         return state.copyWith(
-          isLoading: false,
+          status: QueryStatus.success,
           isFetching: false,
-          isError: false,
           error: null,
           data: data,
           dataUpdatedAt: DateTime.now(),
@@ -78,6 +85,17 @@ class Query extends ChangeNotifier {
 
   void dispatch(DispatchAction action, dynamic data) {
     state = reducer(state, action, data);
-    notifyListeners();
+    for (var observer in observers) {
+      observer.onQueryUpdated();
+    }
+  }
+
+  void addObserver(QueryObserver observer) {
+    if (observers.contains(observer)) return;
+    observers.add(observer);
+  }
+
+  void removeObserver(QueryObserver observer) {
+    observers.remove(observer);
   }
 }
