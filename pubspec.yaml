@@ -36,6 +36,8 @@ dependencies:
   flutter_hooks: ^0.18.3
   dio: ^4.0.6
   connectivity_plus: ^2.3.5
+  riverpod: ^1.0.3
+  flutter_riverpod: ^1.0.4
 
 dev_dependencies:
   flutter_test:

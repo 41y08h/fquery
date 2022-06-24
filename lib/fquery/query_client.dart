@@ -1,5 +1,5 @@
+import 'package:fquery/fquery/query.dart';
 import 'package:fquery/fquery/types.dart';
-import 'package:fquery/main.dart';
 
 class QueryClient {
   final Map<String, Query> queries = {};
@@ -17,21 +17,26 @@ class QueryClient {
     return queries[queryKey] = query;
   }
 
-  Query buildQuery(String queryKey, QueryFn? queryFn) {
+  Query buildQuery(String queryKey,
+      {QueryFn? queryFn, dynamic Function(dynamic data)? transform}) {
     final queryFunction = queryFn ?? defaultOptions?.queryFn;
     if (queryFunction == null) {
-      throw Exception('QueryFn is missing');
+      throw Exception('QueryFn is missing, please provide one');
     }
+    final existingQuery = getQuery(queryKey);
 
-    return (getQuery(queryKey) ??
+    return existingQuery ??
         addQuery(
           queryKey,
           Query(
             queryKey: queryKey,
-            queryFn: queryFunction,
+            queryFn: () => queryFunction == defaultOptions?.queryFn
+                ? queryFunction(queryKey)
+                : queryFunction(),
+            transform: transform,
             state: QueryState(),
           ),
-        ));
+        );
   }
 
   void invalidateQueries(List<String> queryKeys) {

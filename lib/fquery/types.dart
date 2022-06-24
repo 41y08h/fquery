@@ -26,8 +26,8 @@ class QueryState {
   QueryState copyWith({
     bool? isLoading,
     bool? isFetching,
-    dynamic? data,
-    dynamic? error,
+    dynamic data,
+    dynamic error,
     DateTime? dataUpdatedAt,
     DateTime? errorUpdatedAt,
     bool? isStale,
@@ -47,9 +47,9 @@ class QueryState {
 typedef QueryFn<T> = Future<T> Function();
 
 class QueryClientDefaultOptions<TQueryFnData> {
-  QueryFn? queryFn;
+  Future<dynamic> Function(String queryKey) queryFn;
 
   QueryClientDefaultOptions({
-    this.queryFn,
+    required this.queryFn,
   });
 }

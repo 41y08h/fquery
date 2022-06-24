@@ -5,11 +5,13 @@ class Query extends ChangeNotifier {
   final String queryKey;
   QueryState state;
   QueryFn<dynamic> queryFn;
+  dynamic Function(dynamic data)? transform;
 
   Query({
     required this.queryKey,
     required this.state,
     required this.queryFn,
+    this.transform,
   });
 
   Future<void> fetchData() async {
@@ -20,10 +22,8 @@ class Query extends ChangeNotifier {
     notifyListeners();
 
     try {
-      state = state.copyWith(
-        data: await queryFn(),
-        dataUpdatedAt: DateTime.now(),
-      );
+      final data = await queryFn();
+      setData((previous) => transform == null ? data : transform?.call(data));
       notifyListeners();
     } catch (e) {
       state = state.copyWith(
@@ -53,6 +53,7 @@ class Query extends ChangeNotifier {
       data: updater(state.data),
       dataUpdatedAt: DateTime.now(),
     );
+
     notifyListeners();
   }
 }

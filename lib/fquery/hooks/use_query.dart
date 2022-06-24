@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery/connection_status.dart';
+import 'package:fquery/fquery/query_result.dart';
 import 'package:fquery/fquery/types.dart';
 import 'package:fquery/main.dart';
 
@@ -11,9 +12,15 @@ QueryResult useQuery(
   Duration staleDuration = Duration.zero,
   Duration? refetchInterval,
   RefetchOnReconnect refetchOnReconnect = RefetchOnReconnect.ifStale,
+  dynamic Function(dynamic data)? select,
+  dynamic Function(dynamic data)? transform,
 }) {
   final query = useListenable(
-    queryClient.buildQuery(queryKey, fetch),
+    queryClient.buildQuery(
+      queryKey,
+      queryFn: fetch,
+      transform: transform,
+    ),
   );
   final connectionStatus = useListenable(ConnectionStatus());
 
