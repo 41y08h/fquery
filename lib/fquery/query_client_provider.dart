@@ -1,6 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fquery/main.dart';
+import 'package:flutter/widgets.dart';
+import 'package:fquery/fquery/query_client.dart';
 
 class QueryClientProvider extends InheritedWidget {
   final QueryClient queryClient;
@@ -19,8 +18,4 @@ class QueryClientProvider extends InheritedWidget {
     assert(result != null, 'QueryClientProvider not found');
     return result!;
   }
-}
-
-QueryClient useQueryClient() {
-  return QueryClientProvider.of(useContext()).queryClient;
 }
