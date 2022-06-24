@@ -12,7 +12,11 @@ main() {
 final queryClient = QueryClient(
   defaultOptions: QueryClientDefaultOptions(
     queryFn: (queryKey) async {
-      final res = await Dio().get(queryKey);
+      final res = await Dio(
+        BaseOptions(
+          baseUrl: 'https://jsonplaceholder.typicode.com',
+        ),
+      ).get(queryKey);
       return res.data;
     },
   ),
@@ -47,7 +51,7 @@ class HomePage extends HookWidget {
   Widget build(BuildContext context) {
     final queryClient = useQueryClient();
     final query = useQuery(
-      'https://jsonplaceholder.typicode.com/todos',
+      '/todos',
       transform: (data) {
         final List<Todo> todos = [];
         for (var item in data) {
@@ -55,39 +59,48 @@ class HomePage extends HookWidget {
         }
         return todos;
       },
+      refetchInterval: const Duration(seconds: 4),
     );
 
     return Scaffold(
       body: Center(
-        child: query.when<List<Todo>, dynamic>(
-          inLoading: () => const CircularProgressIndicator(),
-          inError: (error) => const Text('Error'),
-          inData: (data) => ListView.builder(
-            itemCount: query.data.length,
-            itemBuilder: (context, index) {
-              final todo = query.data[index];
-              return ListTile(
-                title: Text(
-                  todo.title,
-                  style: TextStyle(
-                    decoration:
-                        todo.completed ? TextDecoration.lineThrough : null,
-                  ),
+        child: Column(
+          children: [
+            if (query.isFetching) const LinearProgressIndicator(),
+            Expanded(
+              child: query.when<List<Todo>, dynamic>(
+                inLoading: () => const CircularProgressIndicator(),
+                inError: (error) => const Text('Error'),
+                inData: (data) => ListView.builder(
+                  itemCount: query.data.length,
+                  itemBuilder: (context, index) {
+                    final todo = query.data[index];
+                    return ListTile(
+                      title: Text(
+                        todo.title,
+                        style: TextStyle(
+                          decoration: todo.completed
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                      ),
+                      subtitle: Text(todo.id.toString()),
+                      onTap: () {
+                        queryClient.setQueryData<List<Todo>>(
+                          '/todos',
+                          (previous) => previous.map<Todo>((item) {
+                            return item.id == todo.id
+                                ? todo.copyWith(completed: !todo.completed)
+                                : item;
+                          }).toList(),
+                        );
+                      },
+                    );
+                  },
                 ),
-                subtitle: Text(todo.id.toString()),
-                onTap: () {
-                  queryClient.setQueryData<List<Todo>>(
-                    'https://jsonplaceholder.typicode.com/todos',
-                    (previous) => previous.map<Todo>((item) {
-                      return item.id == todo.id
-                          ? todo.copyWith(completed: !todo.completed)
-                          : item;
-                    }).toList(),
-                  );
-                },
-              );
-            },
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );

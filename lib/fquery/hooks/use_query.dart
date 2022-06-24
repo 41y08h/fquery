@@ -50,10 +50,11 @@ QueryResult useQuery(
   useEffect(() {
     if (refetchInterval == null) return null;
     final timer = Timer.periodic(refetchInterval, (_) {
+      if (!connectionStatus.isOnline) return;
       query.fetchData();
     });
     return () => timer.cancel();
-  }, [refetchInterval]);
+  }, [refetchInterval, connectionStatus]);
 
   return QueryResult(query.state);
 }
