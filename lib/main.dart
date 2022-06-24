@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery/connection_status.dart';
@@ -56,8 +57,7 @@ class QueryClient {
   void setQueryData<TData>(
       String queryKey, TData Function(TData previous) updater) {
     final query = getQuery(queryKey);
-    query?.state.data = updater(query.state.data);
-    query?.notifyListeners();
+    query?.setData(updater);
   }
 }
 
@@ -107,6 +107,14 @@ class Query extends ChangeNotifier {
     notifyListeners();
     fetchData();
   }
+
+  void setData<TData>(TData Function(TData previous) updater) {
+    state = state.copyWith(
+      data: updater(state.data),
+      dataUpdatedAt: DateTime.now(),
+    );
+    notifyListeners();
+  }
 }
 
 final queryClient = QueryClient(
@@ -119,7 +127,7 @@ final queryClient = QueryClient(
   ),
 );
 
-QueryState useQuery(
+QueryResult useQuery(
   String queryKey, {
   QueryFn? fetch,
   Duration staleDuration = Duration.zero,
@@ -161,7 +169,33 @@ QueryState useQuery(
     });
     return () => timer.cancel();
   }, [refetchInterval]);
-  return query.state;
+
+  return QueryResult(query.state);
+}
+
+class QueryResult extends QueryState {
+  QueryResult(QueryState state)
+      : super(
+          data: state.data,
+          error: state.error,
+          isLoading: state.isLoading,
+          isFetching: state.isFetching,
+          isStale: state.isStale,
+          dataUpdatedAt: state.dataUpdatedAt,
+          errorUpdatedAt: state.errorUpdatedAt,
+        );
+
+  Widget when<TData, TError>(
+      {required Widget Function() loading,
+      required Widget Function(TError error) error,
+      required Widget Function(TData data) data}) {
+    if (isLoading) {
+      return loading();
+    } else if (this.error != null) {
+      return error(this.error);
+    }
+    return data(this.data);
+  }
 }
 
 class App extends HookWidget {
@@ -184,6 +218,43 @@ class App extends HookWidget {
   }
 }
 
+class Todo {
+  final int userId;
+  final int id;
+  final String title;
+  bool completed;
+
+  Todo({
+    required this.userId,
+    required this.id,
+    required this.title,
+    required this.completed,
+  });
+
+  factory Todo.fromJson(Map<String, dynamic> json) {
+    return Todo(
+      userId: json['userId'] as int,
+      id: json['id'] as int,
+      title: json['title'] as String,
+      completed: json['completed'] as bool,
+    );
+  }
+
+  Todo copyWith({
+    int? userId,
+    int? id,
+    String? title,
+    bool? completed,
+  }) {
+    return Todo(
+      userId: userId ?? this.userId,
+      id: id ?? this.id,
+      title: title ?? this.title,
+      completed: completed ?? this.completed,
+    );
+  }
+}
+
 class Page1 extends HookWidget {
   const Page1({
     Key? key,
@@ -191,42 +262,54 @@ class Page1 extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final queryClient = useQueryClient();
     final query = useQuery(
-      'names',
+      'todos',
       fetch: () async {
-        await Future.delayed(const Duration(seconds: 1));
-        return ['a', 'b', 'c'];
+        final res =
+            await Dio().get('https://jsonplaceholder.typicode.com/todos');
+
+        final List<Todo> todos = [];
+        for (var item in res.data) {
+          todos.add(Todo.fromJson(item));
+        }
+
+        return todos;
       },
-      refetchInterval: const Duration(seconds: 8),
-      refetchOnReconnect: RefetchOnReconnect.ifStale,
-      staleDuration: const Duration(seconds: 5),
     );
 
     return Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Builder(builder: (context) {
-              if (query.isLoading) {
-                return const Text('Loading...');
-              }
-              if (query.error != null) {
-                return Text('Error: ${query.error}');
-              }
-              return Text('Data: ${query.data}');
-            }),
-            TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const Page2(),
+        child: query.when<List<Todo>, dynamic>(
+          loading: () => const CircularProgressIndicator(),
+          error: (error) => Text("Error $error"),
+          data: (data) => ListView.builder(
+              itemCount: data.length,
+              itemBuilder: (context, index) {
+                final todo = data[index];
+                return ListTile(
+                  title: Text(
+                    todo.title,
+                    style: TextStyle(
+                      decoration:
+                          todo.completed ? TextDecoration.lineThrough : null,
                     ),
-                  );
-                },
-                child: const Text("Navigate"))
-          ],
+                  ),
+                  subtitle: Text(todo.id.toString()),
+                  onTap: () {
+                    queryClient.setQueryData<List<Todo>>(
+                      'todos',
+                      (previous) => previous
+                          .map<Todo>(
+                            (item) => item.id == todo.id
+                                ? todo.copyWith(completed: !todo.completed)
+                                : item,
+                          )
+                          .toList(),
+                    );
+                  },
+                );
+              }),
         ),
       ),
     );
