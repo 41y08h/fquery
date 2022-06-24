@@ -1,9 +1,7 @@
-import 'dart:async';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:fquery/fquery/subscribable.dart';
+import 'package:flutter/cupertino.dart';
 
-class ConnectionStatus extends Subscribable {
+class ConnectionStatus extends ChangeNotifier {
   static final ConnectionStatus _instance = ConnectionStatus._internal();
 
   factory ConnectionStatus() => _instance;

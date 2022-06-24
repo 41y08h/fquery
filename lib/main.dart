@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery/connection_status.dart';
 import 'package:fquery/fquery/query_client_provider.dart';
-import 'package:fquery/fquery/subscribable.dart';
 import 'package:fquery/fquery/types.dart';
 
 main() {
@@ -63,7 +61,7 @@ class QueryClient {
   }
 }
 
-class Query extends Subscribable {
+class Query extends ChangeNotifier {
   final String queryKey;
   QueryState state;
   QueryFn<dynamic> queryFn;
@@ -109,13 +107,6 @@ class Query extends Subscribable {
     notifyListeners();
     fetchData();
   }
-
-  @override
-  void notifyListeners() {
-    for (final listener in listeners) {
-      listener();
-    }
-  }
 }
 
 final queryClient = QueryClient(
@@ -144,6 +135,7 @@ QueryState useQuery(
     if (query.state.isLoading) {
       query.fetchData();
     }
+    return null;
   }, []);
 
   useEffect(() {
@@ -159,6 +151,7 @@ QueryState useQuery(
         query.fetchData();
       }
     }
+    return null;
   }, [connectionStatus.isOnline]);
 
   useEffect(() {
