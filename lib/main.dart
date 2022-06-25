@@ -98,6 +98,7 @@ class TodoPage extends HookWidget {
       '/todos/${id.value}',
       () => fetchTodo(id.value),
       refreshDuration: const Duration(seconds: 6),
+      refetchOnMount: RefetchOnMount.never,
     );
 
     return Scaffold(body: Center(
