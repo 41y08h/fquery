@@ -1,7 +1,13 @@
+import 'package:fquery/fquery/fquery.dart';
 import 'package:fquery/fquery/query.dart';
 
 class QueryClient {
   final Map<String, Query> queries = {};
+  late QueryOptions defaultQueryOptions;
+
+  QueryClient({QueryOptions? defaultQueryOptions}) {
+    this.defaultQueryOptions = defaultQueryOptions ?? QueryOptions();
+  }
 
   Query<TData, TError>? getQuery<TData, TError>(String queryKey) {
     return queries[queryKey] as Query<TData, TError>?;

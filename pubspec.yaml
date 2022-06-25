@@ -38,6 +38,7 @@ dependencies:
   connectivity_plus: ^2.3.5
   riverpod: ^1.0.3
   flutter_riverpod: ^1.0.4
+  retry: ^3.1.0
 
 dev_dependencies:
   flutter_test:

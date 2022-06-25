@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery/fquery.dart';
 import 'package:fquery/fquery/query_client_provider.dart';
 import 'package:fquery/models/todo.dart';
+import 'package:retry/retry.dart';
 
 main() {
   runApp(const App());
@@ -85,6 +86,7 @@ class HomePage extends HookWidget {
 
 Future<Todo> fetchTodo(int id) async {
   final res = await Dio().get('https://jsonplaceholder.typicode.com/todos/$id');
+  print(DateTime.now());
   throw Exception('dfsdf');
   return Todo.fromJson(res.data);
 }
@@ -99,7 +101,12 @@ class TodoPage extends HookWidget {
     final query = useQuery(
       '/todos/${id.value}',
       () => fetchTodo(id.value),
-      enabled: enabled.value,
+      options: QueryOptions(
+        retry: const RetryOptions(
+          maxAttempts: 4,
+          delayFactor: Duration(seconds: 1),
+        ),
+      ),
     );
 
     return Scaffold(
@@ -108,9 +115,9 @@ class TodoPage extends HookWidget {
         children: [
           // Enable button
           RaisedButton(
-            child: const Text('Enable'),
+            child: Text('$enabled'),
             onPressed: () {
-              enabled.value = true;
+              enabled.value = !enabled.value;
             },
           ),
           Expanded(

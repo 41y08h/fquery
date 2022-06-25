@@ -233,6 +233,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.2"
+  retry:
+    dependency: "direct main"
+    description:
+      name: retry
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.1.0"
   riverpod:
     dependency: "direct main"
     description:
