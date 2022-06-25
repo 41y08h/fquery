@@ -42,6 +42,9 @@ class Observer<TData, TError> extends ChangeNotifier {
           fetch();
           break;
         case RefetchOnMount.stale:
+          DateTime? staleAt = query.state.dataUpdatedAt?.add(options.staleTime);
+          final isStale = staleAt?.isBefore(DateTime.now()) ?? true;
+          if (isStale) fetch();
           break;
         case RefetchOnMount.never:
           break;

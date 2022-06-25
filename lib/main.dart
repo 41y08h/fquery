@@ -86,7 +86,6 @@ class HomePage extends HookWidget {
 
 Future<Todo> fetchTodo(int id) async {
   final res = await Dio().get('https://jsonplaceholder.typicode.com/todos/$id');
-  throw Exception('dfsdf');
   return Todo.fromJson(res.data);
 }
 
@@ -105,7 +104,7 @@ class TodoPage extends HookWidget {
           maxAttempts: 4,
           delayFactor: Duration(seconds: 1),
         ),
-        refetchOnMount: RefetchOnMount.never,
+        staleTime: const Duration(seconds: 10),
       ),
     );
 
