@@ -28,10 +28,12 @@ class Observer<TData, TError> extends ChangeNotifier {
       // Propagate the change to the observer's listeners
       notifyListeners();
     });
-    fetch();
+    if (enabled) {
+      fetch();
+    }
   }
 
-  void setOptions({
+  void onOptionsChanged({
     bool enabled = true,
     Duration? refreshInterval,
     RefetchOnMount refetchOnMount = RefetchOnMount.stale,
@@ -43,6 +45,8 @@ class Observer<TData, TError> extends ChangeNotifier {
     this.refetchOnMount = refetchOnMount;
     this.retry = retry;
     this.retryDelay = retryDelay;
+
+    if (this.enabled) fetch();
   }
 
   void fetch() async {

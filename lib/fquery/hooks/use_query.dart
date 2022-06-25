@@ -25,9 +25,22 @@ QueryState<TData, TError> useQuery<TData, TError>(
       retry: retry,
       retryDelay: retryDelay,
     ),
+    [queryKey],
   );
   // This subscribes to the observer
   useListenable(observer);
+
+  // Propagate the options changes to the observer
+  useEffect(() {
+    observer.onOptionsChanged(
+      enabled: enabled,
+      refreshInterval: refreshInterval,
+      refetchOnMount: refetchOnMount,
+      retry: retry,
+      retryDelay: retryDelay,
+    );
+    return null;
+  }, [enabled, refreshInterval, refetchOnMount, retry, retryDelay]);
 
   return observer.query.state;
 }

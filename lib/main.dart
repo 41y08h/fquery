@@ -95,27 +95,41 @@ class TodoPage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final id = useState(ModalRoute.of(context)?.settings.arguments as int);
+    final enabled = useState(false);
     final query = useQuery(
       '/todos/${id.value}',
       () => fetchTodo(id.value),
-      refreshInterval: const Duration(seconds: 1),
-      refetchOnMount: RefetchOnMount.never,
-      retry: 4,
-      retryDelay: const Duration(seconds: 1),
+      enabled: enabled.value,
     );
 
-    return Scaffold(body: Center(
-      child: Builder(
-        builder: (context) {
-          if (query.isLoading) {
-            return const CircularProgressIndicator();
-          } else if (query.isError) {
-            return Text(query.error.toString());
-          } else {
-            final todo = query.data as Todo;
-            return Text(todo.title);
-          }
-        },
+    return Scaffold(
+        body: Center(
+      child: Column(
+        children: [
+          // Enable button
+          RaisedButton(
+            child: const Text('Enable'),
+            onPressed: () {
+              enabled.value = true;
+            },
+          ),
+          Expanded(
+            child: Center(
+              child: Builder(
+                builder: (context) {
+                  if (query.isLoading) {
+                    return const CircularProgressIndicator();
+                  } else if (query.isError) {
+                    return Text(query.error.toString());
+                  } else {
+                    final todo = query.data as Todo;
+                    return Text(todo.title);
+                  }
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     ));
   }
