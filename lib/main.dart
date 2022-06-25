@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery/fquery.dart';
-import 'package:fquery/fquery/query.dart';
 import 'package:fquery/fquery/query_client_provider.dart';
 import 'package:fquery/models/todo.dart';
 
@@ -84,21 +83,19 @@ class HomePage extends HookWidget {
   }
 }
 
-final todoQuery = Query();
-
 class TodoPage extends HookWidget {
   const TodoPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final id = useState(ModalRoute.of(context)?.settings.arguments as int);
-    final query = useQuery('/todos/${id.value}', () {
-      return Dio()
+    final query = useQuery(
+      '/todos/${id.value}',
+      () => Dio()
           .get('https://jsonplaceholder.typicode.com/todos/${id.value}')
-          .then((res) {
-        return Todo.fromJson(res.data);
-      });
-    });
+          .then((res) => Todo.fromJson(res.data)),
+      refreshDuration: const Duration(seconds: 1),
+    );
 
     return Scaffold(
         body: Center(

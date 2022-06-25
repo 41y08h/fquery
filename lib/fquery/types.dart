@@ -41,13 +41,3 @@ class QueryState<TData, TError> {
     );
   }
 }
-
-typedef QueryFn<T> = Future<T> Function();
-
-class QueryClientDefaultOptions<TQueryFnData> {
-  Future<dynamic> Function(String queryKey) queryFn;
-
-  QueryClientDefaultOptions({
-    required this.queryFn,
-  });
-}
