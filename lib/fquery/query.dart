@@ -1,11 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:fquery/fquery/fquery.dart';
 
-enum DispatchAction {
-  fetch,
-  error,
-  success,
-}
+enum DispatchAction { fetch, error, success, cancelFetch }
 
 class Query<TData, TError> extends ChangeNotifier {
   QueryState<TData, TError> _state = QueryState();
@@ -17,6 +13,10 @@ class Query<TData, TError> extends ChangeNotifier {
       case DispatchAction.fetch:
         return state.copyWith(
           isFetching: true,
+        );
+      case DispatchAction.cancelFetch:
+        return state.copyWith(
+          isFetching: false,
         );
       case DispatchAction.error:
         return state.copyWith(
@@ -33,6 +33,7 @@ class Query<TData, TError> extends ChangeNotifier {
           dataUpdatedAt: DateTime.now(),
           isFetching: false,
         );
+
       default:
         return state;
     }

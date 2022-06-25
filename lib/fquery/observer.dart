@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:fquery/fquery/fquery.dart';
 import 'package:fquery/fquery/query.dart';
+import 'package:fquery/fquery/retryer.dart';
 
 class Observer<TData, TError> extends ChangeNotifier {
   final String queryKey;
@@ -11,6 +12,7 @@ class Observer<TData, TError> extends ChangeNotifier {
 
   // Options
   late QueryOptions options;
+  final resolver = RetryResolver();
 
   Observer(
     this.queryKey,
@@ -40,11 +42,16 @@ class Observer<TData, TError> extends ChangeNotifier {
     }
 
     query.dispatch(DispatchAction.fetch, null);
-    try {
-      final data = await options.retry.retry(fetcher);
+    resolver.resolve(fetcher, onResolve: (data) {
       query.dispatch(DispatchAction.success, data);
-    } catch (e) {
-      query.dispatch(DispatchAction.error, e);
-    }
+    }, onError: (error) {
+      query.dispatch(DispatchAction.error, error);
+    }, onCancel: () {
+      query.dispatch(DispatchAction.cancelFetch, null);
+    });
+  }
+
+  void cleanup() {
+    resolver.cancel();
   }
 }

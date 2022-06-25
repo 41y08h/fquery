@@ -41,7 +41,7 @@ QueryState<TData, TError> useQuery<TData, TError>(
 
   useEffect(() {
     return () {
-      observer.dispose();
+      observer.cleanup();
     };
   }, []);
 
