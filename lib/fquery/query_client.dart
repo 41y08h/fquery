@@ -21,6 +21,6 @@ class QueryClient {
   void setQueryData<TData>(
       String queryKey, TData Function(TData previous) updater) {
     final query = getQuery(queryKey);
-    query?.setData(updater);
+    query?.dispatch(DispatchAction.success, updater(query.state.data));
   }
 }

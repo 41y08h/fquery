@@ -10,12 +10,7 @@ class QueryState<TData, TError> {
   DateTime? dataUpdatedAt;
   DateTime? errorUpdatedAt;
   bool isFetching;
-
-  QueryStatus get status => dataUpdatedAt == null
-      ? QueryStatus.loading
-      : error != null
-          ? QueryStatus.error
-          : QueryStatus.success;
+  QueryStatus status;
 
   bool get isLoading => status == QueryStatus.loading;
   bool get isSuccess => status == QueryStatus.success;
@@ -27,6 +22,7 @@ class QueryState<TData, TError> {
     this.dataUpdatedAt,
     this.errorUpdatedAt,
     this.isFetching = false,
+    this.status = QueryStatus.loading,
   });
 
   QueryState<TData, TError> copyWith({
@@ -35,6 +31,7 @@ class QueryState<TData, TError> {
     DateTime? dataUpdatedAt,
     DateTime? errorUpdatedAt,
     bool? isFetching,
+    QueryStatus? status,
   }) {
     return QueryState(
       data: data ?? this.data,
@@ -42,6 +39,13 @@ class QueryState<TData, TError> {
       dataUpdatedAt: dataUpdatedAt ?? this.dataUpdatedAt,
       errorUpdatedAt: errorUpdatedAt ?? this.errorUpdatedAt,
       isFetching: isFetching ?? this.isFetching,
+      status: status ?? this.status,
     );
   }
+}
+
+enum RefetchOnMount {
+  stale,
+  always,
+  never,
 }

@@ -85,6 +85,7 @@ class HomePage extends HookWidget {
 
 Future<Todo> fetchTodo(int id) async {
   final res = await Dio().get('https://jsonplaceholder.typicode.com/todos/$id');
+  throw Exception('dfsdf');
   return Todo.fromJson(res.data);
 }
 
@@ -97,8 +98,10 @@ class TodoPage extends HookWidget {
     final query = useQuery(
       '/todos/${id.value}',
       () => fetchTodo(id.value),
-      refreshDuration: const Duration(seconds: 6),
+      refreshInterval: const Duration(seconds: 1),
       refetchOnMount: RefetchOnMount.never,
+      retry: 4,
+      retryDelay: const Duration(seconds: 1),
     );
 
     return Scaffold(body: Center(
