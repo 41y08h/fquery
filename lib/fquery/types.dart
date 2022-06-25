@@ -9,6 +9,7 @@ class QueryState<TData, TError> {
   TError? error;
   DateTime? dataUpdatedAt;
   DateTime? errorUpdatedAt;
+  bool isFetching;
 
   QueryStatus get status => dataUpdatedAt == null
       ? QueryStatus.loading
@@ -25,6 +26,7 @@ class QueryState<TData, TError> {
     this.error,
     this.dataUpdatedAt,
     this.errorUpdatedAt,
+    this.isFetching = false,
   });
 
   QueryState<TData, TError> copyWith({
@@ -32,12 +34,14 @@ class QueryState<TData, TError> {
     dynamic error,
     DateTime? dataUpdatedAt,
     DateTime? errorUpdatedAt,
+    bool? isFetching,
   }) {
     return QueryState(
       data: data ?? this.data,
       error: error ?? this.error,
       dataUpdatedAt: dataUpdatedAt ?? this.dataUpdatedAt,
       errorUpdatedAt: errorUpdatedAt ?? this.errorUpdatedAt,
+      isFetching: isFetching ?? this.isFetching,
     );
   }
 }

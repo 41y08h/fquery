@@ -10,12 +10,17 @@ class Query<TData, TError> extends ChangeNotifier {
   QueryState<TData, TError> _state = QueryState();
   QueryState<TData, TError> get state => _state;
 
+  void setIsFetching(bool value) {
+    _state = _state.copyWith(isFetching: value);
+    notifyListeners();
+  }
+
   void setData(TData data) {
-    _dispatch(DispatchAction.success, data);
+    dispatch(DispatchAction.success, data);
   }
 
   void setError(TError error) {
-    _dispatch(DispatchAction.error, error);
+    dispatch(DispatchAction.error, error);
   }
 
   QueryState<TData, TError> _reducer(
@@ -37,7 +42,7 @@ class Query<TData, TError> extends ChangeNotifier {
     }
   }
 
-  void _dispatch(DispatchAction action, dynamic data) {
+  void dispatch(DispatchAction action, dynamic data) {
     _state = _reducer(state, action, data);
     notifyListeners();
   }

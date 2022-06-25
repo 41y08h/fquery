@@ -11,24 +11,18 @@ QueryState<TData, TError> useQuery<TData, TError>(
 }) {
   final client = useQueryClient();
   final query = useListenable(client.buildQuery<TData, TError>(queryKey));
-  final isFetching = useState(false);
 
   final fetch = useCallback(() async {
-    if (enabled == false || isFetching.value) return;
+    if (!enabled || query.state.isFetching) return;
 
-    final staleTime =
-        query.state.dataUpdatedAt?.add(refreshDuration ?? Duration.zero);
-    final isDataFresh = staleTime?.isAfter(DateTime.now()) ?? false;
-    if (isDataFresh) return;
-
-    isFetching.value = true;
+    query.setIsFetching(true);
     try {
       final data = await fetcher();
       query.setData(data);
     } catch (e) {
       query.setError(e as TError);
     } finally {
-      isFetching.value = false;
+      query.setIsFetching(false);
     }
   }, [query, enabled, refreshDuration]);
 
@@ -44,7 +38,7 @@ QueryState<TData, TError> useQuery<TData, TError>(
       fetch();
     });
     return () => timer.cancel();
-  }, [refreshDuration, fetcher, query]);
+  }, [refreshDuration, fetch]);
 
   return query.state;
 }

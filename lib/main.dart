@@ -83,6 +83,11 @@ class HomePage extends HookWidget {
   }
 }
 
+Future<Todo> fetchTodo(int id) async {
+  final res = await Dio().get('https://jsonplaceholder.typicode.com/todos/$id');
+  return Todo.fromJson(res.data);
+}
+
 class TodoPage extends HookWidget {
   const TodoPage({Key? key}) : super(key: key);
 
@@ -91,36 +96,22 @@ class TodoPage extends HookWidget {
     final id = useState(ModalRoute.of(context)?.settings.arguments as int);
     final query = useQuery(
       '/todos/${id.value}',
-      () => Dio()
-          .get('https://jsonplaceholder.typicode.com/todos/${id.value}')
-          .then((res) => Todo.fromJson(res.data)),
-      refreshDuration: const Duration(seconds: 1),
+      () => fetchTodo(id.value),
+      refreshDuration: const Duration(seconds: 6),
     );
 
-    return Scaffold(
-        body: Center(
-      child: Column(
-        children: [
-          TextButton(
-              onPressed: () {
-                id.value = 10;
-              },
-              child: const Text("Change")),
-          Center(
-            child: Builder(
-              builder: (context) {
-                if (query.isLoading) {
-                  return const CircularProgressIndicator();
-                } else if (query.isError) {
-                  return Text(query.error.toString());
-                } else {
-                  final todo = query.data as Todo;
-                  return Text(todo.title);
-                }
-              },
-            ),
-          ),
-        ],
+    return Scaffold(body: Center(
+      child: Builder(
+        builder: (context) {
+          if (query.isLoading) {
+            return const CircularProgressIndicator();
+          } else if (query.isError) {
+            return Text(query.error.toString());
+          } else {
+            final todo = query.data as Todo;
+            return Text(todo.title);
+          }
+        },
       ),
     ));
   }
