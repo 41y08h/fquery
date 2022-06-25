@@ -1,66 +1,48 @@
-enum RefetchOnReconnect {
-  always,
-  ifStale,
-  never,
-}
-
 enum QueryStatus {
-  idle,
   loading,
-  error,
   success,
+  error,
 }
 
-class QueryState {
-  bool isFetching;
-  int fetchFailureCount;
-
-  bool get isIdle => status == QueryStatus.idle;
-  bool get isError => status == QueryStatus.error;
-  bool get isLoading => status == QueryStatus.loading;
-
-  dynamic data;
-  dynamic error;
+class QueryState<TData, TError> {
+  TData? data;
+  TError? error;
   DateTime? dataUpdatedAt;
   DateTime? errorUpdatedAt;
-  bool isStale;
-  QueryStatus status;
+
+  QueryStatus get status => dataUpdatedAt == null
+      ? QueryStatus.loading
+      : error != null
+          ? QueryStatus.error
+          : QueryStatus.success;
+
+  bool get isLoading => status == QueryStatus.loading;
+  bool get isSuccess => status == QueryStatus.success;
+  bool get isError => status == QueryStatus.error;
 
   QueryState({
-    this.isFetching = false,
-    this.data = false,
-    this.error = false,
+    this.data,
+    this.error,
     this.dataUpdatedAt,
     this.errorUpdatedAt,
-    this.isStale = false,
-    this.fetchFailureCount = 0,
-    required this.status,
   });
 
-  QueryState copyWith({
-    bool? isFetching,
+  QueryState<TData, TError> copyWith({
     dynamic data,
     dynamic error,
     DateTime? dataUpdatedAt,
     DateTime? errorUpdatedAt,
-    bool? isStale,
-    int? fetchFailureCount,
-    QueryStatus? status,
   }) {
     return QueryState(
-      isFetching: isFetching ?? this.isFetching,
       data: data ?? this.data,
       error: error ?? this.error,
       dataUpdatedAt: dataUpdatedAt ?? this.dataUpdatedAt,
       errorUpdatedAt: errorUpdatedAt ?? this.errorUpdatedAt,
-      isStale: isStale ?? this.isStale,
-      fetchFailureCount: fetchFailureCount ?? this.fetchFailureCount,
-      status: status ?? this.status,
     );
   }
 }
 
-typedef QueryFn<T> = Future<T> Function(String queryKey);
+typedef QueryFn<T> = Future<T> Function();
 
 class QueryClientDefaultOptions<TQueryFnData> {
   Future<dynamic> Function(String queryKey) queryFn;

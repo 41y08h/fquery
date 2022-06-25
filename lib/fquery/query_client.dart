@@ -6,51 +6,19 @@ class QueryClient {
   final QueryClientDefaultOptions? defaultOptions;
   QueryClient({this.defaultOptions});
 
-  Query? getQuery<TData, TError>(String queryKey) {
-    return queries[queryKey];
+  Query<TData, TError>? getQuery<TData, TError>(String queryKey) {
+    return queries[queryKey] as Query<TData, TError>?;
   }
 
-  Query addQuery<TData, TError>(String queryKey, Query query) {
-    if (queries[queryKey] != null) {
-      return queries[queryKey] as Query;
-    }
-    return queries[queryKey] = query;
+  void setQuery(String queryKey, Query query) {
+    queries[queryKey] = query;
   }
 
-  Query buildQuery(
-    String queryKey, {
-    QueryFn? queryFn,
-    Duration staleDuration = Duration.zero,
-    Duration? refetchInterval,
-    RefetchOnReconnect refetchOnReconnect = RefetchOnReconnect.ifStale,
-    dynamic Function(dynamic data)? select,
-    dynamic Function(dynamic data)? transform,
-    bool enabled = true,
-  }) {
-    final isQueryFnMissing = (queryFn ?? defaultOptions?.queryFn) == null;
-    if (isQueryFnMissing) {
-      throw Exception('QueryFn is missing, please provide one');
-    }
-    var query = getQuery(queryKey);
-    query ??= Query(
-      client: this,
-      queryKey: queryKey,
-      queryFn: queryFn,
-      transform: transform,
-      state: QueryState(
-        status: enabled ? QueryStatus.loading : QueryStatus.idle,
-      ),
-    );
-
-    // Add query to the cache
-    return addQuery(queryKey, query);
-  }
-
-  void invalidateQueries(List<String> queryKeys) {
-    for (var queryKey in queryKeys) {
-      final query = getQuery(queryKey);
-      query?.invalidate();
-    }
+  Query<TData, TError> buildQuery<TData, TError>(String queryKey) {
+    var query = getQuery<TData, TError>(queryKey);
+    query ??= Query();
+    setQuery(queryKey, query);
+    return query;
   }
 
   void setQueryData<TData>(
