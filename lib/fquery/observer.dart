@@ -21,19 +21,34 @@ class Observer<TData, TError> extends ChangeNotifier {
     QueryOptions? options,
   }) {
     query = client.buildQuery<TData, TError>(queryKey);
-    this.options = options ?? client.defaultQueryOptions;
     query.addListener(() {
       // Propagate the change to the observer's listeners
       notifyListeners();
     });
-    if (this.options.enabled) {
-      fetch();
-    }
+
+    onOptionsChanged(options ?? client.defaultQueryOptions);
   }
 
   void onOptionsChanged(QueryOptions options) {
     this.options = options;
-    if (this.options.enabled) fetch();
+
+    // Initiate query
+    if (this.options.enabled == false) return;
+    final isRefetching = !query.state.isLoading;
+
+    if (isRefetching) {
+      switch (this.options.refetchOnMount) {
+        case RefetchOnMount.always:
+          fetch();
+          break;
+        case RefetchOnMount.stale:
+          break;
+        case RefetchOnMount.never:
+          break;
+      }
+    } else {
+      fetch();
+    }
   }
 
   void fetch() async {

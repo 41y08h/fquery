@@ -105,6 +105,7 @@ class TodoPage extends HookWidget {
           maxAttempts: 4,
           delayFactor: Duration(seconds: 1),
         ),
+        refetchOnMount: RefetchOnMount.never,
       ),
     );
 
