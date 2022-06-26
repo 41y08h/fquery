@@ -1,11 +1,26 @@
-import 'package:flutter/foundation.dart';
-import 'types.dart';
+import 'dart:async';
+import 'dart:math';
 
-enum DispatchAction { fetch, error, success, cancelFetch }
+import 'package:fquery/fquery.dart';
+import 'package:fquery/src/observer.dart';
 
-class Query<TData, TError> extends ChangeNotifier {
+enum DispatchAction {
+  fetch,
+  error,
+  success,
+  cancelFetch,
+}
+
+class Query<TData, TError> {
   QueryState<TData, TError> _state = QueryState();
   QueryState<TData, TError> get state => _state;
+  List<Observer> observers = [];
+
+  Duration? cacheDuration;
+  Timer? garbageCollectionTimer;
+  final QueryClient client;
+
+  Query({required this.client});
 
   QueryState<TData, TError> _reducer(
       QueryState<TData, TError> state, DispatchAction action, dynamic data) {
@@ -39,8 +54,63 @@ class Query<TData, TError> extends ChangeNotifier {
     }
   }
 
+  // Sets the cache duration
+  // Max cacheDuration given by any observer is used
+  // Reschedules the garbage collection timer
+  void setCacheDuration(Duration cacheDuration) {
+    this.cacheDuration = Duration(
+        milliseconds: max(
+      (this.cacheDuration ?? Duration.zero).inMilliseconds,
+      cacheDuration.inMilliseconds,
+    ));
+    scheduleGarbageCollection();
+  }
+
+  void notifyObservers() {
+    for (var observer in observers) {
+      observer.onQueryUpdated();
+    }
+  }
+
+  void subscribe(Observer observer) {
+    observers.add(observer);
+    cancelGarbageCollection();
+  }
+
+  void unsubscribe(Observer observer) {
+    observers.remove(observer);
+
+    print("an observer unsubscribed");
+    print("current length is");
+    print(observers.length);
+    // Start garbage collection timer if there are no observers
+    if (observers.isNotEmpty) return;
+
+    scheduleGarbageCollection();
+  }
+
   void dispatch(DispatchAction action, dynamic data) {
     _state = _reducer(state, action, data);
-    notifyListeners();
+    notifyObservers();
+  }
+
+  // This is called when garbage collection timer fires
+  void onGarbageCollection() {
+    client.removeQuery(this);
+  }
+
+  void scheduleGarbageCollection() {
+    if (observers.isNotEmpty) return;
+    print("garbage collection scheduled");
+    print("cache duration is");
+    print(cacheDuration);
+    garbageCollectionTimer?.cancel();
+    garbageCollectionTimer =
+        Timer(cacheDuration ?? Duration(minutes: 5), onGarbageCollection);
+  }
+
+  void cancelGarbageCollection() {
+    garbageCollectionTimer?.cancel();
+    garbageCollectionTimer = null;
   }
 }

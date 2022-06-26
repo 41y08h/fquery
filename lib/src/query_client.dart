@@ -13,14 +13,18 @@ class QueryClient {
     return queries[queryKey] as Query<TData, TError>?;
   }
 
-  void setQuery(String queryKey, Query query) {
+  void addQuery(String queryKey, Query query) {
     queries[queryKey] = query;
+  }
+
+  void removeQuery(Query query) {
+    queries.removeWhere((key, value) => value == query);
   }
 
   Query<TData, TError> buildQuery<TData, TError>(String queryKey) {
     var query = getQuery<TData, TError>(queryKey);
-    query ??= Query();
-    setQuery(queryKey, query);
+    query ??= Query(client: this);
+    addQuery(queryKey, query);
     return query;
   }
 

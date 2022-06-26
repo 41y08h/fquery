@@ -21,10 +21,11 @@ class Observer<TData, TError> extends ChangeNotifier {
     QueryOptions? options,
   }) {
     query = client.buildQuery<TData, TError>(queryKey);
-    query.addListener(() {
-      // Propagate the change to the observer's listeners
-      notifyListeners();
-    });
+    query.subscribe(this);
+    if (options?.cacheDuration != null) {
+      print('set cache duration');
+      query.setCacheDuration(options!.cacheDuration);
+    }
 
     onOptionsChanged(options ?? client.defaultQueryOptions);
   }
@@ -70,7 +71,12 @@ class Observer<TData, TError> extends ChangeNotifier {
     });
   }
 
+  void onQueryUpdated() {
+    notifyListeners();
+  }
+
   void cleanup() {
+    query.unsubscribe(this);
     resolver.cancel();
   }
 }
