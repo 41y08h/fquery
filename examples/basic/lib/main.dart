@@ -5,94 +5,126 @@ import 'package:fquery/fquery.dart';
 
 final queryClient = QueryClient();
 void main() {
-  runApp(QueryClientProvider(
-    queryClient: queryClient,
-    child: const MaterialApp(
-      home: App(),
+  runApp(
+    QueryClientProvider(
+      queryClient: queryClient,
+      child: MaterialApp(
+        theme: ThemeData.dark(),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const Home(),
+          '/post': (context) => const PostPage(),
+        },
+      ),
     ),
-  ));
+  );
 }
 
-class Todo {
+class Post {
   final int userId;
   final int id;
   final String title;
-  bool completed;
+  final String body;
 
-  Todo({
+  Post({
     required this.userId,
     required this.id,
     required this.title,
-    required this.completed,
+    required this.body,
   });
 
-  factory Todo.fromJson(Map<String, dynamic> json) {
-    return Todo(
+  factory Post.fromJson(Map<String, dynamic> json) {
+    return Post(
       userId: json['userId'] as int,
       id: json['id'] as int,
       title: json['title'] as String,
-      completed: json['completed'] as bool,
-    );
-  }
-
-  Todo copyWith({
-    int? userId,
-    int? id,
-    String? title,
-    bool? completed,
-  }) {
-    return Todo(
-      userId: userId ?? this.userId,
-      id: id ?? this.id,
-      title: title ?? this.title,
-      completed: completed ?? this.completed,
+      body: json['body'] as String,
     );
   }
 }
 
-Future<List<Todo>> getTodos() {
-  return Dio()
-      .get('https://jsonplaceholder.typicode.com/todos')
-      .then((response) {
-    return (response.data as List).map((todo) => Todo.fromJson(todo)).toList();
-  });
+Future<List<Post>> getPosts() async {
+  final res = await Dio().get('https://jsonplaceholder.typicode.com/posts');
+  return (res.data as List)
+      .map((e) => Post.fromJson(e as Map<String, dynamic>))
+      .toList();
 }
 
-class App extends HookWidget {
-  const App({Key? key}) : super(key: key);
+class Home extends HookWidget {
+  const Home({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final todos = useQuery('todos', getTodos);
+    final posts = useQuery('posts', getPosts);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FQuery'),
+        title: const Text('Posts'),
       ),
       body: Builder(
         builder: (context) {
-          if (todos.isLoading) {
+          if (posts.isLoading) {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
-          if (todos.isError) {
+          if (posts.isError) {
+            return Center(
+              child: Text(posts.error.toString()),
+            );
+          }
+          return ListView.builder(
+            itemCount: posts.data?.length,
+            itemBuilder: (context, index) {
+              final post = posts.data![index];
+
+              return ListTile(
+                title: Text(post.title),
+                onTap: () {
+                  Navigator.pushNamed(context, '/post', arguments: post.id);
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+Future<Post> getPost(int id) async {
+  final res = await Dio().get('https://jsonplaceholder.typicode.com/posts/$id');
+  return Post.fromJson(res.data);
+}
+
+class PostPage extends HookWidget {
+  const PostPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final id = ModalRoute.of(context)!.settings.arguments as int;
+    final post = useQuery('post-$id', () => getPost(id));
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Post'),
+      ),
+      body: Builder(
+        builder: (context) {
+          if (post.isLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (post.isError) {
             return const Center(
               child: Text('Error'),
             );
           }
-          return ListView.builder(
-            itemCount: todos.data?.length,
-            itemBuilder: (context, index) {
-              final todo = todos.data![index];
-              return ListTile(
-                title: Text(todo.title),
-                trailing: Checkbox(
-                  onChanged: (_) {},
-                  value: todo.completed,
-                ),
-              );
-            },
+
+          return ListTile(
+            title: Text(post.data!.title),
+            subtitle: Text(post.data!.body),
           );
         },
       ),
