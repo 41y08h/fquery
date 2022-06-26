@@ -4,7 +4,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery/fquery.dart';
 import 'package:fquery/fquery/query_client_provider.dart';
 import 'package:fquery/models/todo.dart';
-import 'package:retry/retry.dart';
 
 main() {
   runApp(const App());
@@ -95,16 +94,14 @@ class TodoPage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final id = useState(ModalRoute.of(context)?.settings.arguments as int);
-    final enabled = useState(false);
+    final enabled = useState(true);
     final query = useQuery(
       '/todos/${id.value}',
       () => fetchTodo(id.value),
       options: QueryOptions(
-        retry: const RetryOptions(
-          maxAttempts: 4,
-          delayFactor: Duration(seconds: 1),
-        ),
         staleTime: const Duration(seconds: 10),
+        enabled: enabled.value,
+        refetchOnMount: RefetchOnMount.always,
       ),
     );
 

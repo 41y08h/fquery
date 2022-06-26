@@ -1,5 +1,3 @@
-import 'package:retry/retry.dart';
-
 enum QueryStatus {
   loading,
   success,
@@ -54,16 +52,12 @@ enum RefetchOnMount {
 
 class QueryOptions {
   bool enabled;
-  Duration? refreshInterval;
   RefetchOnMount refetchOnMount;
-  RetryOptions retry;
   Duration staleTime;
 
   QueryOptions({
     this.enabled = true,
-    this.refreshInterval,
     this.refetchOnMount = RefetchOnMount.stale,
-    this.retry = const RetryOptions(),
     this.staleTime = const Duration(seconds: 0),
   });
 }
