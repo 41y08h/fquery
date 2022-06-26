@@ -53,11 +53,13 @@ enum RefetchOnMount {
 class QueryOptions {
   bool enabled;
   RefetchOnMount refetchOnMount;
-  Duration staleTime;
+  Duration staleDuration;
+  Duration cacheDuration;
 
   QueryOptions({
     this.enabled = true,
     this.refetchOnMount = RefetchOnMount.stale,
-    this.staleTime = const Duration(seconds: 0),
+    this.staleDuration = const Duration(seconds: 0),
+    this.cacheDuration = const Duration(minutes: 5),
   });
 }
