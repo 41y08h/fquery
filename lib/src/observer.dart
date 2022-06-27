@@ -12,6 +12,7 @@ class Observer<TData, TError> extends ChangeNotifier {
   // Options
   late QueryOptions options;
   final resolver = RetryResolver();
+  Timer? refetchTimer;
 
   Observer(
     this.queryKey,
@@ -22,7 +23,6 @@ class Observer<TData, TError> extends ChangeNotifier {
     query = client.buildQuery<TData, TError>(queryKey);
     query.subscribe(this);
     if (options?.cacheDuration != null) {
-      print('set cache duration');
       query.setCacheDuration(options!.cacheDuration);
     }
 
@@ -56,13 +56,20 @@ class Observer<TData, TError> extends ChangeNotifier {
   }
 
   void fetch() async {
+    print("fetch called");
     if (!options.enabled || query.state.isFetching) {
       return;
     }
+    print("inside fetch");
 
     query.dispatch(DispatchAction.fetch, null);
     resolver.resolve(fetcher, onResolve: (data) {
       query.dispatch(DispatchAction.success, data);
+
+      // Start refetching if the option provided
+      if (options.refetchInterval != null) {
+        refetchTimer = Timer(options.refetchInterval as Duration, fetch);
+      }
     }, onError: (error) {
       query.dispatch(DispatchAction.error, error);
     }, onCancel: () {
@@ -77,5 +84,6 @@ class Observer<TData, TError> extends ChangeNotifier {
   void cleanup() {
     query.unsubscribe(this);
     resolver.cancel();
+    refetchTimer?.cancel();
   }
 }

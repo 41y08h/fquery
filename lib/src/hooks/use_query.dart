@@ -19,6 +19,7 @@ QueryState<TData, TError> useQuery<TData, TError>(
       options?.refetchOnMount,
       options?.cacheDuration,
       options?.staleDuration,
+      options?.refetchInterval,
     ],
   );
   final observer = useMemoized(

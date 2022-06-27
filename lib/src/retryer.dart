@@ -23,6 +23,7 @@ class RetryResolver {
       try {
         final value = await fn();
         onResolve(value);
+        reset();
         break;
       } catch (e) {
         if (isLastAttempt) {
@@ -36,6 +37,10 @@ class RetryResolver {
   }
 
   void cancel() {
+    isRunning = false;
+  }
+
+  void reset() {
     isRunning = false;
   }
 }

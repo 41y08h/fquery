@@ -29,12 +29,14 @@ class QueryOptions {
   RefetchOnMount refetchOnMount;
   Duration staleDuration;
   Duration cacheDuration;
+  Duration? refetchInterval;
 
   QueryOptions({
     this.enabled = true,
     this.refetchOnMount = RefetchOnMount.stale,
     this.staleDuration = const Duration(seconds: 0),
     this.cacheDuration = const Duration(minutes: 5),
+    this.refetchInterval,
   });
 }
 
