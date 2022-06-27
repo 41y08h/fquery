@@ -74,22 +74,17 @@ class Observer<TData, TError> extends ChangeNotifier {
   }
 
   void fetch() async {
-    print("fetch called");
     if (!options.enabled || query.state.isFetching) {
       return;
     }
-    print("inside fetch");
 
     query.dispatch(DispatchAction.fetch, null);
     resolver.resolve(fetcher, onResolve: (data) {
       query.dispatch(DispatchAction.success, data);
-
-      // Start refetching if the option provided
-      if (options.refetchInterval != null) {
-        refetchTimer = Timer(options.refetchInterval as Duration, fetch);
-      }
+      scheduleRefetch();
     }, onError: (error) {
       query.dispatch(DispatchAction.error, error);
+      scheduleRefetch();
     }, onCancel: () {
       query.dispatch(DispatchAction.cancelFetch, null);
     });
@@ -103,5 +98,11 @@ class Observer<TData, TError> extends ChangeNotifier {
     query.unsubscribe(this);
     resolver.cancel();
     refetchTimer?.cancel();
+  }
+
+  void scheduleRefetch() {
+    if (options.refetchInterval == null) return;
+    refetchTimer?.cancel();
+    refetchTimer = Timer(options.refetchInterval as Duration, fetch);
   }
 }
