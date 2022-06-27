@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:fquery/fquery.dart';
+import 'package:fquery/src/constants.dart';
 import 'package:fquery/src/observer.dart';
 
 enum DispatchAction {
@@ -74,19 +75,18 @@ class Query<TData, TError> {
 
   void subscribe(Observer observer) {
     observers.add(observer);
+
+    // At least we have one observer
+    // So no need to garbage collect
     cancelGarbageCollection();
   }
 
   void unsubscribe(Observer observer) {
     observers.remove(observer);
 
-    print("an observer unsubscribed");
-    print("current length is");
-    print(observers.length);
-    // Start garbage collection timer if there are no observers
-    if (observers.isNotEmpty) return;
-
-    scheduleGarbageCollection();
+    if (observers.isEmpty) {
+      scheduleGarbageCollection();
+    }
   }
 
   void dispatch(DispatchAction action, dynamic data) {
@@ -101,12 +101,10 @@ class Query<TData, TError> {
 
   void scheduleGarbageCollection() {
     if (observers.isNotEmpty) return;
-    print("garbage collection scheduled");
-    print("cache duration is");
-    print(cacheDuration);
+
     garbageCollectionTimer?.cancel();
-    garbageCollectionTimer =
-        Timer(cacheDuration ?? Duration(minutes: 5), onGarbageCollection);
+    final duration = cacheDuration ?? kDefaultCacheDuration;
+    garbageCollectionTimer = Timer(duration, onGarbageCollection);
   }
 
   void cancelGarbageCollection() {
