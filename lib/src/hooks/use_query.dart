@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
+import 'package:fquery/src/query.dart';
 
 QueryState<TData, TError> useQuery<TData, TError>(
   String queryKey,

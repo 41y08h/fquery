@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'types.dart';
 import 'dart:async';
 import 'query.dart';
 import 'retryer.dart';

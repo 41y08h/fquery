@@ -1,4 +1,3 @@
-import 'types.dart';
 import 'query.dart';
 
 class QueryClient {
