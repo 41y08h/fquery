@@ -97,6 +97,8 @@ class Query<TData, TError> {
       case DispatchAction.fetch:
         return state._copyWith(
           isFetching: true,
+          status:
+              state.dataUpdatedAt == null ? QueryStatus.loading : state.status,
         );
       case DispatchAction.cancelFetch:
         return state._copyWith(
