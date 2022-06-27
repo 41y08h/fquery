@@ -27,7 +27,6 @@ QueryState<TData, TError> useQuery<TData, TError>(
       queryKey,
       fetcher,
       client: client,
-      options: queryOptions,
     ),
     [queryKey],
   );
@@ -37,13 +36,15 @@ QueryState<TData, TError> useQuery<TData, TError>(
   // Propagate the options changes to the observer
   useEffect(() {
     if (queryOptions == null) return;
-    observer.onOptionsChanged(queryOptions);
+    observer.setOptions(queryOptions);
     return null;
   }, [queryOptions]);
 
   useEffect(() {
+    observer.initialize();
+
     return () {
-      observer.cleanup();
+      observer.destroy();
     };
   }, []);
 

@@ -21,23 +21,25 @@ class Observer<TData, TError> extends ChangeNotifier {
     QueryOptions? options,
   }) {
     query = client.buildQuery<TData, TError>(queryKey);
-    query.subscribe(this);
+
+    this.options = options ?? client.defaultQueryOptions;
     if (options?.cacheDuration != null) {
       query.setCacheDuration(options!.cacheDuration);
     }
-
-    onOptionsChanged(options ?? client.defaultQueryOptions);
   }
 
-  void onOptionsChanged(QueryOptions options) {
-    this.options = options;
+  // This is called from the [useQuery] hook
+  // whenever the first widget build is done
+  void initialize() {
+    // Subcribe the any query state changes
+    query.subscribe(this);
 
-    // Initiate query
-    if (this.options.enabled == false) return;
+    // Initiate query on mount
+    if (options.enabled == false) return;
     final isRefetching = !query.state.isLoading;
 
     if (isRefetching) {
-      switch (this.options.refetchOnMount) {
+      switch (options.refetchOnMount) {
         case RefetchOnMount.always:
           fetch();
           break;
@@ -53,6 +55,22 @@ class Observer<TData, TError> extends ChangeNotifier {
     } else {
       fetch();
     }
+  }
+
+  void setOptions(QueryOptions options) {
+    final refetchIntervalChanged =
+        this.options.refetchInterval != options.refetchInterval;
+    if (refetchIntervalChanged) {
+      if (options.refetchInterval != null) {
+        fetch();
+      } else {
+        refetchTimer?.cancel();
+        refetchTimer = null;
+      }
+    }
+
+    this.options = options;
+    query.setCacheDuration(options.cacheDuration);
   }
 
   void fetch() async {
@@ -81,7 +99,7 @@ class Observer<TData, TError> extends ChangeNotifier {
     notifyListeners();
   }
 
-  void cleanup() {
+  void destroy() {
     query.unsubscribe(this);
     resolver.cancel();
     refetchTimer?.cancel();
