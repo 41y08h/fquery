@@ -23,7 +23,6 @@ class RetryResolver {
       try {
         final value = await fn();
         onResolve(value);
-        reset();
         break;
       } catch (e) {
         if (isLastAttempt) {
@@ -34,6 +33,7 @@ class RetryResolver {
         await Future.delayed(const Duration(seconds: 1, milliseconds: 500));
       }
     }
+    reset();
   }
 
   void cancel() {
