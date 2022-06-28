@@ -38,18 +38,6 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
   QueryOptions? options,
 }) {
   final client = useQueryClient();
-
-  final queryOptions = useMemoized(
-    () => options,
-    [
-      options?.enabled,
-      options?.refetchOnMount,
-      options?.cacheDuration,
-      options?.staleDuration,
-      options?.refetchInterval,
-    ],
-  );
-
   final observer = useMemoized(
     () => Observer<TData, TError>(
       queryKey,
@@ -64,19 +52,23 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
 
   // Propagate the options changes to the observer
   useEffect(() {
-    if (queryOptions == null) return;
-    observer.setOptions(queryOptions);
+    if (options == null) return;
+    observer.setOptions(options);
     return null;
-  }, [queryOptions]);
+  }, [
+    options?.enabled,
+    options?.refetchOnMount,
+    options?.cacheDuration,
+    options?.staleDuration,
+    options?.refetchInterval
+  ]);
 
   useEffect(() {
     observer.initialize();
-
     return () {
-      // TODO: also destroy when query key is changed
       observer.destroy();
     };
-  }, []);
+  }, [observer]);
 
   return UseQueryResult(
     data: observer.query.state.data,
