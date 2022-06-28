@@ -8,11 +8,11 @@ class QueryClient {
     this.defaultQueryOptions = defaultQueryOptions ?? QueryOptions();
   }
 
-  Query<TData, TError>? getQuery<TData, TError>(String queryKey) {
+  Query<TData, TError>? getQuery<TData, TError>(QueryKey queryKey) {
     return queries[queryKey] as Query<TData, TError>?;
   }
 
-  void addQuery(String queryKey, Query query) {
+  void addQuery(QueryKey queryKey, Query query) {
     queries[queryKey] = query;
   }
 
@@ -20,7 +20,7 @@ class QueryClient {
     queries.removeWhere((key, value) => value == query);
   }
 
-  Query<TData, TError> buildQuery<TData, TError>(String queryKey) {
+  Query<TData, TError> buildQuery<TData, TError>(QueryKey queryKey) {
     var query = getQuery<TData, TError>(queryKey);
     query ??= Query(client: this);
     addQuery(queryKey, query);
@@ -28,7 +28,7 @@ class QueryClient {
   }
 
   void setQueryData<TData>(
-      String queryKey, TData Function(TData previous) updater) {
+      QueryKey queryKey, TData Function(TData previous) updater) {
     final query = getQuery(queryKey);
     query?.dispatch(DispatchAction.success, updater(query.state.data));
   }

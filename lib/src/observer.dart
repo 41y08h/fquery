@@ -5,7 +5,7 @@ import 'retryer.dart';
 import 'query_client.dart';
 
 class Observer<TData, TError> extends ChangeNotifier {
-  final String queryKey;
+  final QueryKey queryKey;
   final Future<TData> Function() fetcher;
   late final Query<TData, TError> query;
 

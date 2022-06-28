@@ -32,7 +32,7 @@ class UseQueryResult<TData, TError> {
 }
 
 UseQueryResult<TData, TError> useQuery<TData, TError>(
-  String queryKey,
+  QueryKey queryKey,
   Future<TData> Function() fetcher, {
   QueryOptions? options,
 }) {
