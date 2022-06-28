@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
 import 'package:fquery/src/query.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 class UseQueryResult<TData, TError> {
   final TData? data;
@@ -48,14 +49,16 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
       options?.refetchInterval,
     ],
   );
+
   final observer = useMemoized(
     () => Observer<TData, TError>(
       queryKey,
       fetcher,
       client: client,
     ),
-    [queryKey],
+    [queryKey.lock],
   );
+
   // This subscribes to the observer
   useListenable(observer);
 
@@ -70,6 +73,7 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
     observer.initialize();
 
     return () {
+      // TODO: also destroy when query key is changed
       observer.destroy();
     };
   }, []);

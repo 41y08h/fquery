@@ -5,7 +5,7 @@ import 'package:fquery/fquery.dart';
 import 'package:fquery/src/constants.dart';
 import 'package:fquery/src/observer.dart';
 
-typedef QueryKey = String;
+typedef QueryKey = List<dynamic>;
 
 enum DispatchAction {
   fetch,

@@ -1,7 +1,8 @@
 import 'query.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 class QueryClient {
-  final Map<String, Query> queries = {};
+  final Map<IList<dynamic>, Query> queries = {};
   late QueryOptions defaultQueryOptions;
 
   QueryClient({QueryOptions? defaultQueryOptions}) {
@@ -9,11 +10,11 @@ class QueryClient {
   }
 
   Query<TData, TError>? getQuery<TData, TError>(QueryKey queryKey) {
-    return queries[queryKey] as Query<TData, TError>?;
+    return queries[queryKey.lock] as Query<TData, TError>?;
   }
 
   void addQuery(QueryKey queryKey, Query query) {
-    queries[queryKey] = query;
+    queries[queryKey.lock] = query;
   }
 
   void removeQuery(Query query) {

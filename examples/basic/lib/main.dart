@@ -55,7 +55,7 @@ class Home extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final posts = useQuery('posts', getPosts);
+    final posts = useQuery(['posts'], getPosts);
 
     return Scaffold(
       appBar: AppBar(
@@ -103,7 +103,7 @@ class PostPage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final id = ModalRoute.of(context)!.settings.arguments as int;
-    final post = useQuery('post-$id', () => getPost(id));
+    final post = useQuery(['posts', id], () => getPost(id));
 
     return Scaffold(
       appBar: AppBar(
