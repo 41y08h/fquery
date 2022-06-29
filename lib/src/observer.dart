@@ -20,7 +20,6 @@ class Observer<TData, TError> extends ChangeNotifier {
     required QueryClient client,
     QueryOptions? options,
   }) {
-    print("Observer.constructor");
     query = client.buildQuery<TData, TError>(queryKey);
 
     this.options = options ?? client.defaultQueryOptions;
@@ -99,7 +98,6 @@ class Observer<TData, TError> extends ChangeNotifier {
     query.unsubscribe(this);
     resolver.cancel();
     refetchTimer?.cancel();
-    print("Observer.destroy");
   }
 
   void scheduleRefetch() {
