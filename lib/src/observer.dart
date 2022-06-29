@@ -62,7 +62,7 @@ class Observer<TData, TError> extends ChangeNotifier {
         this.options.refetchInterval != options.refetchInterval;
     if (refetchIntervalChanged) {
       if (options.refetchInterval != null) {
-        fetch();
+        scheduleRefetch();
       } else {
         refetchTimer?.cancel();
         refetchTimer = null;
