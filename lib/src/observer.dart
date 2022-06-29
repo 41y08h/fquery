@@ -60,6 +60,10 @@ class Observer<TData, TError> extends ChangeNotifier {
   void setOptions(QueryOptions options) {
     final refetchIntervalChanged =
         this.options.refetchInterval != options.refetchInterval;
+
+    this.options = options;
+    query.setCacheDuration(options.cacheDuration);
+
     if (refetchIntervalChanged) {
       if (options.refetchInterval != null) {
         scheduleRefetch();
@@ -68,9 +72,6 @@ class Observer<TData, TError> extends ChangeNotifier {
         refetchTimer = null;
       }
     }
-
-    this.options = options;
-    query.setCacheDuration(options.cacheDuration);
   }
 
   void fetch() async {
