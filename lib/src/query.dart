@@ -12,6 +12,7 @@ enum DispatchAction {
   error,
   success,
   cancelFetch,
+  invalidate,
 }
 
 enum QueryStatus {
@@ -49,6 +50,7 @@ class QueryState<TData, TError> {
   DateTime? errorUpdatedAt;
   bool isFetching;
   QueryStatus status;
+  bool isInvalidated;
 
   bool get isLoading => status == QueryStatus.loading;
   bool get isSuccess => status == QueryStatus.success;
@@ -61,6 +63,7 @@ class QueryState<TData, TError> {
     this.errorUpdatedAt,
     this.isFetching = false,
     this.status = QueryStatus.loading,
+    this.isInvalidated = false,
   });
 
   QueryState<TData, TError> _copyWith({
@@ -70,6 +73,7 @@ class QueryState<TData, TError> {
     DateTime? errorUpdatedAt,
     bool? isFetching,
     QueryStatus? status,
+    bool? isInvalidated,
   }) {
     return QueryState(
       data: data ?? this.data,
@@ -78,20 +82,23 @@ class QueryState<TData, TError> {
       errorUpdatedAt: errorUpdatedAt ?? this.errorUpdatedAt,
       isFetching: isFetching ?? this.isFetching,
       status: status ?? this.status,
+      isInvalidated: isInvalidated ?? this.isInvalidated,
     );
   }
 }
 
 class Query<TData, TError> {
+  final QueryClient client;
+  final QueryKey key;
+
   QueryState<TData, TError> _state = QueryState();
   QueryState<TData, TError> get state => _state;
-  List<Observer> observers = [];
+  final List<Observer> _observers = [];
 
-  Duration? cacheDuration;
-  Timer? garbageCollectionTimer;
-  final QueryClient client;
+  Duration? _cacheDuration;
+  Timer? _garbageCollectionTimer;
 
-  Query({required this.client});
+  Query({required this.client, required this.key});
 
   QueryState<TData, TError> _reducer(
       QueryState<TData, TError> state, DispatchAction action, dynamic data) {
@@ -120,8 +127,12 @@ class Query<TData, TError> {
           data: data,
           dataUpdatedAt: DateTime.now(),
           isFetching: false,
+          isInvalidated: false,
         );
-
+      case DispatchAction.invalidate:
+        return state._copyWith(
+          isInvalidated: true,
+        );
       default:
         return state;
     }
@@ -131,39 +142,39 @@ class Query<TData, TError> {
   // Max cacheDuration given by any observer is used
   // Reschedules the garbage collection timer
   void setCacheDuration(Duration cacheDuration) {
-    this.cacheDuration = Duration(
+    _cacheDuration = Duration(
         milliseconds: max(
-      (this.cacheDuration ?? Duration.zero).inMilliseconds,
+      (_cacheDuration ?? Duration.zero).inMilliseconds,
       cacheDuration.inMilliseconds,
     ));
-    scheduleGarbageCollection();
+    _scheduleGarbageCollection();
   }
 
-  void notifyObservers() {
-    for (var observer in observers) {
+  void _notifyObservers() {
+    for (var observer in _observers) {
       observer.onQueryUpdated();
     }
   }
 
   void subscribe(Observer observer) {
-    observers.add(observer);
+    _observers.add(observer);
 
     // At least we have one observer
     // So no need to garbage collect
-    cancelGarbageCollection();
+    _cancelGarbageCollection();
   }
 
   void unsubscribe(Observer observer) {
-    observers.remove(observer);
+    _observers.remove(observer);
 
-    if (observers.isEmpty) {
-      scheduleGarbageCollection();
+    if (_observers.isEmpty) {
+      _scheduleGarbageCollection();
     }
   }
 
   void dispatch(DispatchAction action, dynamic data) {
     _state = _reducer(state, action, data);
-    notifyObservers();
+    _notifyObservers();
   }
 
   // This is called when garbage collection timer fires
@@ -171,16 +182,16 @@ class Query<TData, TError> {
     client.removeQuery(this);
   }
 
-  void scheduleGarbageCollection() {
-    if (observers.isNotEmpty) return;
+  void _scheduleGarbageCollection() {
+    if (_observers.isNotEmpty) return;
 
-    garbageCollectionTimer?.cancel();
-    final duration = cacheDuration ?? kDefaultCacheDuration;
-    garbageCollectionTimer = Timer(duration, onGarbageCollection);
+    _garbageCollectionTimer?.cancel();
+    final duration = _cacheDuration ?? kDefaultCacheDuration;
+    _garbageCollectionTimer = Timer(duration, onGarbageCollection);
   }
 
-  void cancelGarbageCollection() {
-    garbageCollectionTimer?.cancel();
-    garbageCollectionTimer = null;
+  void _cancelGarbageCollection() {
+    _garbageCollectionTimer?.cancel();
+    _garbageCollectionTimer = null;
   }
 }

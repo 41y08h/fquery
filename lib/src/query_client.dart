@@ -23,7 +23,7 @@ class QueryClient {
 
   Query<TData, TError> buildQuery<TData, TError>(QueryKey queryKey) {
     var query = getQuery<TData, TError>(queryKey);
-    query ??= Query(client: this);
+    query ??= Query(client: this, key: queryKey);
     addQuery(queryKey, query);
     return query;
   }
@@ -32,5 +32,20 @@ class QueryClient {
       QueryKey queryKey, TData Function(TData previous) updater) {
     final query = getQuery(queryKey);
     query?.dispatch(DispatchAction.success, updater(query.state.data));
+  }
+
+  void invalidateQueries(QueryKey key) {
+    queries.forEach((queryKey, query) {
+      // If every element in the [key] matches with
+      // the starting elements in the [queryKey],
+      // then invalidate the query.
+      if (queryKey.length < key.length) {
+        return;
+      }
+
+      if (queryKey.sublist(0, key.length) == key.lock) {
+        query.dispatch(DispatchAction.invalidate, null);
+      }
+    });
   }
 }

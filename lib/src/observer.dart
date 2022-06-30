@@ -37,8 +37,9 @@ class Observer<TData, TError> extends ChangeNotifier {
     // Initiate query on mount
     if (options.enabled == false) return;
     final isRefetching = !query.state.isLoading;
+    final isInvalidated = query.state.isInvalidated;
 
-    if (isRefetching) {
+    if (isRefetching && !isInvalidated) {
       switch (options.refetchOnMount) {
         case RefetchOnMount.always:
           fetch();
@@ -93,6 +94,9 @@ class Observer<TData, TError> extends ChangeNotifier {
 
   void onQueryUpdated() {
     notifyListeners();
+    if (query.state.isInvalidated) {
+      fetch();
+    }
   }
 
   void destroy() {
