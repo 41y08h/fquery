@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/constants.dart';
 import 'package:fquery/src/observer.dart';
 
 typedef QueryKey = List<dynamic>;
@@ -35,10 +34,10 @@ class QueryOptions {
   Duration? refetchInterval;
 
   QueryOptions({
-    this.enabled = true,
-    this.refetchOnMount = RefetchOnMount.stale,
-    this.staleDuration = const Duration(seconds: 0),
-    this.cacheDuration = const Duration(minutes: 5),
+    required this.enabled,
+    required this.refetchOnMount,
+    required this.staleDuration,
+    required this.cacheDuration,
     this.refetchInterval,
   });
 }
@@ -186,7 +185,7 @@ class Query<TData, TError> {
     if (_observers.isNotEmpty) return;
 
     _garbageCollectionTimer?.cancel();
-    final duration = _cacheDuration ?? kDefaultCacheDuration;
+    final duration = _cacheDuration ?? client.defaultQueryOptions.cacheDuration;
     _garbageCollectionTimer = Timer(duration, onGarbageCollection);
   }
 

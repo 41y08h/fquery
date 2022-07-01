@@ -1,12 +1,26 @@
 import 'query.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
+class DefaultQueryOptions {
+  RefetchOnMount refetchOnMount;
+  Duration staleDuration;
+  Duration cacheDuration;
+  Duration? refetchInterval;
+
+  DefaultQueryOptions({
+    this.refetchOnMount = RefetchOnMount.stale,
+    this.staleDuration = Duration.zero,
+    this.cacheDuration = const Duration(minutes: 5),
+    this.refetchInterval,
+  });
+}
+
 class QueryClient {
   final Map<IList<dynamic>, Query> queries = {};
-  late QueryOptions defaultQueryOptions;
+  late DefaultQueryOptions defaultQueryOptions;
 
-  QueryClient({QueryOptions? defaultQueryOptions}) {
-    this.defaultQueryOptions = defaultQueryOptions ?? QueryOptions();
+  QueryClient({DefaultQueryOptions? defaultQueryOptions}) {
+    this.defaultQueryOptions = defaultQueryOptions ?? DefaultQueryOptions();
   }
 
   Query<TData, TError>? getQuery<TData, TError>(QueryKey queryKey) {

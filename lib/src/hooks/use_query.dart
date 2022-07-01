@@ -32,17 +32,54 @@ class UseQueryResult<TData, TError> {
   });
 }
 
+class UseQueryOptions {
+  final bool enabled;
+  final RefetchOnMount? refetchOnMount;
+  final Duration? staleDuration;
+  final Duration? cacheDuration;
+  final Duration? refetchInterval;
+
+  UseQueryOptions({
+    required this.enabled,
+    this.refetchOnMount,
+    this.staleDuration,
+    this.cacheDuration,
+    this.refetchInterval,
+  });
+}
+
 UseQueryResult<TData, TError> useQuery<TData, TError>(
   QueryKey queryKey,
   Future<TData> Function() fetcher, {
-  QueryOptions? options,
+  // These options must match with the `UseQueryOptions`
+  bool enabled = true,
+  RefetchOnMount? refetchOnMount,
+  Duration? staleDuration,
+  Duration? cacheDuration,
+  Duration? refetchInterval,
 }) {
+  final options = useMemoized(
+      () => UseQueryOptions(
+            enabled: enabled,
+            refetchOnMount: refetchOnMount,
+            staleDuration: staleDuration,
+            cacheDuration: cacheDuration,
+            refetchInterval: refetchInterval,
+          ),
+      [
+        enabled,
+        refetchOnMount,
+        staleDuration,
+        cacheDuration,
+        refetchInterval,
+      ]);
   final client = useQueryClient();
   final observer = useMemoized(
     () => Observer<TData, TError>(
       queryKey,
       fetcher,
       client: client,
+      options: options,
     ),
     [queryKey.lock],
   );
@@ -52,16 +89,9 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
 
   // Propagate the options changes to the observer
   useEffect(() {
-    if (options == null) return;
-    observer.setOptions(options);
+    observer.updateOptions(options);
     return null;
-  }, [
-    options?.enabled,
-    options?.refetchOnMount,
-    options?.cacheDuration,
-    options?.staleDuration,
-    options?.refetchInterval
-  ]);
+  }, [observer, options]);
 
   useEffect(() {
     observer.initialize();

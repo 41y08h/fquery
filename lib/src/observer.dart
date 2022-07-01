@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:fquery/src/hooks/use_query.dart';
 import 'dart:async';
 import 'query.dart';
 import 'retryer.dart';
@@ -14,18 +15,17 @@ class Observer<TData, TError> extends ChangeNotifier {
   final resolver = RetryResolver();
   Timer? refetchTimer;
 
+  QueryClient client;
+
   Observer(
     this.queryKey,
     this.fetcher, {
-    required QueryClient client,
-    QueryOptions? options,
+    required this.client,
+    required UseQueryOptions options,
   }) {
     query = client.buildQuery<TData, TError>(queryKey);
-
-    this.options = options ?? client.defaultQueryOptions;
-    if (options?.cacheDuration != null) {
-      query.setCacheDuration(options!.cacheDuration);
-    }
+    _setOptions(options);
+    query.setCacheDuration(this.options.cacheDuration);
   }
 
   // This is called from the [useQuery] hook
@@ -58,12 +58,28 @@ class Observer<TData, TError> extends ChangeNotifier {
     }
   }
 
-  void setOptions(QueryOptions options) {
+  void _setOptions(UseQueryOptions options) {
+    this.options = QueryOptions(
+      enabled: options.enabled,
+      refetchOnMount:
+          options.refetchOnMount ?? client.defaultQueryOptions.refetchOnMount,
+      staleDuration:
+          options.staleDuration ?? client.defaultQueryOptions.staleDuration,
+      cacheDuration:
+          options.cacheDuration ?? client.defaultQueryOptions.cacheDuration,
+      refetchInterval: options.refetchInterval,
+    );
+  }
+
+  void updateOptions(UseQueryOptions options) {
     final refetchIntervalChanged =
         this.options.refetchInterval != options.refetchInterval;
 
-    this.options = options;
-    query.setCacheDuration(options.cacheDuration);
+    _setOptions(options);
+
+    if (options.cacheDuration != null) {
+      query.setCacheDuration(options.cacheDuration as Duration);
+    }
 
     if (refetchIntervalChanged) {
       if (options.refetchInterval != null) {
