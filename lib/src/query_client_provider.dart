@@ -10,7 +10,7 @@ class QueryClientProvider extends InheritedWidget {
   }) : super(key: key, child: child);
 
   @override
-  bool updateShouldNotify(InheritedWidget oldWidget) => true;
+  bool updateShouldNotify(InheritedWidget oldWidget) => oldWidget != this;
 
   static QueryClientProvider of(BuildContext context) {
     final QueryClientProvider? result =
