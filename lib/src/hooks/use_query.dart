@@ -59,20 +59,21 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
   Duration? refetchInterval,
 }) {
   final options = useMemoized(
-      () => UseQueryOptions(
-            enabled: enabled,
-            refetchOnMount: refetchOnMount,
-            staleDuration: staleDuration,
-            cacheDuration: cacheDuration,
-            refetchInterval: refetchInterval,
-          ),
-      [
-        enabled,
-        refetchOnMount,
-        staleDuration,
-        cacheDuration,
-        refetchInterval,
-      ]);
+    () => UseQueryOptions(
+      enabled: enabled,
+      refetchOnMount: refetchOnMount,
+      staleDuration: staleDuration,
+      cacheDuration: cacheDuration,
+      refetchInterval: refetchInterval,
+    ),
+    [
+      enabled,
+      refetchOnMount,
+      staleDuration,
+      cacheDuration,
+      refetchInterval,
+    ],
+  );
   final client = useQueryClient();
   final observer = useMemoized(
     () => Observer<TData, TError>(
