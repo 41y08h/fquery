@@ -178,7 +178,7 @@ class Query<TData, TError> {
 
   // This is called when garbage collection timer fires
   void onGarbageCollection() {
-    client.removeQuery(this);
+    client.queryCache.remove(this);
   }
 
   void _scheduleGarbageCollection() {
