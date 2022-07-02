@@ -1,16 +1,21 @@
+import 'package:cupertino_list_tile/cupertino_list_tile.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 
-final queryClient = QueryClient();
+final queryClient = QueryClient(defaultQueryOptions: DefaultQueryOptions());
+
 void main() {
   runApp(
     QueryClientProvider(
       queryClient: queryClient,
-      child: MaterialApp(
-        theme: ThemeData.dark(),
+      child: CupertinoApp(
+        debugShowCheckedModeBanner: false,
         initialRoute: '/',
+        theme: const CupertinoThemeData(
+          brightness: Brightness.light,
+        ),
         routes: {
           '/': (context) => const Home(),
           '/post': (context) => const PostPage(),
@@ -41,6 +46,20 @@ class Post {
       body: json['body'] as String,
     );
   }
+
+  Post copyWith({
+    int? userId,
+    int? id,
+    String? title,
+    String? body,
+  }) {
+    return Post(
+      userId: userId ?? this.userId,
+      id: id ?? this.id,
+      title: title ?? this.title,
+      body: body ?? this.body,
+    );
+  }
 }
 
 Future<List<Post>> getPosts() async {
@@ -55,38 +74,79 @@ class Home extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final client = useQueryClient();
     final posts = useQuery(['posts'], getPosts);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Posts'),
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: posts.refetch,
+              child: const Icon(CupertinoIcons.refresh),
+            ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              child: const Icon(CupertinoIcons.pencil),
+              onPressed: () {
+                client.setQueryData<List<Post>>(
+                  ['posts'],
+                  (previous) => previous
+                      .map((post) => post.copyWith(
+                            title: "This has been edited",
+                          ))
+                      .toList(),
+                );
+              },
+            ),
+          ],
+        ),
+        middle: const Text('Posts'),
       ),
-      body: Builder(
-        builder: (context) {
-          if (posts.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          if (posts.isError) {
-            return Center(
-              child: Text(posts.error.toString()),
-            );
-          }
-          return ListView.builder(
-            itemCount: posts.data?.length,
-            itemBuilder: (context, index) {
-              final post = posts.data![index];
-
-              return ListTile(
-                title: Text(post.title),
-                onTap: () {
-                  Navigator.pushNamed(context, '/post', arguments: post.id);
-                },
+      child: SafeArea(
+        child: Builder(
+          builder: (context) {
+            if (posts.isLoading) {
+              return const Center(
+                child: CupertinoActivityIndicator(),
               );
-            },
-          );
-        },
+            }
+            if (posts.isError) {
+              return Center(
+                child: Text(posts.error.toString()),
+              );
+            }
+            return Column(
+              children: [
+                if (posts.isFetching)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 40.0),
+                    child: CupertinoActivityIndicator(),
+                  ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: posts.data?.length,
+                    itemBuilder: (context, index) {
+                      final post = posts.data![index];
+
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, '/post',
+                              arguments: post.id);
+                        },
+                        child: CupertinoListTile(
+                          title: Text(post.title),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -103,30 +163,81 @@ class PostPage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final id = ModalRoute.of(context)!.settings.arguments as int;
-    final post = useQuery(['posts', id], () => getPost(id));
+    final isInterval = useState(false);
+    final post = useQuery(
+      ['posts', id],
+      () => getPost(id),
+      staleDuration: const Duration(hours: 1),
+      refetchInterval: isInterval.value ? const Duration(seconds: 4) : null,
+    );
+    final client = useQueryClient();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Post'),
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Post'),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              child: const Icon(CupertinoIcons.archivebox),
+              onPressed: () {
+                client.invalidateQueries(['posts', id]);
+              },
+            ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                isInterval.value = !isInterval.value;
+              },
+              child: Icon(
+                CupertinoIcons.refresh_circled_solid,
+                color: isInterval.value
+                    ? CupertinoColors.activeBlue
+                    : CupertinoColors.systemGrey,
+              ),
+            )
+          ],
+        ),
       ),
-      body: Builder(
-        builder: (context) {
-          if (post.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          if (post.isError) {
-            return const Center(
-              child: Text('Error'),
-            );
-          }
+      child: SafeArea(
+        child: Builder(
+          builder: (context) {
+            if (post.isLoading) {
+              return const Center(
+                child: CupertinoActivityIndicator(),
+              );
+            }
+            if (post.isError) {
+              return const Center(
+                child: Text('Error'),
+              );
+            }
 
-          return ListTile(
-            title: Text(post.data!.title),
-            subtitle: Text(post.data!.body),
-          );
-        },
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (post.isFetching)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40.0),
+                      child: CupertinoActivityIndicator(),
+                    ),
+                  // Heading style text
+                  Text(
+                    post.data!.title,
+                    style: const TextStyle(
+                      fontSize: 24.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(post.data!.body),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
