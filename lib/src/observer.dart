@@ -5,17 +5,19 @@ import 'query.dart';
 import 'retryer.dart';
 import 'query_client.dart';
 
+/// An observer is a class which subscribes to a query and updates its state when the query changes.
+/// It is responsible for fetching the query and updating the cache.
+/// There can be multiple observers for the same query and hence
+/// sharing the same piece of data throughout the whole application.
 class Observer<TData, TError> extends ChangeNotifier {
   final QueryKey queryKey;
+  final QueryClient client;
   final Future<TData> Function() fetcher;
   late final Query<TData, TError> query;
 
-  // Options
   late QueryOptions options;
   final resolver = RetryResolver();
   Timer? refetchTimer;
-
-  QueryClient client;
 
   Observer(
     this.queryKey,
@@ -42,6 +44,7 @@ class Observer<TData, TError> extends ChangeNotifier {
     final isRefetching = !query.state.isLoading;
     final isInvalidated = query.state.isInvalidated;
 
+    // [RefetchOnMount] behavior is specified here
     if (isRefetching && !isInvalidated) {
       switch (options.refetchOnMount) {
         case RefetchOnMount.always:
@@ -61,6 +64,9 @@ class Observer<TData, TError> extends ChangeNotifier {
     }
   }
 
+  /// Takes a [UseQueryOptions] and sets the [options] field.
+  /// The [DefaultQueryOptions] from the [QueryClient]
+  /// is used if a field is not specified.
   void _setOptions(UseQueryOptions options) {
     this.options = QueryOptions(
       enabled: options.enabled,
@@ -74,6 +80,8 @@ class Observer<TData, TError> extends ChangeNotifier {
     );
   }
 
+  /// This is usually called from the [useQuery] hook
+  /// whenever there is any change in the options
   void updateOptions(UseQueryOptions options) {
     final refetchIntervalChanged =
         this.options.refetchInterval != options.refetchInterval;
@@ -85,6 +93,7 @@ class Observer<TData, TError> extends ChangeNotifier {
     }
 
     if (refetchIntervalChanged) {
+      // Schedules the next fetch if the [options.refetchInterval] is set.
       if (options.refetchInterval != null) {
         scheduleRefetch();
       } else {
@@ -94,6 +103,7 @@ class Observer<TData, TError> extends ChangeNotifier {
     }
   }
 
+  /// This is "the" function responsible for fetching the query.
   void fetch() async {
     if (!options.enabled || query.state.isFetching) {
       return;
@@ -111,6 +121,8 @@ class Observer<TData, TError> extends ChangeNotifier {
     });
   }
 
+  /// This is called from the [Query] class whenever the query state changes.
+  /// It notifies the observers about the change and it also nofities the [useQuery] hook.
   void onQueryUpdated() {
     notifyListeners();
     if (query.state.isInvalidated) {
@@ -118,12 +130,14 @@ class Observer<TData, TError> extends ChangeNotifier {
     }
   }
 
+  /// This is called from the [useQuery] hook when the widget is unmounted.
   void destroy() {
     query.unsubscribe(this);
     resolver.cancel();
     refetchTimer?.cancel();
   }
 
+  /// Schedules the next fetch if the [options.refetchInterval] is set.
   void scheduleRefetch() {
     if (options.refetchInterval == null) return;
     refetchTimer?.cancel();
