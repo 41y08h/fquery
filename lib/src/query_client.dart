@@ -30,14 +30,19 @@ class QueryClient {
     query?.dispatch(DispatchAction.success, updater(query.state.data));
   }
 
-  void invalidateQueries(QueryKey key) {
+  void invalidateQueries(QueryKey key, {bool exact = false}) {
     queryCache.queries.forEach((queryKey, query) {
-      if (queryKey.length < key.length) {
-        return;
-      }
+      if (exact) {
+        if (queryKey == key.lock) {
+          query.dispatch(DispatchAction.invalidate, null);
+        }
+      } else {
+        final isPartialMatch = queryKey.length >= key.length &&
+            queryKey.sublist(0, key.length) == key.lock;
 
-      if (queryKey.sublist(0, key.length) == key.lock) {
-        query.dispatch(DispatchAction.invalidate, null);
+        if (isPartialMatch) {
+          query.dispatch(DispatchAction.invalidate, null);
+        }
       }
     });
   }
