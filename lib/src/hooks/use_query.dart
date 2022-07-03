@@ -48,6 +48,32 @@ class UseQueryOptions {
   });
 }
 
+/// Builds and subscribes to a query stored in the cache.
+/// Takes a query key and a fetcher function which either resolves or throws an error.
+/// Returns a [UseQueryResult]
+///
+/// Example:
+/// ```dart
+/// // These are default configurations
+/// final posts = useQuery(
+///   ['posts'],
+///   getPosts,
+///   enabled: true,
+///   cacheDuration: const Duration(minutes: 5),
+///   refetchInterval: null // The query will not refetch by default,
+///   refetchOnMount: RefetchOnMount.stale,
+///   staleDuration: const Duration(seconds: 10),
+/// );
+/// ```
+/// - `enabled` - specifies if the query fetcher function is automatically called when the widget renders, can be used for _dependant queries_
+/// - `cacheDuration` - specifies the duration unused/inactive cache data remains in memory, the cached data will be garbage collected after this duration. The longest one will be used when different values are specified in multiple instances of the query.
+/// - `refetchInterval` - specifies the time interval in which all queries will refetch the data, setting it to `null` (default) will turn off refetching
+/// - `refetchOnMount` - specifies the behavior of the query instance when the widget is first built and the data is already available.
+///   - `RefetchOnMount.always` - will always refetch when the widget is built.
+///   - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`)
+///   - `RefetchOnMount.never` - will never refetch
+/// - `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually
+
 UseQueryResult<TData, TError> useQuery<TData, TError>(
   QueryKey queryKey,
   Future<TData> Function() fetcher, {
