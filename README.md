@@ -196,7 +196,7 @@ queryClient.setQueryData<List<Post>>(['posts'], (previous) {
     return post.copyWith(
       title: "lorem ipsum"
     );
-  }).toList()
+  }).toList() ?? <Post>[]
 })
 ```
 
