@@ -158,7 +158,7 @@ final posts = useQuery(
 
 ### Query invalidation
 
-This technique can be used to manually mark the cached data as stale and potentially even refetch them. This is especially useful when you know that the data has been changed. `QueryClient` has an `invalidateQueries()` method that allows you to do that. **You can make use of `useQueryClient` hook to obtain the instance of `QueryClient`** (more on this below) that you passed with `QueryClientProvider`.
+This technique can be used to manually mark the cached data as stale and potentially even refetch them. This is especially useful when you know that the data has been changed. `QueryClient` (see below) has an `invalidateQueries()` method that allows you to do that. **You can make use of `useQueryClient` hook to obtain the instance of `QueryClient`** that you passed with `QueryClientProvider`.
 
 ```dart
 final queryClient = useQueryClient();
@@ -192,6 +192,27 @@ queryClient.setQueryData<List<Post>>(['posts'], (previous) {
     );
   }).toList()
 })
+```
+
+### QueryClient
+
+A `QueryClient` is uesd to interact with the query cache. It is made available throughout the app using a `QueryClientProvider`. **It can be configured to change the default configurations of the queries.**
+
+```dart
+final queryClient = QueryClient(
+  defaultQueryOptions: DefaultQueryOptions(
+    cacheDuration: Duration(minutes: 20),
+    refetchInterval: Duration(minutes: 5),
+    refetchOnMount: RefetchOnMount.always,
+    staleDuration: Duration(minutes: 3),
+  ),
+);
+
+void main() {
+  runApp(
+    QueryClientProvider(
+      queryClient: queryClient,
+      child: CupertinoApp(
 ```
 
 ## Additional information
