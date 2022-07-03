@@ -30,7 +30,7 @@ dependencies:
   flutter:
     sdk: flutter
   fquery:
-    path: ../../
+    path: ../
   cupertino_list_tile: ^0.2.1
 
   # The following adds the Cupertino Icons font to your application.
