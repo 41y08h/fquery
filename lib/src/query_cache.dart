@@ -18,6 +18,9 @@ class QueryCache {
     _queries.removeWhere((key, value) => value == query);
   }
 
+  /// Returns a query identified by the query key.
+  /// If it doesn't exist already,
+  /// creates a new one and adds it to the cache.
   Query<TData, TError> build<TData, TError>(
       {required QueryKey queryKey, required QueryClient client}) {
     var query = get<TData, TError>(queryKey);
