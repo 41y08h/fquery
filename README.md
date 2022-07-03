@@ -30,7 +30,7 @@ FQuery is powerd by [flutter_hooks](https://pub.dev/packages/flutter_hooks). It 
 
 ## 📄 Example
 
-Here's a very simple widget that makes use of the `useQuery` hook -
+Here's a very simple widget that makes use of the `useQuery` hook:
 
 ```dart
 class Posts extends HookWidget {
@@ -155,6 +155,26 @@ final posts = useQuery(
   - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`)
   - `RefetchOnMount.never` - will never refetch
 - `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually
+
+### Query invalidation
+
+This technique can be used to manually mark the cached data as stale and potentially even refetch them. This is especially useful when you know that the data has been changed. `QueryClient` has an `invalidateQueries()` method that allows you to do that. **You can make use of `useQueryClient` hook to obtain the instance of `QueryClient`** (more on this below) that you passed with `QueryClientProvider`.
+
+```dart
+final queryClient = useQueryClient();
+
+// Invalidate every query with a key that starts with `post`
+queryClient.invalidateQueries(['posts']);
+
+// Both queries will be invalidated
+final posts = useQuery(['posts'], getPosts);
+final post = useQuery(['posts', 1], getPosts);
+```
+
+When a query is invalidated, two things will happen:
+
+- It marks it as stale and this overrides any `staleDuration` configuration passed to `useQuery`.
+- If the query is being used in a widget, it will be refetched, otherwise it will be refetched when it is used by a widget at a later point in time.
 
 ## Additional information
 
