@@ -99,6 +99,7 @@ class Query<TData, TError> {
 
   Query({required this.client, required this.key});
 
+  /// The single source of truth for how the cache data changes.
   QueryState<TData, TError> _reducer(
       QueryState<TData, TError> state, DispatchAction action, dynamic data) {
     switch (action) {
@@ -137,9 +138,9 @@ class Query<TData, TError> {
     }
   }
 
-  // Sets the cache duration
-  // Max cacheDuration given by any observer is used
-  // Reschedules the garbage collection timer
+  /// Sets the cache duration
+  /// Max cacheDuration given by any observer is used
+  /// Reschedules the garbage collection timer
   void setCacheDuration(Duration cacheDuration) {
     _cacheDuration = Duration(
         milliseconds: max(
@@ -155,6 +156,8 @@ class Query<TData, TError> {
     }
   }
 
+  /// This is called from the [Observer]
+  /// to subscribe to the query
   void subscribe(Observer observer) {
     _observers.add(observer);
 
@@ -171,12 +174,13 @@ class Query<TData, TError> {
     }
   }
 
+  /// Dispatches an action to the reducer and notifies observers
   void dispatch(DispatchAction action, dynamic data) {
     _state = _reducer(state, action, data);
     _notifyObservers();
   }
 
-  // This is called when garbage collection timer fires
+  /// This is called when garbage collection timer fires
   void onGarbageCollection() {
     client.queryCache.remove(this);
   }
