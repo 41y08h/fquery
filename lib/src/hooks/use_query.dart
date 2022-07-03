@@ -112,9 +112,9 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
   );
 
   // This subscribes to the observer
+  // and rebuilds the widgets on updates.
   useListenable(observer);
 
-  // Propagate the options changes to the observer
   useEffect(() {
     observer.updateOptions(options);
     return null;
