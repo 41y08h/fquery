@@ -12,6 +12,8 @@ It can be used for managing server state (REST API, GraphQL, etc), local databse
 - Auto refetching stale data
 - State data invalidation
 - Manual updates
+- Dependant queries
+- Parallel queries
 
 ## ❔Problem definition
 
@@ -24,8 +26,7 @@ The thing is, existing state management solutions are very general and are suite
 
 ### How does FQuery tackle this problem?
 
-FQuery is powerd by [flutter_hooks](https://pub.dev/packages/flutter_hooks).
-It provides you easy to use hooks. Just tell it where to get the data by giving it a `Future` and the rest is automatic. It can be fully configured to match your needs, you can configure each and every thing.
+FQuery is powerd by [flutter_hooks](https://pub.dev/packages/flutter_hooks). It is very similar to [swr](https://github.com/vercel/swr) and [react-query](https://github.com/tanstack/query). It provides you easy to use hooks. Just tell it where to get the data by giving it a `Future` and the rest is automatic. It can be fully configured to match your needs, you can configure each and every thing.
 
 ## 📄 Example
 
@@ -66,7 +67,16 @@ class Posts extends HookWidget {
 
 ## 🧑‍💻 Usage
 
-You'll need to install [flutter_hooks](https://pub.dev/packages/flutter_hooks) before you can start using this library.
+You'll need to install [flutter_hooks](https://pub.dev/packages/flutter_hooks) before you can start using this library. You'll need to wrap
+your entire app inside a `QueryClientProvider` and you are good to go.
+
+```dart
+void main() {
+  runApp(
+    QueryClientProvider(
+      queryClient: queryClient,
+      child: CupertinoApp(
+```
 
 ### Queries
 
@@ -76,6 +86,8 @@ A query instance is a subscription to an asynchronous data stored in the cache. 
 
 - A **Query key**, it uniquely identifies the query stored in the cache.
 - A `Future` that either resolves or throws an error
+
+The same query key can be used in multiple instances of `useQuery` hook and the data will be shared throughout the app.
 
 ```dart
 Future<List<Post>> getPosts() async {
@@ -117,6 +129,32 @@ return ListView.builder(
   },
 );
 ```
+
+### Query configuration
+
+A query is fully customizable to match your needs, these configurations can be passed as named parameters into the `useQuery` hook
+
+```dart
+// These are default configurations
+final posts = useQuery(
+  ['posts'],
+  getPosts,
+  enabled: true,
+  cacheDuration: const Duration(minutes: 5),
+  refetchInterval: null // The query will not refetch by default,
+  refetchOnMount: RefetchOnMount.stale,
+  staleDuration: const Duration(seconds: 10),
+);
+```
+
+- `enabled` - specifies if the query fetcher function is automatically called when the widget renders, can be used for _dependant queries_
+- `cacheDuration` - specifies the duration unused/inactive cache data remains in memory, the cached data will be garbage collected after this duration. The longest one will be used when different values are specified in multiple instances of the query.
+- `refetchInterval` - specifies the time interval in which all queries will refetch the data, setting it to `null` (default) will turn off refetching
+- `refetchOnMount` - specifies the behavior of the query instance when the widget is first built and the data is already available.
+  - `RefetchOnMount.always` - will always refetch when the widget is built.
+  - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`)
+  - `RefetchOnMount.never` - will never refetch
+- `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually
 
 ## Additional information
 
