@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'query_client.dart';
 
+/// This can be used to provide a [QueryClient] throughout the application.
 class QueryClientProvider extends InheritedWidget {
   final QueryClient queryClient;
   const QueryClientProvider({
