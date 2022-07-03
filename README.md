@@ -176,6 +176,24 @@ When a query is invalidated, two things will happen:
 - It marks it as stale and this overrides any `staleDuration` configuration passed to `useQuery`.
 - If the query is being used in a widget, it will be refetched, otherwise it will be refetched when it is used by a widget at a later point in time.
 
+### Manual updates
+
+You probably already know how the data is changed and don't want to refetch the whole data again. You can set it manually using `setQueryData()` method on the `QueryClient`. It takes a query key and an updater function. If the query data doesn't exist already in the cache (that's why `previous` is nullable), it'll be created.
+
+```dart
+final queryClient = useQueryClient();
+
+// The `Type` of returned data must match the `Type` of data
+// stored in the cache, otherwise an error will be thrown
+queryClient.setQueryData<List<Post>>(['posts'], (previous) {
+  return previous?.map((post) {
+    return post.copyWith(
+      title: "lorem ipsum"
+    );
+  }).toList()
+})
+```
+
 ## Additional information
 
 TODO: Tell users more about the package: where to find more information, how to
