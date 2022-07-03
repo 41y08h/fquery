@@ -1,5 +1,6 @@
 import 'dart:async';
 
+/// This is used to retry a future several times before giving up.
 class RetryResolver {
   bool isRunning = false;
   RetryResolver();
