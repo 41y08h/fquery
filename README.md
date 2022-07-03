@@ -215,8 +215,6 @@ void main() {
       child: CupertinoApp(
 ```
 
-## Additional information
+## Bugs and suggestions
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+Feel free to open an issue or suggest an idea at the [GitHub repo](https://github.com/41y08h/fquery).
