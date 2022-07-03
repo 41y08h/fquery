@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:fquery/src/hooks/use_query.dart';
 import 'dart:async';
 import 'query.dart';
-import 'retryer.dart';
+import 'retry_resolver.dart';
 import 'query_client.dart';
 
 /// An observer is a class which subscribes to a query and updates its state when the query changes.
