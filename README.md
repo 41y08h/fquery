@@ -169,6 +169,12 @@ queryClient.invalidateQueries(['posts']);
 // Both queries will be invalidated
 final posts = useQuery(['posts'], getPosts);
 final post = useQuery(['posts', 1], getPosts);
+
+// Use `exact: true` to exactly match the query
+queryClient.invalidateQueries(['posts'], exact: true);
+
+// Only this will invalidate
+final posts = useQuery(['posts'], getPosts);
 ```
 
 When a query is invalidated, two things will happen:
