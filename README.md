@@ -1,15 +1,15 @@
-⚡FQuery is a powerful async state management solution for flutter. It caches, updates and fully manages asynchronous data in your flutter apps.
+⚡FQuery is a powerful async state management solution for flutter. It caches, updates, and fully manages asynchronous data in your flutter apps.
 
-It can be used for managing server state (REST API, GraphQL, etc), local databses like SQLite, or just anything that is async, just give it a `Future` and you are good to go.
+It can be used for managing server state (REST API, GraphQL, etc), local databases like SQLite, or just anything that is async, just give it a `Future` and you are good to go.
 
 ## 🌌 Features
 
 - Fully customizable
 - No boilerplate code and easy to use
-- Data feching logic agnostic
+- Data fetching logic agnostic
 - Automatic caching
 - Garbage collection
-- Auto refetching stale data
+- Auto re-fetching stale data
 - State data invalidation
 - Manual updates
 - Dependant queries
@@ -17,16 +17,16 @@ It can be used for managing server state (REST API, GraphQL, etc), local databse
 
 ## ❔Problem definition
 
-Let me ask you a simple question, **How do you manage server state in your flutter apps?** Majority developers will answer that they use Riverpod, Bloc, `FutureBuilder`, or any other general purpose state management solution. This usually results in writing a lot of boilerplate code and repeating data fetching, caching, and other logic over and over again.
+Let me ask you a simple question, **How do you manage server state in your flutter apps?** Majority developers will answer that they use Riverpod, Bloc, `FutureBuilder`, or any other general-purpose state management solution. This usually results in writing a lot of boilerplate code and repeating data fetching, caching, and other logic over and over again.
 
-The thing is, existing state management solutions are very general and are suited for anything that's a global state in you app _and hence the term "general"_, but do not work great when used for asynchronous state like server state, this is because server state is way too different. Server state is -
+The thing is, existing state management solutions are very general and are suited for anything that's a global state in your app _and hence the term "general"_, but do not work great when used for asynchronous states like server state, this is because server state is way too different. Server state is -
 
-- Asynchrounous state and requires asynchronous APIs for fetching and updating)
+- Asynchronous state and requires asynchronous APIs for fetching and updating)
 - Stored in a remote location and _can be changed without your knowledge, from just anywhere in the world_ and **this alone means a lot, staying synchronized with the data and making sure that it is not stale**
 
 ### How does FQuery tackle this problem?
 
-FQuery is powerd by [flutter_hooks](https://pub.dev/packages/flutter_hooks). It is very similar to [swr](https://github.com/vercel/swr) and [react-query](https://github.com/tanstack/query). It provides you easy to use hooks. Just tell it where to get the data by giving it a `Future` and the rest is automatic. It can be fully configured to match your needs, you can configure each and every thing.
+FQuery is powered by [flutter_hooks](https://pub.dev/packages/flutter_hooks). It is very similar to [swr](https://github.com/vercel/swr) and [react-query](https://github.com/tanstack/query). It provides you easy to use hooks. Just tell it where to get the data by giving it a `Future` and the rest is automatic. It can be fully configured to match your needs, you can configure each and everything.
 
 ## 📄 Example
 
@@ -80,11 +80,11 @@ void main() {
 
 ### Queries
 
-To query data in your widgets, you'll need to extend the widget using `HookWidget` or `StatefulHookWidget`(for stateful widgets). These classes are exported from the [flutter_hooks](https://pub.dev/packages/flutter_hooks) pacakge.
+To query data in your widgets, you'll need to extend the widget using `HookWidget` or `StatefulHookWidget`(for stateful widgets). These classes are exported from the [flutter_hooks](https://pub.dev/packages/flutter_hooks) package.
 
 A query instance is a subscription to an asynchronous data stored in the cache. Every query needs -
 
-- A **Query key**, it uniquely identifies the query stored in the cache.
+- A **Query key**, uniquely identifies the query stored in the cache.
 - A `Future` that either resolves or throws an error
 
 The same query key can be used in multiple instances of `useQuery` hook and the data will be shared throughout the app.
@@ -149,11 +149,11 @@ final posts = useQuery(
 
 - `enabled` - specifies if the query fetcher function is automatically called when the widget renders, can be used for _dependant queries_
 - `cacheDuration` - specifies the duration unused/inactive cache data remains in memory, the cached data will be garbage collected after this duration. The longest one will be used when different values are specified in multiple instances of the query.
-- `refetchInterval` - specifies the time interval in which all queries will refetch the data, setting it to `null` (default) will turn off refetching
+- `refetchInterval` - specifies the time interval in which all queries will re-fetch the data, setting it to `null` (default) will turn off re-fetching
 - `refetchOnMount` - specifies the behavior of the query instance when the widget is first built and the data is already available.
-  - `RefetchOnMount.always` - will always refetch when the widget is built.
+  - `RefetchOnMount.always` - will always re-fetch when the widget is built.
   - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`)
-  - `RefetchOnMount.never` - will never refetch
+  - `RefetchOnMount.never` - will never re-fetch
 - `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually
 
 ### Query invalidation
@@ -180,11 +180,11 @@ final posts = useQuery(['posts'], getPosts);
 When a query is invalidated, two things will happen:
 
 - It marks it as stale and this overrides any `staleDuration` configuration passed to `useQuery`.
-- If the query is being used in a widget, it will be refetched, otherwise it will be refetched when it is used by a widget at a later point in time.
+- If the query is being used in a widget, it will be re-fetched, otherwise, it will be re-fetched when it is used by a widget at a later point in time.
 
 ### Manual updates
 
-You probably already know how the data is changed and don't want to refetch the whole data again. You can set it manually using `setQueryData()` method on the `QueryClient`. It takes a query key and an updater function. If the query data doesn't exist already in the cache (that's why `previous` is nullable), it'll be created.
+You probably already know how the data is changed and don't want to re-fetch the whole data again. You can set it manually using `setQueryData()` method on the `QueryClient`. It takes a query key and an updater function. If the query data doesn't exist already in the cache (that's why `previous` is nullable), it'll be created.
 
 ```dart
 final queryClient = useQueryClient();
@@ -202,7 +202,7 @@ queryClient.setQueryData<List<Post>>(['posts'], (previous) {
 
 ### QueryClient
 
-A `QueryClient` is uesd to interact with the query cache. It is made available throughout the app using a `QueryClientProvider`. **It can be configured to change the default configurations of the queries.**
+A `QueryClient` is used to interact with the query cache. It is made available throughout the app using a `QueryClientProvider`. **It can be configured to change the default configurations of the queries.**
 
 ```dart
 final queryClient = QueryClient(
