@@ -1,3 +1,4 @@
+![Banner](./media/Banner.png)
 ⚡FQuery is a powerful async state management solution for flutter. It caches, updates, and fully manages asynchronous data in your flutter apps.
 
 It can be used for managing server state (REST API, GraphQL, etc), local databases like SQLite, or just anything that is async, just give it a `Future` and you are good to go.
