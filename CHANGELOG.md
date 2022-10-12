@@ -13,3 +13,7 @@
 
 - Fix typos in documentation
 - Add banner in README.md
+
+## 1.0.0-beta.3+1
+
+- Fix banner image path in README.md
