@@ -8,3 +8,8 @@
 - Add API docs
 - Add documentation in README.md
 - Fix some APIs
+
+## 1.0.0-beta.3
+
+- Fix typos in documentation
+- Add banner in README.md
