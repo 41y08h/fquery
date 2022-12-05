@@ -3,6 +3,14 @@
 
 It can be used for managing server state (REST API, GraphQL, etc), local databases like SQLite, or just anything that is async, just give it a `Future` and you are good to go.
 
+## Contributors
+
+If you want to contribute to this project, you're very welcome ✨. 
+
+This project is still in its beta version and needs contributors like you. 
+
+See [Contribution guide](CONTRIBUTING.md) for more details.
+
 ## 🌌 Features
 
 - Fully customizable
