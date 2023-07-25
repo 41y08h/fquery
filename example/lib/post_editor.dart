@@ -13,10 +13,15 @@ class PostEditor extends HookWidget {
   Widget build(BuildContext context) {
     final textController = useTextEditingController(text: title);
     final queryClient = useQueryClient();
-    final mutation = useMutation<String, String, dynamic>(
+
+    // Generic types are Variables, Data, and Error
+    final mutation = useMutation<String, String, String>(
       mutationFn: (title) async {
         // This is where you would make your async call
         await Future.delayed(const Duration(milliseconds: 500));
+
+        // simulate an error
+        if (title == "error") throw "Something went wrong!";
         return title;
       },
       onMutate: (title) => {
@@ -38,28 +43,42 @@ class PostEditor extends HookWidget {
     );
 
     useEffect(() {
-      // Reset the text field when the title changes (is invalidated or refetched in this case)
+      // Reset the text field when the title changes
       textController.text = title;
       return null;
     }, [title]);
 
-    return Row(
+    useEffect(() {
+      print(mutation.data);
+      print(mutation.dataUpdatedAt);
+      print(mutation.error);
+      print(mutation.errorUpdatedAt);
+      return null;
+    }, [mutation.data, mutation.error]);
+
+    return Column(
       children: [
-        Expanded(
-          child: CupertinoTextField(
-            controller: textController,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: CupertinoTextField(
+                controller: textController,
+              ),
+            ),
+            CupertinoButton(
+              onPressed: mutation.isLoading
+                  ? null
+                  : () async {
+                      print("Saving...");
+                      await mutation.mutate(textController.text);
+                      print("Saved!");
+                    },
+              child: const Text("Save"),
+            )
+          ],
         ),
-        CupertinoButton(
-          onPressed: mutation.isLoading
-              ? null
-              : () async {
-                  print("Saving...");
-                  await mutation.mutate(textController.text);
-                  print("Saved!");
-                },
-          child: const Text("Save"),
-        )
+        if (mutation.isError)
+          Text(mutation.error!, style: const TextStyle(color: CupertinoColors.destructiveRed)),
       ],
     );
   }
