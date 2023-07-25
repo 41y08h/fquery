@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
+import 'package:fquery_example/post_page.dart';
 
 final queryClient = QueryClient(
   defaultQueryOptions: DefaultQueryOptions(),
@@ -29,9 +30,7 @@ void main() {
 
 Future<List<Post>> getPosts() async {
   final res = await Dio().get('https://jsonplaceholder.typicode.com/posts');
-  return (res.data as List)
-      .map((e) => Post.fromJson(e as Map<String, dynamic>))
-      .toList();
+  return (res.data as List).map((e) => Post.fromJson(e as Map<String, dynamic>)).toList();
 }
 
 class Home extends HookWidget {
@@ -97,111 +96,16 @@ class Home extends HookWidget {
                     itemCount: posts.data?.length,
                     itemBuilder: (context, index) {
                       final post = posts.data![index];
-
-                      return GestureDetector(
+                      return CupertinoListTile(
                         onTap: () {
-                          Navigator.pushNamed(context, '/post',
-                              arguments: post.id);
+                          Navigator.pushNamed(context, '/post', arguments: post.id);
                         },
-                        child: CupertinoListTile(
-                          title: Text(post.title),
-                        ),
+                        title: Text(post.title),
                       );
                     },
                   ),
                 ),
               ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-Future<Post> getPost(int id) async {
-  final res = await Dio().get('https://jsonplaceholder.typicode.com/posts/$id');
-  return Post.fromJson(res.data);
-}
-
-class PostPage extends HookWidget {
-  const PostPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final id = ModalRoute.of(context)!.settings.arguments as int;
-    final isInterval = useState(false);
-    final post = useQuery(
-      ['posts', id],
-      () => getPost(id),
-      staleDuration: const Duration(hours: 1),
-      refetchInterval: isInterval.value ? const Duration(seconds: 4) : null,
-    );
-    final client = useQueryClient();
-
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: const Text('Post'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              child: const Icon(CupertinoIcons.archivebox),
-              onPressed: () {
-                client.invalidateQueries(['posts', id]);
-              },
-            ),
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: () {
-                isInterval.value = !isInterval.value;
-              },
-              child: Icon(
-                CupertinoIcons.refresh_circled_solid,
-                color: isInterval.value
-                    ? CupertinoColors.activeBlue
-                    : CupertinoColors.systemGrey,
-              ),
-            )
-          ],
-        ),
-      ),
-      child: SafeArea(
-        child: Builder(
-          builder: (context) {
-            if (post.isLoading) {
-              return const Center(
-                child: CupertinoActivityIndicator(),
-              );
-            }
-            if (post.isError) {
-              return const Center(
-                child: Text('Error'),
-              );
-            }
-
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (post.isFetching)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 40.0),
-                      child: CupertinoActivityIndicator(),
-                    ),
-                  // Heading style text
-                  Text(
-                    post.data!.title,
-                    style: const TextStyle(
-                      fontSize: 24.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(post.data!.body),
-                ],
-              ),
             );
           },
         ),

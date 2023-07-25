@@ -36,7 +36,7 @@ class Observer<TData, TError> extends ChangeNotifier {
   // This is called from the [useQuery] hook
   // whenever the first widget build is done
   void initialize() {
-    // Subcribe the any query state changes
+    // Subcribe to any query state changes
     query.subscribe(this);
 
     // Initiate query on mount
