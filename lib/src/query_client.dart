@@ -50,6 +50,11 @@ class QueryClient {
     query?.dispatch(DispatchAction.success, updater(query.state.data));
   }
 
+  TData? getQueryData<TData>(QueryKey queryKey) {
+    final query = queryCache.get<TData, dynamic>(queryKey);
+    return query?.state.data;
+  }
+
   /// Marks the query as stale.
   /// If the query is being used in a widget, it will be refetched,
   /// otherwise it will be refetched when it is used by a widget at a later point in time.
