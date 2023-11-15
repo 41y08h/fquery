@@ -125,7 +125,6 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
     WidgetsBinding.instance.addPostFrameCallback((_) {
       observer.initialize();
     });
-    observer.initialize();
     return () {
       observer.destroy();
     };
