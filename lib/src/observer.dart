@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/foundation.dart';
 import 'package:fquery/src/hooks/use_query.dart';
 import 'dart:async';
@@ -124,9 +126,7 @@ class Observer<TData, TError> extends ChangeNotifier {
 
     query.dispatch(DispatchAction.fetch, null);
     resolver.resolve<TData>(fetcher, onResolve: (data) {
-      if (options.onData != null) {
-        options.onData!(data);
-      }
+      options.onData?.call(data);
       query.dispatch(DispatchAction.success, data);
       scheduleRefetch();
     }, onError: (error) {
