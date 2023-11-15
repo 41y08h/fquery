@@ -153,6 +153,12 @@ final posts = useQuery(
   refetchInterval: null // The query will not re-fetch by default,
   refetchOnMount: RefetchOnMount.stale,
   staleDuration: const Duration(seconds: 10),
+  onData: (data) {
+    debugPrint('onData: $data');
+  },
+  onError: (error) {
+    debugPrint('onError: $error');
+  }
 );
 ```
 
@@ -160,10 +166,12 @@ final posts = useQuery(
 - `cacheDuration` - specifies the duration unused/inactive cache data remains in memory; the cached data will be garbage collected after this duration. The longest duration will be used when different values are specified in multiple instances of the query.
 - `refetchInterval` - specifies the time interval in which all queries will re-fetch the data, setting it to `null` (default) will turn off re-fetching.
 - `refetchOnMount` - specifies the behavior of the query instance when the widget is first built and the data is already available.
-  - `RefetchOnMount.always` - will always refetch when the widget is built.
-  - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`).
-  - `RefetchOnMount.never` - will never refetch.
-- `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually.
+  - `RefetchOnMount.always` - will always re-fetch when the widget is built.
+  - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`)
+  - `RefetchOnMount.never` - will never re-fetch
+- `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually
+- `onData` - Callback that supplies data when query is successfully fetched/refreshed
+- `onError` - Callback fired when query encounters an error while fetching
 
 ### Query invalidation
 
