@@ -15,7 +15,7 @@ class UseQueryResult<TData, TError> {
   final bool isFetching;
   final bool isSuccess;
   final QueryStatus status;
-  final void Function() refetch;
+  final Future<void> Function() refetch;
 
   UseQueryResult({
     required this.data,
