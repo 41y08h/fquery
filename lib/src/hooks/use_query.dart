@@ -31,12 +31,15 @@ class UseQueryResult<TData, TError> {
   });
 }
 
-class UseQueryOptions {
+class UseQueryOptions<TData, TError> {
   final bool enabled;
   final RefetchOnMount? refetchOnMount;
   final Duration? staleDuration;
   final Duration? cacheDuration;
   final Duration? refetchInterval;
+
+  final ValueChanged<TData>? onData;
+  final ValueChanged<TError>? onError;
 
   UseQueryOptions({
     required this.enabled,
@@ -44,6 +47,8 @@ class UseQueryOptions {
     this.staleDuration,
     this.cacheDuration,
     this.refetchInterval,
+    this.onData,
+    this.onError,
   });
 }
 
@@ -75,21 +80,25 @@ class UseQueryOptions {
 
 UseQueryResult<TData, TError> useQuery<TData, TError>(
   QueryKey queryKey,
-  Future<TData> Function() fetcher, {
+  QueryFn<TData> fetcher, {
   // These options must match with the `UseQueryOptions`
   bool enabled = true,
   RefetchOnMount? refetchOnMount,
   Duration? staleDuration,
   Duration? cacheDuration,
   Duration? refetchInterval,
+  final ValueChanged<TData>? onData,
+  final ValueChanged<TError>? onError,
 }) {
   final options = useMemoized(
-    () => UseQueryOptions(
+    () => UseQueryOptions<TData, TError>(
       enabled: enabled,
       refetchOnMount: refetchOnMount,
       staleDuration: staleDuration,
       cacheDuration: cacheDuration,
       refetchInterval: refetchInterval,
+      onData: onData,
+      onError: onError,
     ),
     [
       enabled,
@@ -97,10 +106,12 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
       staleDuration,
       cacheDuration,
       refetchInterval,
+      onData,
+      onError,
     ],
   );
   final client = useQueryClient();
-  final observer = useMemoized(
+  final observer = useMemoized<Observer<TData, TError>>(
     () => Observer<TData, TError>(
       queryKey,
       fetcher,
@@ -112,7 +123,7 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
 
   // This subscribes to the observer
   // and rebuilds the widgets on updates.
-  useListenable(observer);
+  useListenable<Observer<TData, TError>>(observer);
 
   useEffect(() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -130,7 +141,7 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
     };
   }, [observer]);
 
-  return UseQueryResult(
+  return UseQueryResult<TData, TError>(
     data: observer.query.state.data,
     dataUpdatedAt: observer.query.state.dataUpdatedAt,
     error: observer.query.state.error,
