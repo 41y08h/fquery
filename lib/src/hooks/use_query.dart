@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
@@ -116,11 +117,16 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
   useListenable(observer);
 
   useEffect(() {
-    observer.updateOptions(options);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      observer.updateOptions(options);
+    });
     return null;
   }, [observer, options]);
 
   useEffect(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      observer.initialize();
+    });
     observer.initialize();
     return () {
       observer.destroy();
