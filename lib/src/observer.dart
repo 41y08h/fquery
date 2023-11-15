@@ -1,11 +1,11 @@
-import 'dart:ffi';
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:fquery/src/hooks/use_query.dart';
-import 'dart:async';
+
 import 'query.dart';
-import 'retry_resolver.dart';
 import 'query_client.dart';
+import 'retry_resolver.dart';
 
 typedef QueryFn<TData> = FutureOr<TData> Function();
 
