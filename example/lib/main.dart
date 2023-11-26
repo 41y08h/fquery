@@ -1,5 +1,4 @@
 import 'package:basic/post.dart';
-import 'package:cupertino_list_tile/cupertino_list_tile.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -93,28 +92,42 @@ class Home extends HookWidget {
                     padding: EdgeInsets.symmetric(vertical: 40.0),
                     child: CupertinoActivityIndicator(),
                   ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: posts.data?.length,
-                    itemBuilder: (context, index) {
-                      final post = posts.data![index];
-
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(context, '/post',
-                              arguments: post.id);
-                        },
-                        child: CupertinoListTile(
-                          title: Text(post.title),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                const MainBody(),
               ],
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class MainBody extends HookWidget {
+  const MainBody({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Subscribe to 'posts' query,
+    // look how the same data is shared between the two widgets
+    final posts = useQuery(['posts'], getPosts);
+
+    return Expanded(
+      child: ListView.builder(
+        itemCount: posts.data?.length,
+        itemBuilder: (context, index) {
+          final post = posts.data![index];
+
+          return GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, '/post', arguments: post.id);
+            },
+            child: CupertinoListTile(
+              title: Text(post.title),
+            ),
+          );
+        },
       ),
     );
   }
