@@ -1,5 +1,4 @@
-import 'package:basic/post.dart';
-import 'package:cupertino_list_tile/cupertino_list_tile.dart';
+import 'package:fquery_example/post.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
