@@ -1,17 +1,47 @@
 ![Banner](https://github.com/41y08h/fquery/blob/main/media/Banner.png?raw=true)
-⚡fquery is a powerful async state management solution for Flutter. It caches, updates, and fully manages asynchronous data in your Flutter apps.
 
-It can be used for managing server state (REST API, GraphQL, etc), local databases like SQLite, or just anything async, just give it a `Future` and you are good to go.
+⚡Are you ready to supercharge your Flutter app development?
 
-## Contributors
+Introducing fquery - an easy-to-use, yet efficient and reliable asynchronous state management solution for Flutter! It effortlessly caches, updates, and fully manages asynchronous data in your Flutter apps.
 
-If you want to contribute to this project, you're very welcome ✨. 
+With this powerful tool at your disposal, managing server state (REST API, GraphQL, etc), local databases like SQLite, or anything async has never been easier. Just provide a `Future` and watch the magic unfold.
 
-This project is still in its beta version and needs contributors like you. 
+## Trusted & Used by
 
-See [Contribution guide](CONTRIBUTING.md) for more details.
+### UC San Diego
+
+<div 
+  style="
+  background-color: #131938; 
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  margin-bottom: 12px;
+  ">
+  <img src="https://github.com/41y08h/fquery/blob/main/media/ucsd-white.png?raw=true" alt="UC San Diego" height=50 />
+</div>
+
+The University of California, San Diego has shifted to [fquery](https://github.com/41y08h/fquery/) as the backbone of their [mobile application](https://mobile.ucsd.edu/), which has over 30,000 users and serves as the app used by the generations of students.
+With fquery's efficient and easy-to-use async state management, the developers are enjoying a comfort of seamless state management with refactoring even files with 200 lines to just 20 lines. They also noticed a significant reduction in the hot reload.
+
+All of this only to have more time, and easy-to-manage structure to develop the features that matter the most. They are confident that the codebase will continue to be managable, and provide the team with a better structure.
+
+### Stargazers and others
+
+![GitHub Repo stars](https://img.shields.io/github/stars/41y08h/fquery?style=social)
+
+The project's growth has almost been completely organic, it has grown popular in the developer community and is growing by the day, consider starring it if you've found it useful.
+
+As a developer, you too can leverage the power of this tool to create a high-quality mobile application that provides an exceptional user experience. [fquery](https://github.com/41y08h/fquery/) is a reliable and efficient solution that has already been proven successful in UC San Diego's app. So, why not choose it for your next project and take advantage of its powerful features to deliver a seamless experience to your users?
 
 ## 🌌 Features
+
+<!-- Non-technical features -->
+
+- Easy to use
+- Powerful
+
+<!-- Technical features -->
 
 - Fully customizable
 - No boilerplate code and easy-to-use
@@ -230,6 +260,17 @@ void main() {
       child: CupertinoApp(
 ```
 
-## Bugs and suggestions
+## Contributing
 
-Feel free to open an issue or suggest an idea at the [GitHub repo](https://github.com/41y08h/fquery).
+If you've ever wanted to contribute to open source, and a great cause, now is your chance ✨, feel free to open an issue or submit a PR at the [GitHub repo](https://github.com/41y08h/fquery). See [Contribution guide](CONTRIBUTING.md) for more details.
+
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
