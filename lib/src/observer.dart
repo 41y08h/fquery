@@ -85,13 +85,22 @@ class Observer<TData, TError> extends ChangeNotifier {
   void updateOptions(UseQueryOptions options) {
     final refetchIntervalChanged =
         this.options.refetchInterval != options.refetchInterval;
+    final isEnabledChanged = this.options.enabled != options.enabled;
 
     _setOptions(options);
+
+    if (isEnabledChanged) {
+      if (options.enabled) {
+        fetch();
+      } else {
+        resolver.cancel();
+        refetchTimer?.cancel();
+      }
+    }
 
     if (options.cacheDuration != null) {
       query.setCacheDuration(options.cacheDuration as Duration);
     }
-
     if (refetchIntervalChanged) {
       // Schedules the next fetch if the [options.refetchInterval] is set.
       if (options.refetchInterval != null) {
