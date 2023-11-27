@@ -2,6 +2,9 @@ import 'dart:async';
 
 /// This is used to retry a future several times before giving up.
 class RetryResolver {
+  // TODO: fix: cancel method doesn't work if the fn has been invoked already,
+  // probable solutions hint at running the retrying process in parallel or something similar,
+  // so that `onCancel` can be invoked as soon as the `cancel` method is called
   bool isRunning = false;
   RetryResolver();
 

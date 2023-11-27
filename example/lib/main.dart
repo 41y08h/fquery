@@ -39,14 +39,24 @@ class Home extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isEnabled = useState(true);
     final client = useQueryClient();
-    final posts = useQuery(['posts'], getPosts);
+    final posts = useQuery(['posts'], getPosts, enabled: isEnabled.value);
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                isEnabled.value = !isEnabled.value;
+              },
+              child: Icon(isEnabled.value
+                  ? CupertinoIcons.circle_fill
+                  : CupertinoIcons.circle),
+            ),
             CupertinoButton(
               padding: EdgeInsets.zero,
               onPressed: posts.refetch,
