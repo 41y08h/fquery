@@ -1,4 +1,7 @@
 ![Banner](https://github.com/41y08h/fquery/blob/main/media/Banner.png?raw=true)
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 ⚡fquery is a powerful async state management solution for Flutter. It caches, updates, and fully manages asynchronous data in your Flutter apps.
 
 It can be used for managing server state (REST API, GraphQL, etc), local databases like SQLite, or just anything async, just give it a `Future` and you are good to go.
@@ -6,6 +9,21 @@ It can be used for managing server state (REST API, GraphQL, etc), local databas
 ## Contributors
 
 If you want to contribute to this project, you're very welcome ✨. 
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/cynthiakonar"><img src="https://avatars.githubusercontent.com/u/89989829?v=4?s=100" width="100px;" alt="Cynthia"/><br /><sub><b>Cynthia</b></sub></a><br /><a href="https://github.com/41y08h/fquery/commits?author=cynthiakonar" title="Documentation">📖</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project is still in its beta version and needs contributors like you. 
 
