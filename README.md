@@ -261,7 +261,9 @@ void main() {
 
 If you've ever wanted to contribute to open source, and a great cause, now is your chance ✨, feel free to open an issue or submit a PR at the [GitHub repo](https://github.com/41y08h/fquery). See [Contribution guide](CONTRIBUTING.md) for more details.
 
-## Contributors
+## Contributors ✨
+
+Thanks go to these wonderful people:
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -281,3 +283,6 @@ If you've ever wanted to contribute to open source, and a great cause, now is yo
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://allcontributors.org) specification.
+Contributions of any kind are welcome!
