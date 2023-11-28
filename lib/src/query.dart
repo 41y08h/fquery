@@ -28,11 +28,11 @@ enum RefetchOnMount {
 }
 
 class QueryOptions<TData, TError> {
-  bool enabled;
-  RefetchOnMount refetchOnMount;
-  Duration staleDuration;
-  Duration cacheDuration;
-  Duration? refetchInterval;
+  final bool enabled;
+  final RefetchOnMount refetchOnMount;
+  final Duration staleDuration;
+  final Duration cacheDuration;
+  final Duration? refetchInterval;
   final ValueChanged<TData>? onData;
   final ValueChanged<TError>? onError;
 
