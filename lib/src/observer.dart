@@ -1,8 +1,6 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:fquery/src/hooks/use_query.dart';
-
 import 'query.dart';
 import 'query_client.dart';
 import 'retry_resolver.dart';
@@ -89,24 +87,17 @@ class Observer<TData, TError> extends ChangeNotifier {
   /// This is usually called from the [useQuery] hook
   /// whenever there is any change in the options
   void updateOptions(UseQueryOptions<TData, TError> options) {
+    // Compare variable changes before calling `_setOptions`
     final refetchIntervalChanged =
         this.options.refetchInterval != options.refetchInterval;
-    final isEnabledChanged = this.options.enabled != options.enabled;
 
     _setOptions(options);
 
-    if (isEnabledChanged) {
-      if (options.enabled) {
-        fetch();
-      } else {
-        resolver.cancel();
-        refetchTimer?.cancel();
-      }
-    }
-
+    // Take the necessary steps to reflect the options change
     if (options.cacheDuration != null) {
       query.setCacheDuration(options.cacheDuration as Duration);
     }
+
     if (refetchIntervalChanged) {
       // Schedules the next fetch if the [options.refetchInterval] is set.
       if (options.refetchInterval != null) {
@@ -125,13 +116,17 @@ class Observer<TData, TError> extends ChangeNotifier {
     }
 
     query.dispatch(DispatchAction.fetch, null);
+    // Important: State change, then any other
+    // function invocation in the following callbacks
     resolver.resolve<TData>(fetcher, onResolve: (data) {
-      options.onData?.call(data);
       query.dispatch(DispatchAction.success, data);
+
+      options.onData?.call(data);
       scheduleRefetch();
     }, onError: (error) {
-      options.onError?.call(error as TError);
       query.dispatch(DispatchAction.error, error);
+
+      options.onError?.call(error as TError);
       scheduleRefetch();
     }, onCancel: () {
       query.dispatch(DispatchAction.cancelFetch, null);
