@@ -270,6 +270,7 @@ If you've ever wanted to contribute to open source, and a great cause, now is yo
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/cynthiakonar"><img src="https://avatars.githubusercontent.com/u/89989829?v=4?s=100" width="100px;" alt="Cynthia"/><br /><sub><b>Cynthia</b></sub></a><br /><a href="#doc-cynthiakonar" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://rajvirsingh.tech"><img src="https://avatars.githubusercontent.com/u/63385587?v=4?s=100" width="100px;" alt="Rajvir Singh"/><br /><sub><b>Rajvir Singh</b></sub></a><br /><a href="#design-RajvirSingh1313" title="Design">🎨</a></td>
     </tr>
   </tbody>
 </table>
