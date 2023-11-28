@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
 
@@ -26,12 +27,14 @@ enum RefetchOnMount {
   never,
 }
 
-class QueryOptions {
-  bool enabled;
-  RefetchOnMount refetchOnMount;
-  Duration staleDuration;
-  Duration cacheDuration;
-  Duration? refetchInterval;
+class QueryOptions<TData, TError> {
+  final bool enabled;
+  final RefetchOnMount refetchOnMount;
+  final Duration staleDuration;
+  final Duration cacheDuration;
+  final Duration? refetchInterval;
+  final ValueChanged<TData>? onData;
+  final ValueChanged<TError>? onError;
 
   QueryOptions({
     required this.enabled,
@@ -39,6 +42,8 @@ class QueryOptions {
     required this.staleDuration,
     required this.cacheDuration,
     this.refetchInterval,
+    this.onData,
+    this.onError,
   });
 }
 
@@ -90,7 +95,7 @@ class Query<TData, TError> {
   final QueryClient client;
   final QueryKey key;
 
-  QueryState<TData, TError> _state = QueryState();
+  QueryState<TData, TError> _state = QueryState<TData, TError>();
   QueryState<TData, TError> get state => _state;
   final List<Observer> _observers = [];
 
@@ -116,7 +121,7 @@ class Query<TData, TError> {
       case DispatchAction.error:
         return state._copyWith(
           status: QueryStatus.error,
-          error: data,
+          error: data as TError,
           errorUpdatedAt: DateTime.now(),
           isFetching: false,
         );
@@ -124,7 +129,7 @@ class Query<TData, TError> {
         return state._copyWith(
           status: QueryStatus.success,
           error: null,
-          data: data,
+          data: data as TData,
           dataUpdatedAt: DateTime.now(),
           isFetching: false,
           isInvalidated: false,
