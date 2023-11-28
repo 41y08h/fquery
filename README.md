@@ -10,16 +10,7 @@ With this powerful tool at your disposal, managing server state (REST API, Graph
 
 ### UC San Diego
 
-<div 
-  style="
-  background-color: #131938; 
-  border-radius: 8px;
-  padding: 30px;
-  text-align: center;
-  margin-bottom: 12px;
-  ">
-  <img src="https://github.com/41y08h/fquery/blob/main/media/ucsd-white.png?raw=true" alt="UC San Diego" height=50 />
-</div>
+![UC San Diego](https://github.com/41y08h/fquery/blob/main/media/ucsd-banner.png?raw=true)
 
 The University of California, San Diego has shifted to [fquery](https://github.com/41y08h/fquery/) as the backbone of their [mobile application](https://mobile.ucsd.edu/), which has over 30,000 users and serves as the app used by the generations of students.
 With fquery's efficient and easy-to-use async state management, the developers are enjoying a comfort of seamless state management with refactoring even files with 200 lines to just 20 lines. They also noticed a significant reduction in the hot reload.
