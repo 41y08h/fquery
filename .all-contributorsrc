@@ -1,0 +1,65 @@
+{
+  "projectName": "fquery",
+  "projectOwner": "41y08h",
+  "files": [
+    "README.md"
+  ],
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributorsPerLine": 7,
+  "contributors": [
+    {
+      "login": "41y08h",
+      "name": "Piyush",
+      "avatar_url": "https://avatars.githubusercontent.com/u/63099829?v=4",
+      "profile": "https://github.com/41y08h",
+      "contributions": [
+        "bug",
+        "code",
+        "doc",
+        "design",
+        "maintenance",
+        "review"
+      ]
+    },
+    {
+      "login": "cynthiakonar",
+      "name": "Cynthia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/89989829?v=4",
+      "profile": "https://github.com/cynthiakonar",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "RajvirSingh1313",
+      "name": "Rajvir Singh",
+      "avatar_url": "https://avatars.githubusercontent.com/u/63385587?v=4",
+      "profile": "https://github.com/RajvirSingh1313",
+      "contributions": [
+        "design"
+      ]
+    },
+    {
+      "login": "kollinmurphy",
+      "name": "Kollin Murphy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/65209071?v=4",
+      "profile": "https://github.com/kollinmurphy",
+      "contributions": [
+        "doc",
+        "code"
+      ]
+    },
+    {
+      "login": "giva9712",
+      "name": "Tuvshinbayar Tuvshinzul",
+      "avatar_url": "https://avatars.githubusercontent.com/u/40331144?v=4",
+      "profile": "https://github.com/giva9712",
+      "contributions": [
+        "bug",
+        "code",
+        "ideas"
+      ]
+    }
+  ]
+}
