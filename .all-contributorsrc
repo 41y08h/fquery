@@ -9,6 +9,20 @@
   "contributorsPerLine": 7,
   "contributors": [
     {
+      "login": "41y08h",
+      "name": "Piyush",
+      "avatar_url": "https://avatars.githubusercontent.com/u/63099829?v=4",
+      "profile": "https://github.com/41y08h",
+      "contributions": [
+        "bug",
+        "code",
+        "doc",
+        "design",
+        "maintenance",
+        "review"
+      ]
+    },
+    {
       "login": "cynthiakonar",
       "name": "Cynthia",
       "avatar_url": "https://avatars.githubusercontent.com/u/89989829?v=4",
@@ -45,20 +59,6 @@
         "bug",
         "code",
         "ideas"
-      ]
-    },
-    {
-      "login": "41y08h",
-      "name": "Piyush",
-      "avatar_url": "https://avatars.githubusercontent.com/u/63099829?v=4",
-      "profile": "https://github.com/41y08h",
-      "contributions": [
-        "bug",
-        "code",
-        "doc",
-        "design",
-        "maintenance",
-        "review"
       ]
     }
   ]
