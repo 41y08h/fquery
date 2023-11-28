@@ -24,3 +24,7 @@
 - Bug fix: when the child widget calls the same query the parent has, it triggers the rebuilding parent widget, and both stopped
 - Docs: Improve it, add new sections - users, contributors, dependent query, and more
 - Update dependencies
+
+## 1.0.0-beta.5
+
+- Fix insecure (http) link in README
