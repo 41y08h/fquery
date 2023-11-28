@@ -46,6 +46,20 @@
         "code",
         "ideas"
       ]
+    },
+    {
+      "login": "41y08h",
+      "name": "Piyush",
+      "avatar_url": "https://avatars.githubusercontent.com/u/63099829?v=4",
+      "profile": "https://github.com/41y08h",
+      "contributions": [
+        "bug",
+        "code",
+        "doc",
+        "design",
+        "maintenance",
+        "review"
+      ]
     }
   ]
 }
