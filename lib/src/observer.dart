@@ -5,7 +5,7 @@ import 'query.dart';
 import 'query_client.dart';
 import 'retry_resolver.dart';
 
-typedef QueryFn<TData> = FutureOr<TData> Function();
+typedef QueryFn<TData> = Future<TData> Function();
 
 /// An observer is a class which subscribes to a query and updates its state when the query changes.
 /// It is responsible for fetching the query and updating the cache.
