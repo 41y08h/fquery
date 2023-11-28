@@ -12,10 +12,10 @@ With this powerful tool at your disposal, managing server state (REST API, Graph
 
 ![UC San Diego](https://github.com/41y08h/fquery/blob/main/media/ucsd-banner.png?raw=true)
 
-The University of California, San Diego has shifted to [fquery](https://github.com/41y08h/fquery/) as the backbone of their [mobile application](https://mobile.ucsd.edu/), which has over 30,000 users and serves as the app used by the generations of students.
-With fquery's efficient and easy-to-use async state management, the developers are enjoying a comfort of seamless state management with refactoring even files with 200 lines to just 20 lines. They also noticed a significant reduction in the hot reload.
+The University of California, San Diego has shifted to [fquery](https://github.com/41y08h/fquery/), _moving away from traditional state management solutions like provider, bloc, etc,_ as the backbone of their [mobile application](https://mobile.ucsd.edu/), which has over 30,000 users and serves as the app used by the generations of students.
+With fquery's efficient and easy-to-use async state management, the developers are now enjoying the comfort of seamless state management by refactoring sphagetti block of codes, even files with 200 lines to just 20 lines. They also noticed a significant reduction in the hot reload.
 
-All of this only to have more time, and easy-to-manage structure to develop the features that matter the most. They are confident that the codebase will continue to be managable, and provide the team with a better structure.
+All of this is only to have more time, and easy-to-manage structure to develop the features that matter the most. They are confident that the codebase will continue to be manageable, and provide the team with a better structure.
 
 ### Stargazers and others
 
@@ -27,36 +27,25 @@ As a developer, you too can leverage the power of this tool to create a high-qua
 
 ## 🌌 Features
 
-<!-- Non-technical features -->
-
 - Easy to use
-- Powerful
-
-<!-- Technical features -->
-
-- Fully customizable
-- No boilerplate code and easy-to-use
+- Powerful and fully customizable
+- No boilerplate code required
 - Data fetching logic agnostic
-- Automatic caching
-- Garbage collection
+- Automatic caching and garbage collection
 - Automatic re-fetching of stale data
 - State data invalidation
-- Manual updates
-- Dependent queries
-- Parallel queries
+- Manual updates available
+- Dependent queries and parallel queries supported
 
-## ❔Problem definition
+## ❔Defining the problem
 
-Let me ask you a simple question, **How do you manage server state in your Flutter apps?** Majority developers will answer that they use Riverpod, Bloc, `FutureBuilder`, or any other general-purpose state management solution. This usually results in writing a lot of boilerplate code and repeating data fetching, caching, and other logic over and over again.
+Have you ever wondered **how to effectively manage server state in your Flutter apps**? Many developers resort to using Riverpod, Bloc, `FutureBuilder``, or any other general-purpose state management solution. However, these solutions often lead to writing repetitive code that handles data fetching, caching, and other logic.
 
-The thing is, existing state management solutions are very general and are suited for anything that's a global state in your app _and hence the term "general"_, but do not work great when used for asynchronous states like server state, this is because server state is way too different. The server state is -
+The truth is, general-purpose state management solutions are not the best choice when it comes to handling asynchronous server state. This is due to the **unique nature of server state - it is asynchronous and requires specific APIs for fetching and updating**. Additionally, the server state is stored in a remote location, which means **it can be modified without your knowledge from anywhere in the world**. This alone requires a lot of effort to keep the data synchronized and ensure that it is up-to-date.
 
-- Asynchronous state and requires asynchronous APIs for fetching and updating)
-- Stored in a remote location and _can be changed without your knowledge, from just anywhere in the world_ and **this alone means a lot, staying synchronized with the data and making sure that it is not stale**
+### How does ⚡fquery tackle this problem?
 
-### How does FQuery tackle this problem?
-
-FQuery is powered by [flutter_hooks](https://pub.dev/packages/flutter_hooks). It is very similar to [swr](https://github.com/vercel/swr) and [react-query](https://github.com/tanstack/query). It provides you with easy-to-use hooks. Just tell it where to get the data by giving it a `Future` and the rest is automatic. It can be fully configured to match your needs, you can configure each and everything.
+[fquery](https://github.com/41y08h/fquery) is powered by [flutter_hooks](https://pub.dev/packages/flutter_hooks). It is very similar to [swr](https://github.com/vercel/swr) and [react-query](https://github.com/tanstack/query). With fquery, you can make use of easy-to-use hooks to retrieve data from a Future and the rest of the process is automated. [fquery](https://github.com/41y08h/fquery) is highly configurable, allowing you to customize it to meet your specific needs. You can configure every aspect of FQuery to make it work optimally for your use case.
 
 ## 📄 Example
 
@@ -186,9 +175,25 @@ final posts = useQuery(
   - `RefetchOnMount.never` - will never refetch.
 - `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually.
 
+### Dependent Query
+
+A dependent query is a query that depends on another variable for execution, or even any other query. Probably you want to run a query only after some other query, or data in a query that you don't have, e.g. a `Future`, or to fetch data only when a variable takes a certain value, e.g. a `bool` like `isAuthenticated`, for all of this or similar, dependent query can ease your load. To use this, simply pass the `enabled` option.
+
+```dart
+final user = useQuery(['users', email], getUserByEmail);
+
+// This query will not execute until the above is successful and the username is available
+final username = user.data?.username;
+final posts = useQuery(['posts', ], getPosts, enabled: !username);
+
+
+final isAuthenticated = session != null;
+final keys = useQuery(['keys', session.id], enabled: isAuthenticated)
+```
+
 ### Query invalidation
 
-This technique can be used to manually mark the cached data as stale and potentially even re-fetch them. This is especially useful when you know that the data has been changed. `QueryClient` (see below) has an `invalidateQueries()` method that allows you to do that. **You can make use of the `useQueryClient` hook to obtain the instance of `QueryClient`** that you passed with `QueryClientProvider`.
+This technique can be used to manually mark the cached data as stale and potentially even re-fetch them. This is especially useful when you know that the data has been changed. `QueryClient` (see [below](#queryclient)) has an `invalidateQueries()` method that allows you to do that. **You can make use of the `useQueryClient` hook to obtain the instance of `QueryClient`** that you passed with `QueryClientProvider`.
 
 ```dart
 final queryClient = useQueryClient();
@@ -196,14 +201,15 @@ final queryClient = useQueryClient();
 // Invalidate every query with a key that starts with `post`
 queryClient.invalidateQueries(['posts']);
 
-// Both queries will be invalidated
+// here, both queries will be invalidated
 final posts = useQuery(['posts'], getPosts);
 final post = useQuery(['posts', 1], getPosts);
+
 
 // Use `exact: true` to exactly match the query
 queryClient.invalidateQueries(['posts'], exact: true);
 
-// Only this will invalidate
+// here, only this will invalidate
 final posts = useQuery(['posts'], getPosts);
 ```
 
