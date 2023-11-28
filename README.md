@@ -2,7 +2,7 @@
 
 ⚡Are you ready to supercharge your Flutter app development?
 
-Introducing fquery - an easy-to-use, yet efficient and reliable asynchronous state management solution for Flutter! It effortlessly caches, updates, and fully manages asynchronous data in your Flutter apps.
+Introducing [fquery](https://github.com/41y08h/fquery) - an easy-to-use, yet efficient and reliable asynchronous state management solution for Flutter! It effortlessly caches, updates, and fully manages asynchronous data in your Flutter apps.
 
 With this powerful tool at your disposal, managing server state (REST API, GraphQL, etc), local databases like SQLite, or anything async has never been easier. Just provide a `Future` and watch the magic unfold.
 
@@ -45,7 +45,7 @@ The truth is, general-purpose state management solutions are not the best choice
 
 ### How does ⚡fquery tackle this problem?
 
-[fquery](https://github.com/41y08h/fquery) is powered by [flutter_hooks](https://pub.dev/packages/flutter_hooks). It is very similar to [swr](https://github.com/vercel/swr) and [react-query](https://github.com/tanstack/query). With fquery, you can make use of easy-to-use hooks to retrieve data from a Future and the rest of the process is automated. [fquery](https://github.com/41y08h/fquery) is highly configurable, allowing you to customize it to meet your specific needs. You can configure every aspect of FQuery to make it work optimally for your use case.
+[fquery](https://github.com/41y08h/fquery) is powered by [flutter_hooks](https://pub.dev/packages/flutter_hooks). It is very similar to [swr](https://github.com/vercel/swr) and [react-query](https://github.com/tanstack/query). With fquery, you can make use of easy-to-use hooks to retrieve data from a Future and the rest of the process is automated. [fquery](https://github.com/41y08h/fquery) is highly configurable, allowing you to customize it to meet your specific needs. You can configure every aspect of it to make it work optimally for your use case.
 
 ## 📄 Example
 
