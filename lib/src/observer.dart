@@ -90,10 +90,19 @@ class Observer<TData, TError> extends ChangeNotifier {
     // Compare variable changes before calling `_setOptions`
     final refetchIntervalChanged =
         this.options.refetchInterval != options.refetchInterval;
+    final isEnabledChanged = this.options.enabled != options.enabled;
 
     _setOptions(options);
 
-    // Take the necessary steps to reflect the options change
+    if (isEnabledChanged) {
+      if (options.enabled) {
+        fetch();
+      } else {
+        resolver.cancel();
+        refetchTimer?.cancel();
+      }
+    }
+
     if (options.cacheDuration != null) {
       query.setCacheDuration(options.cacheDuration as Duration);
     }
