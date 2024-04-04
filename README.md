@@ -1,41 +1,51 @@
 ![Banner](https://github.com/41y08h/fquery/blob/main/media/Banner.png?raw=true)
-⚡FQuery is a powerful async state management solution for Flutter. It caches, updates, and fully manages asynchronous data in your Flutter apps.
 
-It can be used for managing server state (REST API, GraphQL, etc), local databases like SQLite, or just anything that is async, just give it a `Future` and you are good to go.
+⚡Are you ready to supercharge your Flutter app development?
 
-## Contributors
+Introducing [fquery](https://github.com/41y08h/fquery) - an easy-to-use, yet efficient and reliable asynchronous state management solution for Flutter! It effortlessly caches, updates, and fully manages asynchronous data in your Flutter apps.
 
-If you want to contribute to this project, you're very welcome ✨. 
+With this powerful tool at your disposal, managing server state (REST API, GraphQL, etc), local databases like SQLite, or anything async has never been easier. Just provide a `Future` and watch the magic unfold.
 
-This project is still in its beta version and needs contributors like you. 
+## Trusted & Used by
 
-See [Contribution guide](CONTRIBUTING.md) for more details.
+### UC San Diego
+
+![UC San Diego](https://github.com/41y08h/fquery/blob/main/media/ucsd-banner.png?raw=true)
+
+The University of California, San Diego has shifted to [fquery](https://github.com/41y08h/fquery/), _moving away from traditional state management solutions like provider, bloc, etc,_ as the backbone of their [mobile application](https://mobile.ucsd.edu/), which has over 30,000 users and serves as the app used by the generations of students.
+With fquery's efficient and easy-to-use async state management, the developers are now enjoying the comfort of seamless state management by refactoring sphagetti block of codes, even files with 200 lines to just 20 lines. They also noticed a significant reduction in the hot reload.
+
+All of this is only to have more time, and easy-to-manage structure to develop the features that matter the most. They are confident that the codebase will continue to be manageable, and provide the team with a better structure.
+
+### Stargazers and others
+
+![GitHub Repo stars](https://img.shields.io/github/stars/41y08h/fquery?style=social)
+
+The project's growth has almost been completely organic, it has grown popular in the developer community and is growing by the day, consider starring it if you've found it useful.
+
+As a developer, you too can leverage the power of this tool to create a high-quality mobile application that provides an exceptional user experience. [fquery](https://github.com/41y08h/fquery/) is a reliable and efficient solution that has already been proven successful in UC San Diego's app. So, why not choose it for your next project and take advantage of its powerful features to deliver a seamless experience to your users?
 
 ## 🌌 Features
 
-- Fully customizable
-- No boilerplate code and easy to use
+- Easy to use
+- Powerful and fully customizable
+- No boilerplate code required
 - Data fetching logic agnostic
-- Automatic caching
-- Garbage collection
-- Automatic refetching of stale data
+- Automatic caching and garbage collection
+- Automatic re-fetching of stale data
 - State data invalidation
-- Manual updates
-- Dependent queries
-- Parallel queries
+- Manual updates available
+- Dependent queries and parallel queries supported
 
-## ❔Problem definition
+## ❔Defining the problem
 
-Let me ask you a simple question, **How do you manage server state in your Flutter apps?** Majority developers will answer that they use Riverpod, Bloc, `FutureBuilder`, or any other general-purpose state management solution. This usually results in writing a lot of boilerplate code and repeating data fetching, caching, and other logic over and over again.
+Have you ever wondered **how to effectively manage server state in your Flutter apps**? Many developers resort to using Riverpod, Bloc, `FutureBuilder``, or any other general-purpose state management solution. However, these solutions often lead to writing repetitive code that handles data fetching, caching, and other logic.
 
-The thing is, existing state management solutions are very general and are suited for anything that's a global state in your app _and hence the term "general"_, but do not work great when used for asynchronous states like server state, this is because server state is way too different. Server state is -
+The truth is, general-purpose state management solutions are not the best choice when it comes to handling asynchronous server state. This is due to the **unique nature of server state - it is asynchronous and requires specific APIs for fetching and updating**. Additionally, the server state is stored in a remote location, which means **it can be modified without your knowledge from anywhere in the world**. This alone requires a lot of effort to keep the data synchronized and ensure that it is up-to-date.
 
-- Asynchronous state and requires asynchronous APIs for fetching and updating)
-- Stored in a remote location and _can be changed without your knowledge, from just anywhere in the world_ and **this alone means a lot, staying synchronized with the data and making sure that it is not stale**
+### How does ⚡fquery tackle this problem?
 
-### How does FQuery tackle this problem?
-
-FQuery is powered by [flutter_hooks](https://pub.dev/packages/flutter_hooks). It is very similar to [swr](https://github.com/vercel/swr) and [react-query](https://github.com/tanstack/query). It provides you easy to use hooks. Just tell it where to get the data by giving it a `Future` and the rest is automatic. It can be fully configured to match your needs, you can configure each and everything.
+[fquery](https://github.com/41y08h/fquery) is powered by [flutter_hooks](https://pub.dev/packages/flutter_hooks). It is very similar to [swr](https://github.com/vercel/swr) and [react-query](https://github.com/tanstack/query). With fquery, you can make use of easy-to-use hooks to retrieve data from a Future and the rest of the process is automated. [fquery](https://github.com/41y08h/fquery) is highly configurable, allowing you to customize it to meet your specific needs. You can configure every aspect of it to make it work optimally for your use case.
 
 ## 📄 Example
 
@@ -91,12 +101,12 @@ void main() {
 
 To query data in your widgets, you'll need to extend the widget using `HookWidget` or `StatefulHookWidget` (for stateful widgets). These classes are exported from the [flutter_hooks](https://pub.dev/packages/flutter_hooks) package.
 
-A query instance is a subscription to an asynchronous data stored in the cache. Every query needs -
+A query instance is a subscription to asynchronous data stored in the cache. Every query needs -
 
 - A **Query key**, uniquely identifies the query stored in the cache.
 - A `Future` that either resolves or throws an error
 
-The same query key can be used in multiple instances of `useQuery` hook and the data will be shared throughout the app.
+The same query key can be used in multiple instances of the `useQuery` hook and the data will be shared throughout the app.
 
 ```dart
 Future<List<Post>> getPosts() async {
@@ -150,24 +160,48 @@ final posts = useQuery(
   getPosts,
   enabled: true,
   cacheDuration: const Duration(minutes: 5),
-  refetchInterval: null // The query will not refetch by default,
+  refetchInterval: null // The query will not re-fetch by default,
   refetchOnMount: RefetchOnMount.stale,
   staleDuration: const Duration(seconds: 10),
+  onData: (data) {
+    // callback with the fetched data
+  },
+  onError: (error) {
+    // callback with the encountered error
+  }
 );
 ```
 
-- `enabled` - specifies if the query fetcher function is automatically called when the widget renders, can be used for _dependent queries_.
+- `enabled` - specifies if the query fetcher function is automatically called when the widget renders and can be used for _dependent queries_.
 - `cacheDuration` - specifies the duration unused/inactive cache data remains in memory; the cached data will be garbage collected after this duration. The longest duration will be used when different values are specified in multiple instances of the query.
-- `refetchInterval` - specifies the time interval in which all queries will refetch the data, setting it to `null` (default) will turn off re-fetching.
+- `refetchInterval` - specifies the time interval in which all queries will re-fetch the data, setting it to `null` (default) will turn off re-fetching.
 - `refetchOnMount` - specifies the behavior of the query instance when the widget is first built and the data is already available.
-  - `RefetchOnMount.always` - will always refetch when the widget is built.
+  - `RefetchOnMount.always` - will always re-fetch when the widget is built.
   - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`).
-  - `RefetchOnMount.never` - will never refetch.
+  - `RefetchOnMount.never` - will never re-fetch.
 - `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually.
+- `onData` - callback that supplies data when query is successfully fetched/re-fetched.
+- `onError` - callback fired when query encounters an error while fetching.
+
+### Dependent Query
+
+A dependent query is a query that depends on another variable for execution, or even any other query. Probably you want to run a query only after some other query, or data in a query that you don't have, e.g. a `Future`, or to fetch data only when a variable takes a certain value, e.g. a `bool` like `isAuthenticated`, for all of this or similar, dependent query can ease your load. To use this, simply pass the `enabled` option.
+
+```dart
+final user = useQuery(['users', email], getUserByEmail);
+
+// This query will not execute until the above is successful and the username is available
+final username = user.data?.username;
+final posts = useQuery(['posts', ], getPosts, enabled: !username);
+
+
+final isAuthenticated = session != null;
+final keys = useQuery(['keys', session.id], enabled: isAuthenticated)
+```
 
 ### Query invalidation
 
-This technique can be used to manually mark the cached data as stale and potentially even refetch them. This is especially useful when you know that the data has been changed. `QueryClient` (see below) has an `invalidateQueries()` method that allows you to do that. **You can make use of `useQueryClient` hook to obtain the instance of `QueryClient`** that you passed with `QueryClientProvider`.
+This technique can be used to manually mark the cached data as stale and potentially even re-fetch them. This is especially useful when you know that the data has been changed. `QueryClient` (see [below](#queryclient)) has an `invalidateQueries()` method that allows you to do that. **You can make use of the `useQueryClient` hook to obtain the instance of `QueryClient`** that you passed with `QueryClientProvider`.
 
 ```dart
 final queryClient = useQueryClient();
@@ -175,14 +209,15 @@ final queryClient = useQueryClient();
 // Invalidate every query with a key that starts with `post`
 queryClient.invalidateQueries(['posts']);
 
-// Both queries will be invalidated
+// here, both queries will be invalidated
 final posts = useQuery(['posts'], getPosts);
 final post = useQuery(['posts', 1], getPosts);
+
 
 // Use `exact: true` to exactly match the query
 queryClient.invalidateQueries(['posts'], exact: true);
 
-// Only this will invalidate
+// here, only this will invalidate
 final posts = useQuery(['posts'], getPosts);
 ```
 
@@ -193,7 +228,7 @@ When a query is invalidated, two things will happen:
 
 ### Manual updates
 
-You probably already know how the data is changed and don't want to refetch the whole data again. You can set it manually using `setQueryData()` method on the `QueryClient`. It takes a query key and an updater function. If the query data doesn't exist already in the cache (that's why `previous` is nullable), it'll be created.
+You probably already know how the data is changed and don't want to re-fetch the whole data again. You can set it manually using the `setQueryData()` method on the `QueryClient`. It takes a query key and an updater function. If the query data doesn't exist already in the cache (that's why `previous` is nullable), it'll be created.
 
 ```dart
 final queryClient = useQueryClient();
@@ -230,6 +265,33 @@ void main() {
       child: CupertinoApp(
 ```
 
-## Bugs and suggestions
+## Contributing
 
-Feel free to open an issue or suggest an idea at the [GitHub repo](https://github.com/41y08h/fquery).
+If you've ever wanted to contribute to open source, and a great cause, now is your chance ✨, feel free to open an issue or submit a PR at the [GitHub repo](https://github.com/41y08h/fquery). See [Contribution guide](CONTRIBUTING.md) for more details.
+
+## Contributors ✨
+
+Thanks go to these wonderful people:
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/41y08h"><img src="https://avatars.githubusercontent.com/u/63099829?v=4?s=100" width="100px;" alt="Piyush"/><br /><sub><b>Piyush</b></sub></a><br /><a href="#bug-41y08h" title="Bug reports">🐛</a> <a href="#code-41y08h" title="Code">💻</a> <a href="#doc-41y08h" title="Documentation">📖</a> <a href="#design-41y08h" title="Design">🎨</a> <a href="#maintenance-41y08h" title="Maintenance">🚧</a> <a href="#review-41y08h" title="Reviewed Pull Requests">👀</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/cynthiakonar"><img src="https://avatars.githubusercontent.com/u/89989829?v=4?s=100" width="100px;" alt="Cynthia"/><br /><sub><b>Cynthia</b></sub></a><br /><a href="#doc-cynthiakonar" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/RajvirSingh1313"><img src="https://avatars.githubusercontent.com/u/63385587?v=4?s=100" width="100px;" alt="Rajvir Singh"/><br /><sub><b>Rajvir Singh</b></sub></a><br /><a href="#design-RajvirSingh1313" title="Design">🎨</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/kollinmurphy"><img src="https://avatars.githubusercontent.com/u/65209071?v=4?s=100" width="100px;" alt="Kollin Murphy"/><br /><sub><b>Kollin Murphy</b></sub></a><br /><a href="#doc-kollinmurphy" title="Documentation">📖</a> <a href="#code-kollinmurphy" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/giva9712"><img src="https://avatars.githubusercontent.com/u/40331144?v=4?s=100" width="100px;" alt="Tuvshinbayar Tuvshinzul"/><br /><sub><b>Tuvshinbayar Tuvshinzul</b></sub></a><br /><a href="#bug-giva9712" title="Bug reports">🐛</a> <a href="#code-giva9712" title="Code">💻</a> <a href="#ideas-giva9712" title="Ideas, Planning, & Feedback">🤔</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://allcontributors.org) specification.
+Contributions of any kind are welcome!

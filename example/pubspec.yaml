@@ -1,4 +1,4 @@
-name: fquery_example
+name: basic
 description: A simple demonstration of the FQuery package.
 publish_to: "none"
 version: 1.0.0+1
@@ -11,7 +11,7 @@ dependencies:
   fquery:
     path: ../
   cupertino_icons: ^1.0.5
-  flutter_hooks: ^0.19.0
+  flutter_hooks: ^0.20.3
   dio: ^4.0.6
 
 dev_dependencies:

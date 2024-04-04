@@ -1,9 +1,9 @@
-import 'package:fquery_example/post.dart';
+import 'package:basic/post.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery_example/post_page.dart';
+import 'package:basic/post_page.dart';
 
 final queryClient = QueryClient(
   defaultQueryOptions: DefaultQueryOptions(),
@@ -30,7 +30,9 @@ void main() {
 
 Future<List<Post>> getPosts() async {
   final res = await Dio().get('https://jsonplaceholder.typicode.com/posts');
-  return (res.data as List).map((e) => Post.fromJson(e as Map<String, dynamic>)).toList();
+  return (res.data as List)
+      .map((e) => Post.fromJson(e as Map<String, dynamic>))
+      .toList();
 }
 
 class Home extends HookWidget {
@@ -38,14 +40,24 @@ class Home extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isEnabled = useState(true);
     final client = useQueryClient();
-    final posts = useQuery(['posts'], getPosts);
+    final posts = useQuery(['posts'], getPosts, enabled: isEnabled.value);
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                isEnabled.value = !isEnabled.value;
+              },
+              child: Icon(isEnabled.value
+                  ? CupertinoIcons.circle_fill
+                  : CupertinoIcons.circle),
+            ),
             CupertinoButton(
               padding: EdgeInsets.zero,
               onPressed: posts.refetch,
@@ -98,7 +110,8 @@ class Home extends HookWidget {
                       final post = posts.data![index];
                       return CupertinoListTile(
                         onTap: () {
-                          Navigator.pushNamed(context, '/post', arguments: post.id);
+                          Navigator.pushNamed(context, '/post',
+                              arguments: post.id);
                         },
                         title: Text(post.title),
                       );

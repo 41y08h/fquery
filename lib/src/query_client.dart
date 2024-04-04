@@ -3,10 +3,10 @@ import 'query.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 class DefaultQueryOptions {
-  RefetchOnMount refetchOnMount;
-  Duration staleDuration;
-  Duration cacheDuration;
-  Duration? refetchInterval;
+  final RefetchOnMount refetchOnMount;
+  final Duration staleDuration;
+  final Duration cacheDuration;
+  final Duration? refetchInterval;
 
   DefaultQueryOptions({
     this.refetchOnMount = RefetchOnMount.stale,
