@@ -13,14 +13,16 @@ class UseMutationResult<TVariables, TData, TError> {
   final MutationStatus status;
   final Future<void> Function(TVariables) mutate;
   final DateTime? submittedAt;
+  final void Function() reset;
 
-  UseMutationResult({
-    required this.data,
-    required this.error,
-    required this.status,
-    required this.mutate,
-    required this.submittedAt,
-  })  : isIdle = status == MutationStatus.idle,
+  UseMutationResult(
+      {required this.data,
+      required this.error,
+      required this.status,
+      required this.mutate,
+      required this.submittedAt,
+      required this.reset})
+      : isIdle = status == MutationStatus.idle,
         isPending = status == MutationStatus.pending,
         isSuccess = status == MutationStatus.success,
         isError = status == MutationStatus.error;
@@ -90,5 +92,6 @@ UseMutationResult<TVariables, TData, TError>
     status: observer.mutation.state.status,
     mutate: mutate,
     submittedAt: observer.mutation.state.submittedAt,
+    reset: observer.reset,
   );
 }

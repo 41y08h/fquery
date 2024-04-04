@@ -3,6 +3,7 @@ import 'package:fquery/fquery.dart';
 import 'package:fquery/src/mutation_observer.dart';
 
 enum MutationDispatchAction {
+  reset,
   mutate,
   error,
   success,
@@ -65,6 +66,8 @@ class Mutation<TVariables, TData, TError> {
     dynamic data,
   ) {
     switch (action) {
+      case MutationDispatchAction.reset:
+        return MutationState();
       case MutationDispatchAction.mutate:
         return state.copyWith(
           status: MutationStatus.pending,

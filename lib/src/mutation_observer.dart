@@ -34,6 +34,10 @@ class MutationObserver<TVariables, TData, TError> extends ChangeNotifier {
     options.onSettled?.call(data, error, variables);
   }
 
+  void reset() {
+    mutation.dispatch(MutationDispatchAction.reset, null);
+  }
+
   void onMutationUpdated() {
     notifyListeners();
   }
