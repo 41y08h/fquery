@@ -16,7 +16,7 @@ class PostEditor extends HookWidget {
 
     final mutation = useMutation<String, String, String>(
       (title) async {
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future.delayed(const Duration(seconds: 3));
 
         // simulate an error
         if (title == "error") throw "Something went wrong!";
@@ -49,6 +49,17 @@ class PostEditor extends HookWidget {
 
     return Column(
       children: [
+        mutation.isPending
+            ? Row(
+                children: [
+                  const CupertinoActivityIndicator(),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  Text('This will be updated to: ${mutation.variables}')
+                ],
+              )
+            : const SizedBox(),
         Row(
           children: [
             Expanded(
