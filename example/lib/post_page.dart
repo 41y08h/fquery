@@ -2,12 +2,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery_example/post.dart';
-import 'package:fquery_example/post_editor.dart';
+import 'package:basic/post.dart';
+import 'package:basic/post_editor.dart';
 
 Future<Post> getPost(int id) async {
   final res = await Dio().get('https://jsonplaceholder.typicode.com/posts/$id');
-  return Post.fromJson(res.data);
+  return Post.fromMap(res.data);
 }
 
 class PostPage extends HookWidget {

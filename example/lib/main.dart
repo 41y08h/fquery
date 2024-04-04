@@ -29,10 +29,9 @@ void main() {
 }
 
 Future<List<Post>> getPosts() async {
-  final res = await Dio().get('https://jsonplaceholder.typicode.com/posts');
-  return (res.data as List)
-      .map((e) => Post.fromJson(e as Map<String, dynamic>))
-      .toList();
+  final res =
+      await Dio().get<List>('https://jsonplaceholder.typicode.com/posts');
+  return (res.data)!.map((p) => Post.fromMap(p)).toList();
 }
 
 class Home extends HookWidget {

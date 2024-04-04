@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery_example/post.dart';
+import 'package:basic/post.dart';
 
 class PostEditor extends HookWidget {
   const PostEditor({super.key, required this.title, required this.id});
@@ -33,7 +33,8 @@ class PostEditor extends HookWidget {
       onSuccess: (data, title) => {
         print("Success: $data while saving $title"),
         queryClient.setQueryData<Post>(['posts', id], (previous) {
-          if (previous == null) return Post(userId: 0, id: id, title: title, body: "");
+          if (previous == null)
+            return Post(userId: 0, id: id, title: title, body: "");
           return previous.copyWith(title: title);
         })
       },
@@ -78,7 +79,8 @@ class PostEditor extends HookWidget {
           ],
         ),
         if (mutation.isError)
-          Text(mutation.error!, style: const TextStyle(color: CupertinoColors.destructiveRed)),
+          Text(mutation.error!,
+              style: const TextStyle(color: CupertinoColors.destructiveRed)),
       ],
     );
   }
