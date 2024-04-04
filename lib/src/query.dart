@@ -71,8 +71,8 @@ class QueryState<TData, TError> {
   });
 
   QueryState<TData, TError> copyWith({
-    dynamic data,
-    dynamic error,
+    TData? data,
+    TError? error,
     DateTime? dataUpdatedAt,
     DateTime? errorUpdatedAt,
     bool? isFetching,
