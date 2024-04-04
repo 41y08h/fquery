@@ -48,13 +48,13 @@ class QueryOptions<TData, TError> {
 }
 
 class QueryState<TData, TError> {
-  TData? data;
-  TError? error;
-  DateTime? dataUpdatedAt;
-  DateTime? errorUpdatedAt;
-  bool isFetching;
-  QueryStatus status;
-  bool isInvalidated;
+  final TData? data;
+  final TError? error;
+  final DateTime? dataUpdatedAt;
+  final DateTime? errorUpdatedAt;
+  final bool isFetching;
+  final QueryStatus status;
+  final bool isInvalidated;
 
   bool get isLoading => status == QueryStatus.loading;
   bool get isSuccess => status == QueryStatus.success;
@@ -70,7 +70,7 @@ class QueryState<TData, TError> {
     this.isInvalidated = false,
   });
 
-  QueryState<TData, TError> _copyWith({
+  QueryState<TData, TError> copyWith({
     dynamic data,
     dynamic error,
     DateTime? dataUpdatedAt,
@@ -109,24 +109,24 @@ class Query<TData, TError> {
       QueryState<TData, TError> state, DispatchAction action, dynamic data) {
     switch (action) {
       case DispatchAction.fetch:
-        return state._copyWith(
+        return state.copyWith(
           isFetching: true,
           status:
               state.dataUpdatedAt == null ? QueryStatus.loading : state.status,
         );
       case DispatchAction.cancelFetch:
-        return state._copyWith(
+        return state.copyWith(
           isFetching: false,
         );
       case DispatchAction.error:
-        return state._copyWith(
+        return state.copyWith(
           status: QueryStatus.error,
           error: data as TError,
           errorUpdatedAt: DateTime.now(),
           isFetching: false,
         );
       case DispatchAction.success:
-        return state._copyWith(
+        return state.copyWith(
           status: QueryStatus.success,
           error: null,
           data: data as TData,
@@ -135,7 +135,7 @@ class Query<TData, TError> {
           isInvalidated: false,
         );
       case DispatchAction.invalidate:
-        return state._copyWith(
+        return state.copyWith(
           isInvalidated: true,
         );
       default:
