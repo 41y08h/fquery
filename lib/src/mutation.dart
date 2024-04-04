@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/mutation_observer.dart';
 
@@ -9,7 +10,7 @@ enum MutationDispatchAction {
 
 enum MutationStatus {
   idle,
-  loading,
+  pending,
   success,
   error,
 }
@@ -17,37 +18,34 @@ enum MutationStatus {
 class MutationState<TData, TError> {
   TData? data;
   TError? error;
-  DateTime? dataUpdatedAt;
-  DateTime? errorUpdatedAt;
+  DateTime? submittedAt;
   MutationStatus status;
 
   bool get isIdle => status == MutationStatus.idle;
-  bool get isLoading => status == MutationStatus.loading;
+  bool get isPending => status == MutationStatus.pending;
   bool get isSuccess => status == MutationStatus.success;
   bool get isError => status == MutationStatus.error;
 
   MutationState({
     this.data,
     this.error,
-    this.dataUpdatedAt,
-    this.errorUpdatedAt,
     this.status = MutationStatus.idle,
+    this.submittedAt,
   });
 
-  MutationState<TData, TError> _copyWith({
-    dynamic data,
-    dynamic error,
-    DateTime? dataUpdatedAt,
-    DateTime? errorUpdatedAt,
+  MutationState<TData, TError> copyWith({
+    TData? data,
+    TError? error,
+    DateTime? submittedAt,
     MutationStatus? status,
-  }) =>
-      MutationState<TData, TError>(
-        data: data ?? this.data,
-        error: error ?? this.error,
-        dataUpdatedAt: dataUpdatedAt ?? this.dataUpdatedAt,
-        errorUpdatedAt: errorUpdatedAt ?? this.errorUpdatedAt,
-        status: status ?? this.status,
-      );
+  }) {
+    return MutationState<TData, TError>(
+      data: data ?? this.data,
+      error: error ?? this.error,
+      submittedAt: submittedAt ?? this.submittedAt,
+      status: status ?? this.status,
+    );
+  }
 }
 
 class Mutation<TVariables, TData, TError> {
@@ -68,17 +66,18 @@ class Mutation<TVariables, TData, TError> {
   ) {
     switch (action) {
       case MutationDispatchAction.mutate:
-        return state._copyWith(status: MutationStatus.loading);
+        return state.copyWith(
+          status: MutationStatus.pending,
+          submittedAt: DateTime.now(),
+        );
       case MutationDispatchAction.error:
-        return state._copyWith(
+        return state.copyWith(
           error: data,
-          errorUpdatedAt: DateTime.now(),
           status: MutationStatus.error,
         );
       case MutationDispatchAction.success:
-        return state._copyWith(
+        return state.copyWith(
           data: data,
-          dataUpdatedAt: DateTime.now(),
           status: MutationStatus.success,
         );
       default:

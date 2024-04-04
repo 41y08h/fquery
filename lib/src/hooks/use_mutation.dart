@@ -5,25 +5,23 @@ import 'package:fquery/src/mutation_observer.dart';
 
 class UseMutationResult<TVariables, TData, TError> {
   final TData? data;
-  final DateTime? dataUpdatedAt;
   final TError? error;
-  final DateTime? errorUpdatedAt;
   final bool isIdle;
-  final bool isLoading;
+  final bool isPending;
   final bool isSuccess;
   final bool isError;
   final MutationStatus status;
   final Future<void> Function(TVariables) mutate;
+  final DateTime? submittedAt;
 
   UseMutationResult({
     required this.data,
-    required this.dataUpdatedAt,
     required this.error,
-    required this.errorUpdatedAt,
     required this.status,
     required this.mutate,
+    required this.submittedAt,
   })  : isIdle = status == MutationStatus.idle,
-        isLoading = status == MutationStatus.loading,
+        isPending = status == MutationStatus.pending,
         isSuccess = status == MutationStatus.success,
         isError = status == MutationStatus.error;
 }
@@ -44,9 +42,10 @@ class UseMutationOptions<TVariables, TData, TError> {
   });
 }
 
-UseMutationResult<TVariables, TData, TError> useMutation<TVariables, TData, TError>({
+UseMutationResult<TVariables, TData, TError>
+    useMutation<TVariables, TData, TError>(
+  Future<TData> Function(TVariables) mutationFn, {
   void Function(TData)? onMutate,
-  required Future<TData> Function(TVariables) mutationFn,
   void Function(TData, TVariables)? onSuccess,
   void Function(TError, TVariables)? onError,
   void Function(TData?, TError?, TVariables)? onSettled,
@@ -87,10 +86,9 @@ UseMutationResult<TVariables, TData, TError> useMutation<TVariables, TData, TErr
 
   return UseMutationResult(
     data: observer.mutation.state.data,
-    dataUpdatedAt: observer.mutation.state.dataUpdatedAt,
     error: observer.mutation.state.error,
-    errorUpdatedAt: observer.mutation.state.errorUpdatedAt,
     status: observer.mutation.state.status,
     mutate: mutate,
+    submittedAt: observer.mutation.state.submittedAt,
   );
 }

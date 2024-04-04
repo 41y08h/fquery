@@ -22,6 +22,7 @@ class PostPage extends HookWidget {
       () => getPost(id ?? 1),
       staleDuration: const Duration(hours: 1),
       refetchInterval: isInterval.value ? const Duration(seconds: 4) : null,
+      refetchOnMount: RefetchOnMount.stale,
     );
     final client = useQueryClient();
 

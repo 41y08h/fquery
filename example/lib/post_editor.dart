@@ -14,33 +14,31 @@ class PostEditor extends HookWidget {
     final textController = useTextEditingController(text: title);
     final queryClient = useQueryClient();
 
-    // Generic types are Variables, Data, and Error
     final mutation = useMutation<String, String, String>(
-      mutationFn: (title) async {
-        // This is where you would make your async call
+      (title) async {
         await Future.delayed(const Duration(milliseconds: 500));
 
         // simulate an error
         if (title == "error") throw "Something went wrong!";
         return title;
       },
-      onMutate: (title) => {
-        print("About to mutate: $title"),
-      },
-      onError: (error, title) => {
-        print("Error: $error while saving $title"),
-      },
-      onSuccess: (data, title) => {
-        print("Success: $data while saving $title"),
+      onMutate: (title) => {},
+      onError: (error, title) => {},
+      onSuccess: (data, title) {
         queryClient.setQueryData<Post>(['posts', id], (previous) {
-          if (previous == null)
-            return Post(userId: 0, id: id, title: title, body: "");
-          return previous.copyWith(title: title);
-        })
+          return previous!.copyWith(title: title);
+        });
+        queryClient.setQueryData<List<Post>>(['posts'], (previous) {
+          return previous!.map((post) {
+            if (post.id != id) {
+              return post;
+            } else {
+              return post.copyWith(title: title);
+            }
+          }).toList();
+        });
       },
-      onSettled: (data, error, title) => {
-        print("Settled: $data while saving $title"),
-      },
+      onSettled: (data, error, title) => {},
     );
 
     useEffect(() {
@@ -48,14 +46,6 @@ class PostEditor extends HookWidget {
       textController.text = title;
       return null;
     }, [title]);
-
-    useEffect(() {
-      print(mutation.data);
-      print(mutation.dataUpdatedAt);
-      print(mutation.error);
-      print(mutation.errorUpdatedAt);
-      return null;
-    }, [mutation.data, mutation.error]);
 
     return Column(
       children: [
@@ -67,12 +57,10 @@ class PostEditor extends HookWidget {
               ),
             ),
             CupertinoButton(
-              onPressed: mutation.isLoading
+              onPressed: mutation.isPending
                   ? null
-                  : () async {
-                      print("Saving...");
-                      await mutation.mutate(textController.text);
-                      print("Saved!");
+                  : () {
+                      mutation.mutate(textController.text);
                     },
               child: const Text("Save"),
             )

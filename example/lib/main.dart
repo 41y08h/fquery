@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:basic/post.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -45,17 +47,22 @@ class Home extends HookWidget {
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
+        leading: const Row(
+          children: [
+            Text(
+              'Posts',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            )
+          ],
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: () {
-                isEnabled.value = !isEnabled.value;
+            CupertinoSwitch(
+              value: isEnabled.value,
+              onChanged: (value) {
+                isEnabled.value = value;
               },
-              child: Icon(isEnabled.value
-                  ? CupertinoIcons.circle_fill
-                  : CupertinoIcons.circle),
             ),
             CupertinoButton(
               padding: EdgeInsets.zero,
@@ -66,21 +73,25 @@ class Home extends HookWidget {
               padding: EdgeInsets.zero,
               child: const Icon(CupertinoIcons.pencil),
               onPressed: () {
-                client.setQueryData<List<Post>>(
-                  ['posts'],
-                  (previous) =>
-                      previous
-                          ?.map((post) => post.copyWith(
-                                title: "This has been edited",
-                              ))
-                          .toList() ??
-                      [],
-                );
+                client.setQueryData<List<Post>>(['posts'], (previous) {
+                  return previous?.map((post) {
+                        final randInt = Random().nextInt(100);
+                        final title = "I've been edited and now I'm $randInt";
+                        client.setQueryData<Post>(
+                          ['posts', post.id],
+                          (previous) => previous!.copyWith(title: title),
+                        );
+
+                        return post.copyWith(
+                          title: title,
+                        );
+                      }).toList() ??
+                      [];
+                });
               },
             ),
           ],
         ),
-        middle: const Text('Posts'),
       ),
       child: SafeArea(
         child: Builder(
