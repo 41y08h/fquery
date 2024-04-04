@@ -1,9 +1,7 @@
-import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
+import 'package:fquery/src/removable.dart';
 
 typedef QueryKey = List<dynamic>;
 
@@ -91,16 +89,13 @@ class QueryState<TData, TError> {
   }
 }
 
-class Query<TData, TError> {
+class Query<TData, TError> extends Removable {
   final QueryClient client;
   final QueryKey key;
 
   QueryState<TData, TError> _state = QueryState<TData, TError>();
   QueryState<TData, TError> get state => _state;
   final List<Observer> _observers = [];
-
-  Duration? _cacheDuration;
-  Timer? _garbageCollectionTimer;
 
   Query({required this.client, required this.key});
 
@@ -143,22 +138,10 @@ class Query<TData, TError> {
     }
   }
 
-  /// Sets the cache duration
-  /// Max cacheDuration given by any observer is used
-  /// Reschedules the garbage collection timer
-  void setCacheDuration(Duration cacheDuration) {
-    _cacheDuration = Duration(
-        milliseconds: max(
-      (_cacheDuration ?? Duration.zero).inMilliseconds,
-      cacheDuration.inMilliseconds,
-    ));
-    _scheduleGarbageCollection();
-  }
-
-  void _notifyObservers() {
-    for (var observer in _observers) {
-      observer.onQueryUpdated();
-    }
+  /// Dispatches an action to the reducer and notifies observers
+  void dispatch(DispatchAction action, dynamic data) {
+    _state = _reducer(state, action, data);
+    _notifyObservers();
   }
 
   /// This is called from the [Observer]
@@ -168,38 +151,27 @@ class Query<TData, TError> {
 
     // At least we have one observer
     // So no need to garbage collect
-    _cancelGarbageCollection();
+    cancelGarbageCollection();
   }
 
   void unsubscribe(Observer observer) {
     _observers.remove(observer);
 
     if (_observers.isEmpty) {
-      _scheduleGarbageCollection();
+      scheduleGarbageCollection();
     }
   }
 
-  /// Dispatches an action to the reducer and notifies observers
-  void dispatch(DispatchAction action, dynamic data) {
-    _state = _reducer(state, action, data);
-    _notifyObservers();
+  void _notifyObservers() {
+    for (var observer in _observers) {
+      observer.onQueryUpdated();
+    }
   }
 
   /// This is called when garbage collection timer fires
+  @override
   void onGarbageCollection() {
+    super.onGarbageCollection();
     client.queryCache.remove(this);
-  }
-
-  void _scheduleGarbageCollection() {
-    if (_observers.isNotEmpty) return;
-
-    _garbageCollectionTimer?.cancel();
-    final duration = _cacheDuration ?? client.defaultQueryOptions.cacheDuration;
-    _garbageCollectionTimer = Timer(duration, onGarbageCollection);
-  }
-
-  void _cancelGarbageCollection() {
-    _garbageCollectionTimer?.cancel();
-    _garbageCollectionTimer = null;
   }
 }
