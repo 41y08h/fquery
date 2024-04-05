@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/mutation.dart';
@@ -30,12 +32,12 @@ class UseMutationResult<TVariables, TData, TError> {
         isError = status == MutationStatus.error;
 }
 
-class UseMutationOptions<TVariables, TData, TError> {
+class UseMutationOptions<TVariables, TData, TError, TContext> {
   final Future<TData> Function(TVariables) mutationFn;
-  final void Function(TData)? onMutate;
-  final void Function(TData, TVariables)? onSuccess;
-  final void Function(TError, TVariables)? onError;
-  final void Function(TData?, TError?, TVariables)? onSettled;
+  final FutureOr<TContext>? Function(TVariables)? onMutate;
+  final void Function(TData, TVariables, TContext?)? onSuccess;
+  final void Function(TError, TVariables, TContext?)? onError;
+  final void Function(TData?, TError?, TVariables, TContext?)? onSettled;
 
   UseMutationOptions({
     required this.mutationFn,
@@ -47,12 +49,12 @@ class UseMutationOptions<TVariables, TData, TError> {
 }
 
 UseMutationResult<TVariables, TData, TError>
-    useMutation<TVariables, TData, TError>(
+    useMutation<TVariables, TData, TError, TContext>(
   Future<TData> Function(TVariables) mutationFn, {
-  void Function(TData)? onMutate,
-  void Function(TData, TVariables)? onSuccess,
-  void Function(TError, TVariables)? onError,
-  void Function(TData?, TError?, TVariables)? onSettled,
+  final FutureOr<TContext>? Function(TVariables)? onMutate,
+  final void Function(TData, TVariables, TContext?)? onSuccess,
+  final void Function(TError, TVariables, TContext?)? onError,
+  final void Function(TData?, TError?, TVariables, TContext?)? onSettled,
 }) {
   final options = useMemoized(
     () => UseMutationOptions(
@@ -72,7 +74,7 @@ UseMutationResult<TVariables, TData, TError>
   );
   final client = useQueryClient();
   final observer = useMemoized(
-    () => MutationObserver<TVariables, TData, TError>(
+    () => MutationObserver<TVariables, TData, TError, TContext>(
       client: client,
       options: options,
     ),

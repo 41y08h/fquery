@@ -2,17 +2,18 @@ import 'package:flutter/foundation.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/mutation.dart';
 
-class MutationObserver<TVariables, TData, TError> extends ChangeNotifier {
+class MutationObserver<TVariables, TData, TError, TContext>
+    extends ChangeNotifier {
   final QueryClient client;
-  final UseMutationOptions<TVariables, TData, TError> options;
-  late Mutation<TVariables, TData, TError> mutation;
+  final UseMutationOptions<TVariables, TData, TError, TContext> options;
+  late Mutation<TVariables, TData, TError, TContext> mutation;
   TVariables? vars;
 
   MutationObserver({
     required this.client,
     required this.options,
   }) {
-    mutation = Mutation<TVariables, TData, TError>(
+    mutation = Mutation<TVariables, TData, TError, TContext>(
       client: client,
       observer: this,
     );
@@ -24,18 +25,20 @@ class MutationObserver<TVariables, TData, TError> extends ChangeNotifier {
     notifyListeners();
 
     mutation.dispatch(MutationDispatchAction.mutate, null);
+    final ctx = await options.onMutate?.call(variables);
+
     late TData data;
     late TError error;
     try {
       data = await options.mutationFn(variables);
       mutation.dispatch(MutationDispatchAction.success, data);
-      options.onSuccess?.call(data, variables);
+      options.onSuccess?.call(data, variables, ctx);
     } catch (err) {
       error = err as TError;
       mutation.dispatch(MutationDispatchAction.error, error);
-      options.onError?.call(error, variables);
+      options.onError?.call(error, variables, ctx);
     }
-    options.onSettled?.call(data, error, variables);
+    options.onSettled?.call(data, error, variables, ctx);
   }
 
   /// Resets the mutation to its initial state.
