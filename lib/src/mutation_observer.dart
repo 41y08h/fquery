@@ -5,22 +5,44 @@ import 'package:fquery/src/mutation.dart';
 class MutationObserver<TVariables, TData, TError, TContext>
     extends ChangeNotifier {
   final QueryClient client;
-  final UseMutationOptions<TVariables, TData, TError, TContext> options;
+  late UseMutationOptions<TVariables, TData, TError, TContext> options;
   late Mutation<TVariables, TData, TError, TContext> mutation;
   TVariables? vars;
 
   MutationObserver({
     required this.client,
-    required this.options,
+    required UseMutationOptions<TVariables, TData, TError, TContext> options,
   }) {
     mutation = Mutation<TVariables, TData, TError, TContext>(
       client: client,
       observer: this,
     );
+    _setOptions(options);
+  }
+
+  /// Takes a [UseMutationOptions] and sets the [options] field.
+  void _setOptions(
+      UseMutationOptions<TVariables, TData, TError, TContext> options) {
+    this.options = UseMutationOptions<TVariables, TData, TError, TContext>(
+      mutationFn: options.mutationFn,
+      onError: options.onError,
+      onMutate: options.onMutate,
+      onSettled: options.onSettled,
+      onSuccess: options.onSuccess,
+    );
+  }
+
+  /// This is usually called from the [useMutation] hook
+  /// whenever there is any change in the options
+  void updateOptions(
+      UseMutationOptions<TVariables, TData, TError, TContext> options) {
+    _setOptions(options);
   }
 
   /// This is "the" function responsible for the mutation.
   Future<void> mutate(TVariables variables) async {
+    if (mutation.state.isPending) return;
+
     this.vars = variables;
     notifyListeners();
 

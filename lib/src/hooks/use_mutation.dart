@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/mutation.dart';
@@ -79,6 +80,13 @@ UseMutationResult<TVariables, TData, TError>
       options: options,
     ),
   );
+
+  useEffect(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      observer.updateOptions(options);
+    });
+    return null;
+  }, [observer, options]);
 
   // This subscribes to the observer
   // and rebuilds the widget on updates.
