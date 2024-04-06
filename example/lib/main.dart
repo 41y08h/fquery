@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:basic/todos.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -38,7 +40,29 @@ class Home extends HookWidget {
       refetchOnMount: RefetchOnMount.never,
     );
     final todoInputController = useTextEditingController();
-    final addTodoMutation = useMutation(todosAPI.add, onSuccess: (_, __, ___) {
+    final addTodoMutation = useMutation<String, Todo, Exception, List<Todo>>(
+        todosAPI.add, onMutate: (text) async {
+      final previousTodos =
+          queryClient.getQueryData<List<Todo>>(['todos']) ?? [];
+
+      // Optimistically update the todo list
+      queryClient.setQueryData<List<Todo>>(['todos'], (previous) {
+        final id = Random().nextInt(pow(10, 6).toInt());
+        final newTodo = Todo(id: id, text: text);
+        return [...(previous ?? []), newTodo];
+      });
+
+      // Pass the original data as context to the next functions
+      return previousTodos;
+    }, onError: (err, text, previousTodos) {
+      // On failure, revert back to original data
+      queryClient.setQueryData<List<Todo>>(
+        ['todos'],
+        (_) => previousTodos as List<Todo>,
+      );
+    }, onSettled: (data, error, variables, ctx) {
+      // Refetch the query anyways (either error or success)
+      // Or we can manually add the returned todo (result) in the onSuccess callback
       client.invalidateQueries(['todos']);
       todoInputController.clear();
     });
