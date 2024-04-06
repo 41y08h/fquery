@@ -1,11 +1,7 @@
-import 'dart:math';
-
-import 'package:basic/post.dart';
-import 'package:dio/dio.dart';
+import 'package:basic/todos.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
-import 'package:basic/post_page.dart';
 
 final queryClient = QueryClient(
   defaultQueryOptions: DefaultQueryOptions(),
@@ -23,17 +19,10 @@ void main() {
         ),
         routes: {
           '/': (context) => const Home(),
-          '/post': (context) => const PostPage(),
         },
       ),
     ),
   );
-}
-
-Future<List<Post>> getPosts() async {
-  final res =
-      await Dio().get<List>('https://jsonplaceholder.typicode.com/posts');
-  return (res.data)!.map((p) => Post.fromMap(p)).toList();
 }
 
 class Home extends HookWidget {
@@ -41,16 +30,25 @@ class Home extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isEnabled = useState(true);
     final client = useQueryClient();
-    final posts = useQuery(['posts'], getPosts, enabled: isEnabled.value);
+    final todosAPI = TodosAPI.getInstance();
+    final todos = useQuery(
+      ['todos'],
+      todosAPI.getAll,
+      refetchOnMount: RefetchOnMount.never,
+    );
+    final todoInputController = useTextEditingController();
+    final addTodoMutation = useMutation(todosAPI.add, onSuccess: (_, __, ___) {
+      client.invalidateQueries(['todos']);
+      todoInputController.clear();
+    });
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         leading: const Row(
           children: [
             Text(
-              'Posts',
+              'Todos',
               style: TextStyle(fontWeight: FontWeight.bold),
             )
           ],
@@ -58,37 +56,10 @@ class Home extends HookWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CupertinoSwitch(
-              value: isEnabled.value,
-              onChanged: (value) {
-                isEnabled.value = value;
-              },
-            ),
             CupertinoButton(
               padding: EdgeInsets.zero,
-              onPressed: posts.refetch,
+              onPressed: todos.refetch,
               child: const Icon(CupertinoIcons.refresh),
-            ),
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              child: const Icon(CupertinoIcons.pencil),
-              onPressed: () {
-                client.setQueryData<List<Post>>(['posts'], (previous) {
-                  return previous?.map((post) {
-                        final randInt = Random().nextInt(100);
-                        final title = "I've been edited and now I'm $randInt";
-                        client.setQueryData<Post>(
-                          ['posts', post.id],
-                          (previous) => previous!.copyWith(title: title),
-                        );
-
-                        return post.copyWith(
-                          title: title,
-                        );
-                      }).toList() ??
-                      [];
-                });
-              },
             ),
           ],
         ),
@@ -96,42 +67,258 @@ class Home extends HookWidget {
       child: SafeArea(
         child: Builder(
           builder: (context) {
-            if (posts.isLoading) {
+            if (todos.isLoading) {
               return const Center(
                 child: CupertinoActivityIndicator(),
               );
             }
-            if (posts.isError) {
+            if (todos.isError) {
               return Center(
-                child: Text(posts.error.toString()),
+                child: Text(todos.error.toString()),
               );
             }
             return Column(
               children: [
-                if (posts.isFetching)
+                if (todos.isFetching)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 40.0),
                     child: CupertinoActivityIndicator(),
                   ),
+                SizedBox(
+                  height: 12,
+                ),
                 Expanded(
-                  child: ListView.builder(
-                    itemCount: posts.data?.length,
-                    itemBuilder: (context, index) {
-                      final post = posts.data![index];
-                      return CupertinoListTile(
-                        onTap: () {
-                          Navigator.pushNamed(context, '/post',
-                              arguments: post.id);
-                        },
-                        title: Text(post.title),
-                      );
-                    },
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: CupertinoTextField(
+                                controller: todoInputController,
+                                placeholder: "Play football",
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            SizedBox(
+                              height: 36,
+                              child: CupertinoButton(
+                                padding: EdgeInsets.symmetric(horizontal: 36),
+                                color: CupertinoColors.systemBlue,
+                                child: Text("Add"),
+                                onPressed: addTodoMutation.isPending
+                                    ? null
+                                    : () {
+                                        addTodoMutation
+                                            .mutate(todoInputController.text);
+                                      },
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: todos.data?.length,
+                          itemBuilder: (context, index) {
+                            final todo = todos.data![index];
+                            return TodoListTile(
+                              todo: todo,
+                              key: Key(todo.id.toString()),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class TodoListTile extends HookWidget {
+  const TodoListTile({
+    super.key,
+    required this.todo,
+  });
+
+  final Todo todo;
+
+  @override
+  Widget build(BuildContext context) {
+    final client = useQueryClient();
+    final todosAPI = TodosAPI.getInstance();
+    final controller = useTextEditingController(text: todo.text);
+    final isEditingMode = useState(false);
+
+    final editMutation =
+        useMutation<String, Todo, Exception, void>((newText) async {
+      return todosAPI.edit(todo.id, newText);
+    }, onSuccess: (updatedTodo, newText, ctx) {
+      isEditingMode.value = !isEditingMode.value;
+
+      client.setQueryData<List<Todo>>(
+        ['todos'],
+        (previous) {
+          if (previous == null) return [];
+          return previous.map((e) {
+            if (e.id != updatedTodo.id) return e;
+            return updatedTodo;
+          }).toList();
+        },
+      );
+    });
+
+    final markMutation = useMutation<bool, Todo, Exception, void>((mark) {
+      return todosAPI.mark(todo.id, mark);
+    }, onSuccess: (updatedTodo, mark, ctx) {
+      client.setQueryData<List<Todo>>(
+        ['todos'],
+        (previous) {
+          if (previous == null) return [];
+          return previous.map((e) {
+            if (e.id != updatedTodo.id) return e;
+            return updatedTodo;
+          }).toList();
+        },
+      );
+    });
+
+    final deleteMutation = useMutation<int, int, Exception, void>((id) async {
+      await todosAPI.delete(todo.id);
+      return id;
+    }, onSuccess: (id, _, ctx) {
+      client.setQueryData<List<Todo>>(
+        ['todos'],
+        (previous) {
+          if (previous == null) return [];
+          return previous.where((e) {
+            return (e.id != id);
+          }).toList();
+        },
+      );
+    });
+
+    print("${todo.id} : ${deleteMutation.isPending}");
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                if (isEditingMode.value)
+                  Expanded(
+                    child: CupertinoTextField(
+                      controller: controller,
+                      autofocus: true,
+                    ),
+                  )
+                else
+                  Text(
+                    todo.text,
+                    style: (markMutation.isPending
+                            ? markMutation.variables as bool
+                            : todo.isDone)
+                        ? const TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                          )
+                        : null,
+                  ),
+              ],
+            ),
+          ),
+          if (isEditingMode.value)
+            Row(
+              children: [
+                const SizedBox(
+                  width: 8,
+                ),
+                SizedBox(
+                  height: 36,
+                  child: CupertinoButton(
+                    padding: const EdgeInsetsDirectional.all(1),
+                    color: CupertinoColors.inactiveGray,
+                    onPressed: () {
+                      isEditingMode.value = !isEditingMode.value;
+                    },
+                    child: Icon(
+                      CupertinoIcons.delete_left_fill,
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 8,
+                ),
+                SizedBox(
+                  height: 36,
+                  child: CupertinoButton(
+                    padding: const EdgeInsets.all(1),
+                    color: CupertinoColors.systemBlue,
+                    onPressed: editMutation.isPending
+                        ? null
+                        : () {
+                            editMutation.mutate(controller.text);
+                          },
+                    child: const Icon(CupertinoIcons.checkmark_alt_circle_fill),
+                  ),
+                ),
+              ],
+            )
+          else
+            Row(
+              children: [
+                CupertinoButton(
+                  padding: const EdgeInsetsDirectional.symmetric(
+                    horizontal: 1,
+                  ),
+                  onPressed: () {
+                    isEditingMode.value = !isEditingMode.value;
+                  },
+                  child: const Icon(
+                    CupertinoIcons.pencil_outline,
+                    color: CupertinoColors.systemBlue,
+                  ),
+                ),
+                CupertinoCheckbox(
+                  checkColor: markMutation.isPending
+                      ? CupertinoColors.inactiveGray
+                      : CupertinoColors.white,
+                  inactiveColor: markMutation.isPending
+                      ? CupertinoColors.inactiveGray
+                      : CupertinoColors.black,
+                  value: markMutation.isPending
+                      ? markMutation.variables as bool
+                      : todo.isDone,
+                  onChanged: (value) {
+                    if (value == null) return;
+
+                    markMutation.mutate(value);
+                  },
+                ),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: deleteMutation.isPending
+                      ? null
+                      : () {
+                          deleteMutation.mutate(todo.id);
+                        },
+                  child: const Icon(CupertinoIcons.delete_solid),
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }
