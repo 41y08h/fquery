@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/mutation.dart';
 
+/// A [MutationObserver] is a class which holds a [Mutation] and handles its execution.
 class MutationObserver<TVariables, TData, TError, TContext>
     extends ChangeNotifier {
   final QueryClient client;

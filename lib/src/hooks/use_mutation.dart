@@ -49,6 +49,23 @@ class UseMutationOptions<TVariables, TData, TError, TContext> {
   });
 }
 
+/// Builds a mutation and subscribes to it.
+/// Takes a mutation function which either resolves or throws an error.
+/// Returns a [UseMutationResult]
+/// Example:
+/// ```dart
+/// final addTodoMutation = useMutation((text) async {
+///     return await todosAPI.add(text);
+/// });
+/// ```
+
+/// You can also pass callback functions like `onSuccess` or `onError` -
+
+/// - `onMutate` - this callback will be called before the mutation is executed and is passed with the same variables the mutation function would receive.
+/// - `onSuccess` - this callback will be called if the mutation was successful and receives the result of the mutation as an argument (in addition to the passed variables in the mutation function).
+/// - `onError` - this callback will be called if the mutation wassn't successful and receives the error of as an argument (in addition to the passed variables in the mutation function).
+/// - `onSettled` - this callback will be called after the mutation has been executed and will receive both the result (if successful) and error(if unsuccessful), in case of success, error will be null and vice-versa.
+
 UseMutationResult<TVariables, TData, TError>
     useMutation<TVariables, TData, TError, TContext>(
   Future<TData> Function(TVariables) mutationFn, {
