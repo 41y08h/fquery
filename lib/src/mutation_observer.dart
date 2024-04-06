@@ -50,16 +50,18 @@ class MutationObserver<TVariables, TData, TError, TContext>
     mutation.dispatch(MutationDispatchAction.mutate, null);
     final ctx = await options.onMutate?.call(variables);
 
-    late TData data;
-    late TError error;
+    TData? data;
+    TError? error;
     try {
+      error = null;
       data = await options.mutationFn(variables);
       mutation.dispatch(MutationDispatchAction.success, data);
-      options.onSuccess?.call(data, variables, ctx);
+      options.onSuccess?.call(data as TData, variables, ctx);
     } catch (err) {
+      data = null;
       error = err as TError;
       mutation.dispatch(MutationDispatchAction.error, error);
-      options.onError?.call(error, variables, ctx);
+      options.onError?.call(error as TError, variables, ctx);
     }
     options.onSettled?.call(data, error, variables, ctx);
   }
