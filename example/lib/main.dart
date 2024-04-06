@@ -84,7 +84,7 @@ class Home extends HookWidget {
                     padding: EdgeInsets.symmetric(vertical: 40.0),
                     child: CupertinoActivityIndicator(),
                   ),
-                SizedBox(
+                const SizedBox(
                   height: 12,
                 ),
                 Expanded(
@@ -106,21 +106,22 @@ class Home extends HookWidget {
                             SizedBox(
                               height: 36,
                               child: CupertinoButton(
-                                padding: EdgeInsets.symmetric(horizontal: 36),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 36),
                                 color: CupertinoColors.systemBlue,
-                                child: Text("Add"),
                                 onPressed: addTodoMutation.isPending
                                     ? null
                                     : () {
                                         addTodoMutation
                                             .mutate(todoInputController.text);
                                       },
+                                child: const Text("Add"),
                               ),
                             )
                           ],
                         ),
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Expanded(
                         child: ListView.builder(
                           itemCount: todos.data?.length,
@@ -208,8 +209,6 @@ class TodoListTile extends HookWidget {
       );
     });
 
-    print("${todo.id} : ${deleteMutation.isPending}");
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -253,7 +252,7 @@ class TodoListTile extends HookWidget {
                     onPressed: () {
                       isEditingMode.value = !isEditingMode.value;
                     },
-                    child: Icon(
+                    child: const Icon(
                       CupertinoIcons.delete_left_fill,
                     ),
                   ),
