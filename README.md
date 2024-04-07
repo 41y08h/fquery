@@ -257,6 +257,54 @@ void main() {
       child: CupertinoApp(
 ```
 
+## Mutations
+
+Similar to queries, you can also use the `useMutation` hook to mutate data on the server or just anywhere, just return a `Future` in your mutation function and you're good to go.
+
+The following example illustrates almost the full usage of the features that comes with mutations. Here we're adding a new todo asynchronously and also doing **optimistic updates**.
+
+### Example
+
+```dart
+final addTodoMutation = useMutation<Todo, Exception, String, List<Todo>>(
+        todosAPI.add, onMutate: (text) async {
+      final previousTodos =
+          queryClient.getQueryData<List<Todo>>(['todos']) ?? [];
+
+      // Optimistically update the todo list
+      queryClient.setQueryData<List<Todo>>(['todos'], (previous) {
+        final id = Random().nextInt(pow(10, 6).toInt());
+        final newTodo = Todo(id: id, text: text);
+        return [...(previous ?? []), newTodo];
+      });
+
+      // Pass the original data as context to the next functions
+      return previousTodos;
+    }, onError: (err, text, previousTodos) {
+      // On failure, revert back to original data
+      queryClient.setQueryData<List<Todo>>(
+        ['todos'],
+        (_) => previousTodos as List<Todo>,
+      );
+    }, onSettled: (data, error, variables, ctx) {
+      // Refetch the query anyways (either error or success)
+      // Or we can manually add the returned todo (result) in the onSuccess callback
+      client.invalidateQueries(['todos']);
+      todoInputController.clear();
+    });
+```
+
+### Usage
+
+To use mutations, you need a mutation function which will receive a variable parameter when you'll call the `mutate` function. Here in the example it's `text` parameter that we're using as a variable that the mutation function will receive. Like queries, to use mutations you'll also need extend the widget using `HookWidget` or `StatefulHookWidget` (for stateful widgets).
+
+The `useMutation` hook takes 4 type arguments -
+
+- `TData` - type of data that'll be returned from the mutation function.
+- `TError` - type of error that'll be thrown when the mutation fails.
+- `TVariables` - type of the variable that your mutation function wil receive.
+- `TContext` - type of the context object that you'll pass around in mutation callbacks. It has been illustrated in the example how `onMutate` returns original list of todos to revert back when the mutation fails.
+
 ## Contributing
 
 If you've ever wanted to contribute to open source, and a great cause, now is your chance ✨, feel free to open an issue or submit a PR at the [GitHub repo](https://github.com/41y08h/fquery). See [Contribution guide](CONTRIBUTING.md) for more details.
