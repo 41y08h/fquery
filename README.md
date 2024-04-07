@@ -305,6 +305,29 @@ The `useMutation` hook takes 4 type arguments -
 - `TVariables` - type of the variable that your mutation function wil receive.
 - `TContext` - type of the context object that you'll pass around in mutation callbacks. It has been illustrated in the example how `onMutate` returns original list of todos to revert back when the mutation fails.
 
+You can also pass callback functions like `onSuccess` or `onError` -
+
+- `onMutate` - this callback will be called before the mutation is executed and is passed with the same variables the mutation function would receive.
+- `onSuccess` - this callback will be called if the mutation was successful and receives the result of the mutation as an argument (in addition to the passed variables in the mutation function).
+- `onError` - this callback will be called if the mutation wassn't successful and receives the error of as an argument (in addition to the passed variables in the mutation function).
+- `onSettled` - this callback will be called after the mutation has been executed and will receive both the result (if successful) and error(if unsuccessful), in case of success, error will be null and vice-versa.
+
+The `useMutation` hook will return [UseMutationResult] which has the everything associated with the mutation.
+
+```dart
+final TData? data;
+final TError? error;
+final bool isIdle;
+final bool isPending;
+final bool isSuccess;
+final bool isError;
+final MutationStatus status;
+final Future<void> Function(TVariables) mutate;
+final DateTime? submittedAt;
+final void Function() reset;
+final TVariables? variables;
+```
+
 ## Contributing
 
 If you've ever wanted to contribute to open source, and a great cause, now is your chance ✨, feel free to open an issue or submit a PR at the [GitHub repo](https://github.com/41y08h/fquery). See [Contribution guide](CONTRIBUTING.md) for more details.
