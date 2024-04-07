@@ -28,3 +28,7 @@
 ## 1.0.0-beta.5
 
 - Fix insecure (http) link in README
+
+## 1.1.0-beta.1
+
+- New feature: Mutations
