@@ -163,12 +163,6 @@ final posts = useQuery(
   refetchInterval: null // The query will not re-fetch by default,
   refetchOnMount: RefetchOnMount.stale,
   staleDuration: const Duration(seconds: 10),
-  onData: (data) {
-    // callback with the fetched data
-  },
-  onError: (error) {
-    // callback with the encountered error
-  }
 );
 ```
 
@@ -180,8 +174,6 @@ final posts = useQuery(
   - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`).
   - `RefetchOnMount.never` - will never re-fetch.
 - `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually.
-- `onData` - callback that supplies data when query is successfully fetched/re-fetched.
-- `onError` - callback fired when query encounters an error while fetching.
 
 ### Dependent Query
 

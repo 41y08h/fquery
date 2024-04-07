@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
 import 'package:fquery/src/removable.dart';
@@ -31,8 +30,6 @@ class QueryOptions<TData, TError> {
   final Duration staleDuration;
   final Duration cacheDuration;
   final Duration? refetchInterval;
-  final ValueChanged<TData>? onData;
-  final ValueChanged<TError>? onError;
 
   QueryOptions({
     required this.enabled,
@@ -40,8 +37,6 @@ class QueryOptions<TData, TError> {
     required this.staleDuration,
     required this.cacheDuration,
     this.refetchInterval,
-    this.onData,
-    this.onError,
   });
 }
 

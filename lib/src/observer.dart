@@ -79,8 +79,6 @@ class Observer<TData, TError> extends ChangeNotifier {
       cacheDuration:
           options.cacheDuration ?? client.defaultQueryOptions.cacheDuration,
       refetchInterval: options.refetchInterval,
-      onData: options.onData,
-      onError: options.onError,
     );
   }
 
@@ -130,12 +128,10 @@ class Observer<TData, TError> extends ChangeNotifier {
     await resolver.resolve<TData>(fetcher, onResolve: (data) {
       query.dispatch(DispatchAction.success, data);
 
-      options.onData?.call(data);
       scheduleRefetch();
     }, onError: (error) {
       query.dispatch(DispatchAction.error, error);
 
-      options.onError?.call(error as TError);
       scheduleRefetch();
     }, onCancel: () {
       query.dispatch(DispatchAction.cancelFetch, null);

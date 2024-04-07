@@ -38,17 +38,12 @@ class UseQueryOptions<TData, TError> {
   final Duration? cacheDuration;
   final Duration? refetchInterval;
 
-  final ValueChanged<TData>? onData;
-  final ValueChanged<TError>? onError;
-
   UseQueryOptions({
     required this.enabled,
     this.refetchOnMount,
     this.staleDuration,
     this.cacheDuration,
     this.refetchInterval,
-    this.onData,
-    this.onError,
   });
 }
 
@@ -87,8 +82,6 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
   Duration? staleDuration,
   Duration? cacheDuration,
   Duration? refetchInterval,
-  final ValueChanged<TData>? onData,
-  final ValueChanged<TError>? onError,
 }) {
   final options = useMemoized(
     () => UseQueryOptions<TData, TError>(
@@ -97,8 +90,6 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
       staleDuration: staleDuration,
       cacheDuration: cacheDuration,
       refetchInterval: refetchInterval,
-      onData: onData,
-      onError: onError,
     ),
     [
       enabled,
@@ -106,8 +97,6 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
       staleDuration,
       cacheDuration,
       refetchInterval,
-      onData,
-      onError,
     ],
   );
   final client = useQueryClient();
