@@ -40,7 +40,7 @@ class Home extends HookWidget {
       refetchOnMount: RefetchOnMount.never,
     );
     final todoInputController = useTextEditingController();
-    final addTodoMutation = useMutation<String, Todo, Exception, List<Todo>>(
+    final addTodoMutation = useMutation<Todo, Exception, String, List<Todo>>(
         todosAPI.add, onMutate: (text) async {
       final previousTodos =
           queryClient.getQueryData<List<Todo>>(['todos']) ?? [];
@@ -186,7 +186,7 @@ class TodoListTile extends HookWidget {
     final isEditingMode = useState(false);
 
     final editMutation =
-        useMutation<String, Todo, Exception, void>((newText) async {
+        useMutation<Todo, Exception, String, void>((newText) async {
       return todosAPI.edit(todo.id, newText);
     }, onSuccess: (updatedTodo, newText, ctx) {
       isEditingMode.value = !isEditingMode.value;
@@ -203,7 +203,7 @@ class TodoListTile extends HookWidget {
       );
     });
 
-    final markMutation = useMutation<bool, Todo, Exception, void>((mark) {
+    final markMutation = useMutation<Todo, Exception, bool, void>((mark) {
       return todosAPI.mark(todo.id, mark);
     }, onSuccess: (updatedTodo, mark, ctx) {
       client.setQueryData<List<Todo>>(
@@ -218,7 +218,7 @@ class TodoListTile extends HookWidget {
       );
     });
 
-    final deleteMutation = useMutation<int, int, Exception, void>((id) async {
+    final deleteMutation = useMutation<int, Exception, int, void>((id) async {
       await todosAPI.delete(todo.id);
       return id;
     }, onSuccess: (id, _, ctx) {

@@ -49,11 +49,11 @@ class MutationState<TData, TError> {
   }
 }
 
-class Mutation<TVariables, TData, TError, TContext> {
+class Mutation<TData, TError, TVariables, TContext> {
   final QueryClient client;
   MutationState<TData, TError> _state = MutationState();
   MutationState<TData, TError> get state => _state;
-  final MutationObserver<TVariables, TData, TError, TContext> observer;
+  final MutationObserver<TData, TError, TVariables, TContext> observer;
 
   Mutation({
     required this.client,

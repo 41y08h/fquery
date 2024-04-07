@@ -6,7 +6,7 @@ import 'package:fquery/fquery.dart';
 import 'package:fquery/src/mutation.dart';
 import 'package:fquery/src/mutation_observer.dart';
 
-class UseMutationResult<TVariables, TData, TError> {
+class UseMutationResult<TData, TError, TVariables> {
   final TData? data;
   final TError? error;
   final bool isIdle;
@@ -33,7 +33,7 @@ class UseMutationResult<TVariables, TData, TError> {
         isError = status == MutationStatus.error;
 }
 
-class UseMutationOptions<TVariables, TData, TError, TContext> {
+class UseMutationOptions<TData, TError, TVariables, TContext> {
   final Future<TData> Function(TVariables) mutationFn;
   final FutureOr<TContext>? Function(TVariables)? onMutate;
   final void Function(TData, TVariables, TContext?)? onSuccess;
@@ -66,8 +66,8 @@ class UseMutationOptions<TVariables, TData, TError, TContext> {
 /// - `onError` - this callback will be called if the mutation wassn't successful and receives the error of as an argument (in addition to the passed variables in the mutation function).
 /// - `onSettled` - this callback will be called after the mutation has been executed and will receive both the result (if successful) and error(if unsuccessful), in case of success, error will be null and vice-versa.
 
-UseMutationResult<TVariables, TData, TError>
-    useMutation<TVariables, TData, TError, TContext>(
+UseMutationResult<TData, TError, TVariables>
+    useMutation<TData, TError, TVariables, TContext>(
   Future<TData> Function(TVariables) mutationFn, {
   final FutureOr<TContext>? Function(TVariables)? onMutate,
   final void Function(TData, TVariables, TContext?)? onSuccess,
@@ -76,8 +76,8 @@ UseMutationResult<TVariables, TData, TError>
 }) {
   final options = useMemoized(
     () => UseMutationOptions(
-      onMutate: onMutate,
       mutationFn: mutationFn,
+      onMutate: onMutate,
       onSuccess: onSuccess,
       onError: onError,
       onSettled: onSettled,
@@ -92,7 +92,7 @@ UseMutationResult<TVariables, TData, TError>
   );
   final client = useQueryClient();
   final observer = useMemoized(
-    () => MutationObserver<TVariables, TData, TError, TContext>(
+    () => MutationObserver<TData, TError, TVariables, TContext>(
       client: client,
       options: options,
     ),

@@ -3,18 +3,18 @@ import 'package:fquery/fquery.dart';
 import 'package:fquery/src/mutation.dart';
 
 /// A [MutationObserver] is a class which holds a [Mutation] and handles its execution.
-class MutationObserver<TVariables, TData, TError, TContext>
+class MutationObserver<TData, TError, TVariables, TContext>
     extends ChangeNotifier {
   final QueryClient client;
-  late UseMutationOptions<TVariables, TData, TError, TContext> options;
-  late Mutation<TVariables, TData, TError, TContext> mutation;
+  late UseMutationOptions<TData, TError, TVariables, TContext> options;
+  late Mutation<TData, TError, TVariables, TContext> mutation;
   TVariables? vars;
 
   MutationObserver({
     required this.client,
-    required UseMutationOptions<TVariables, TData, TError, TContext> options,
+    required UseMutationOptions<TData, TError, TVariables, TContext> options,
   }) {
-    mutation = Mutation<TVariables, TData, TError, TContext>(
+    mutation = Mutation<TData, TError, TVariables, TContext>(
       client: client,
       observer: this,
     );
@@ -23,8 +23,8 @@ class MutationObserver<TVariables, TData, TError, TContext>
 
   /// Takes a [UseMutationOptions] and sets the [options] field.
   void _setOptions(
-      UseMutationOptions<TVariables, TData, TError, TContext> options) {
-    this.options = UseMutationOptions<TVariables, TData, TError, TContext>(
+      UseMutationOptions<TData, TError, TVariables, TContext> options) {
+    this.options = UseMutationOptions<TData, TError, TVariables, TContext>(
       mutationFn: options.mutationFn,
       onError: options.onError,
       onMutate: options.onMutate,
@@ -36,7 +36,7 @@ class MutationObserver<TVariables, TData, TError, TContext>
   /// This is usually called from the [useMutation] hook
   /// whenever there is any change in the options
   void updateOptions(
-      UseMutationOptions<TVariables, TData, TError, TContext> options) {
+      UseMutationOptions<TData, TError, TVariables, TContext> options) {
     _setOptions(options);
   }
 
