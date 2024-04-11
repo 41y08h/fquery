@@ -89,8 +89,11 @@ class Home extends HookWidget {
         ),
       ),
       child: SafeArea(
-        child: Builder(
-          builder: (context) {
+        child: QueryBuilder<List<Todo>, dynamic>(
+          const ['todos'],
+          todosAPI.getAll,
+          refetchOnMount: RefetchOnMount.never,
+          builder: (context, todos) {
             if (todos.isLoading) {
               return const Center(
                 child: CupertinoActivityIndicator(),
