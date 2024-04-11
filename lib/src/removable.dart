@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:fquery/fquery.dart';
+
 class Removable {
   Duration? _cacheDuration;
   Timer? _garbageCollectionTimer;
@@ -23,7 +25,7 @@ class Removable {
 
   void scheduleGarbageCollection() {
     _garbageCollectionTimer?.cancel();
-    final duration = _cacheDuration ?? Duration(minutes: 5);
+    final duration = _cacheDuration ?? DefaultQueryOptions().cacheDuration;
     _garbageCollectionTimer = Timer(duration, onGarbageCollection);
   }
 
