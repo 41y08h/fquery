@@ -13,9 +13,9 @@ With this powerful tool at your disposal, managing server state (REST API, Graph
 ![UC San Diego](https://github.com/41y08h/fquery/blob/main/media/ucsd-banner.png?raw=true)
 
 The University of California, San Diego has shifted to [fquery](https://github.com/41y08h/fquery/), _moving away from traditional state management solutions like provider, bloc, etc,_ as the backbone of their [mobile application](https://mobile.ucsd.edu/), which has over 30,000 users and serves as the app used by the generations of students.
-With fquery's efficient and easy-to-use async state management, the developers are now enjoying the comfort of seamless state management by refactoring sphagetti block of codes, even files with 200 lines to just 20 lines. They also noticed a significant reduction in the hot reload.
+With fquery's efficient and easy-to-use async state management, the developers are now enjoying the comfort of seamless state management by refactoring spaghetti blocks of codes, even files with 200 lines to just 20 lines. They also noticed a significant reduction in the hot reload.
 
-All of this is only to have more time, and easy-to-manage structure to develop the features that matter the most. They are confident that the codebase will continue to be manageable, and provide the team with a better structure.
+All of this is only to have more time, and an easy-to-manage structure to develop the features that matter the most. They are confident that the codebase will continue to be manageable, and provide the team with a better structure.
 
 ### Stargazers and others
 
@@ -41,7 +41,7 @@ As a developer, you too can leverage the power of this tool to create a high-qua
 
 Have you ever wondered **how to effectively manage server state in your Flutter apps**? Many developers resort to using Riverpod, Bloc, `FutureBuilder``, or any other general-purpose state management solution. However, these solutions often lead to writing repetitive code that handles data fetching, caching, and other logic.
 
-The truth is, general-purpose state management solutions are not the best choice when it comes to handling asynchronous server state. This is due to the **unique nature of server state - it is asynchronous and requires specific APIs for fetching and updating**. Additionally, the server state is stored in a remote location, which means **it can be modified without your knowledge from anywhere in the world**. This alone requires a lot of effort to keep the data synchronized and ensure that it is up-to-date.
+The truth is, that general-purpose state management solutions are not the best choice when it comes to handling asynchronous server state. This is due to the **unique nature of server state - it is asynchronous and requires specific APIs for fetching and updating**. Additionally, the server state is stored in a remote location, which means **it can be modified without your knowledge from anywhere in the world**. This alone requires a lot of effort to keep the data synchronized and ensure that it is up-to-date.
 
 ### How does ⚡fquery tackle this problem?
 
@@ -86,7 +86,7 @@ class Posts extends HookWidget {
 
 ## 🧑‍💻 Usage
 
-You'll need to install [flutter_hooks](https://pub.dev/packages/flutter_hooks) before you can start using this library. You'll need to wrap
+You'll need to install [flutter_hooks](https://pub.dev/packages/flutter_hooks) before using this library. You'll need to wrap
 your entire app inside a `QueryClientProvider` and you are good to go.
 
 ```dart
@@ -193,7 +193,7 @@ final keys = useQuery(['keys', session.id], enabled: isAuthenticated)
 
 ### Query invalidation
 
-This technique can be used to manually mark the cached data as stale and potentially even re-fetch them. This is especially useful when you know that the data has been changed. `QueryClient` (see [below](#queryclient)) has an `invalidateQueries()` method that allows you to do that. **You can make use of the `useQueryClient` hook to obtain the instance of `QueryClient`** that you passed with `QueryClientProvider`.
+This technique can manually mark the cached data as stale and potentially even re-fetch them. This is especially useful when you know that the data has been changed. `QueryClient` (see [below](#queryclient)) has an `invalidateQueries()` method that allows you to do that. **You can make use of the `useQueryClient` hook to obtain the instance of `QueryClient`** that you passed with `QueryClientProvider`.
 
 ```dart
 final queryClient = useQueryClient();
@@ -261,7 +261,7 @@ void main() {
 
 Similar to queries, you can also use the `useMutation` hook to mutate data on the server or just anywhere, just return a `Future` in your mutation function and you're good to go.
 
-The following example illustrates almost the full usage of the features that comes with mutations. Here we're adding a new todo asynchronously and also doing **optimistic updates**.
+The following example illustrates almost the full usage of the features that come with mutations. Here we're adding a new todo asynchronously and also doing **optimistic updates**.
 
 ### Example
 
@@ -281,13 +281,13 @@ final addTodoMutation = useMutation<Todo, Exception, String, List<Todo>>(
       // Pass the original data as context to the next functions
       return previousTodos;
     }, onError: (err, text, previousTodos) {
-      // On failure, revert back to original data
+      // On failure, revert to original data
       queryClient.setQueryData<List<Todo>>(
         ['todos'],
         (_) => previousTodos as List<Todo>,
       );
     }, onSettled: (data, error, variables, ctx) {
-      // Refetch the query anyways (either error or success)
+      // Refetch the query anyway (either error or success)
       // Or we can manually add the returned todo (result) in the onSuccess callback
       client.invalidateQueries(['todos']);
       todoInputController.clear();
@@ -296,23 +296,23 @@ final addTodoMutation = useMutation<Todo, Exception, String, List<Todo>>(
 
 ### Usage
 
-To use mutations, you need a mutation function which will receive a variable parameter when you'll call the `mutate` function. Here in the example it's `text` parameter that we're using as a variable that the mutation function will receive. Like queries, to use mutations you'll also need extend the widget using `HookWidget` or `StatefulHookWidget` (for stateful widgets).
+To use mutations, you need a mutation function that will receive a variable parameter when you call the `mutate` function. Here in the example, it's the `text` parameter that we're using as a variable that the mutation function will receive. Like queries, to use mutations you'll also need to extend the widget using `HookWidget` or `StatefulHookWidget` (for stateful widgets).
 
 The `useMutation` hook takes 4 type arguments -
 
 - `TData` - type of data that'll be returned from the mutation function.
 - `TError` - type of error that'll be thrown when the mutation fails.
-- `TVariables` - type of the variable that your mutation function wil receive.
-- `TContext` - type of the context object that you'll pass around in mutation callbacks. It has been illustrated in the example how `onMutate` returns original list of todos to revert back when the mutation fails.
+- `TVariables` - type of the variable that your mutation function will receive.
+- `TContext` - type of the context object you'll pass around in mutation callbacks. It has been illustrated in the example how `onMutate` returns the original list of todos to revert when the mutation fails.
 
 You can also pass callback functions like `onSuccess` or `onError` -
 
 - `onMutate` - this callback will be called before the mutation is executed and is passed with the same variables the mutation function would receive.
 - `onSuccess` - this callback will be called if the mutation was successful and receives the result of the mutation as an argument (in addition to the passed variables in the mutation function).
-- `onError` - this callback will be called if the mutation wassn't successful and receives the error of as an argument (in addition to the passed variables in the mutation function).
-- `onSettled` - this callback will be called after the mutation has been executed and will receive both the result (if successful) and error(if unsuccessful), in case of success, error will be null and vice-versa.
+- `onError` - this callback will be called if the mutation wasn't successful and receives the error as an argument (in addition to the passed variables in the mutation function).
+- `onSettled` - this callback will be called after the mutation has been executed and will receive both the result (if successful) and error(if unsuccessful), in case of success the error will be null and vice-versa.
 
-The `useMutation` hook will return [UseMutationResult] which has the everything associated with the mutation.
+The `useMutation` hook will return [UseMutationResult] which has everything associated with the mutation.
 
 ```dart
 final TData? data;
