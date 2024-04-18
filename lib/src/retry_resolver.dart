@@ -2,10 +2,8 @@ import 'dart:async';
 
 /// This is used to retry a future several times before giving up.
 class RetryResolver {
-  // TODO: fix: cancel method doesn't work if the fn has been invoked already,
-  // probable solutions hint at running the retrying process in parallel or something similar,
-  // so that `onCancel` can be invoked as soon as the `cancel` method is called
   bool isRunning = false;
+  void Function()? onCancel;
   RetryResolver();
 
   Future<void> resolve<T>(
@@ -14,18 +12,17 @@ class RetryResolver {
     required void Function(dynamic error) onError,
     required void Function() onCancel,
   }) async {
+    this.onCancel = onCancel;
     if (isRunning) return;
     isRunning = true;
 
     var attempts = 0;
     while (attempts++ != 5) {
-      if (!isRunning) {
-        onCancel();
-        return;
-      }
+      if (!isRunning) return;
       final isLastAttempt = attempts == 5;
       try {
         final value = await fn();
+        if (!isRunning) return;
         onResolve(value);
         break;
       } catch (e) {
@@ -33,7 +30,6 @@ class RetryResolver {
           onError(e);
           break;
         }
-
         await Future.delayed(const Duration(seconds: 1, milliseconds: 500));
       }
     }
@@ -42,6 +38,7 @@ class RetryResolver {
 
   void cancel() {
     isRunning = false;
+    onCancel?.call();
   }
 
   void reset() {

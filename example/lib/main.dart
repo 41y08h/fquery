@@ -33,11 +33,13 @@ class Home extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final client = useQueryClient();
+    final isEnabled = useState(true);
     final todosAPI = TodosAPI.getInstance();
     final todos = useQuery(
       ['todos'],
       todosAPI.getAll,
       refetchOnMount: RefetchOnMount.never,
+      enabled: isEnabled.value,
     );
     final todoInputController = useTextEditingController();
     final addTodoMutation = useMutation<Todo, Exception, String, List<Todo>>(
@@ -80,6 +82,12 @@ class Home extends HookWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            CupertinoSwitch(
+              value: isEnabled.value,
+              onChanged: (v) {
+                isEnabled.value = v;
+              },
+            ),
             CupertinoButton(
               padding: EdgeInsets.zero,
               onPressed: todos.refetch,
@@ -93,6 +101,7 @@ class Home extends HookWidget {
           const ['todos'],
           todosAPI.getAll,
           refetchOnMount: RefetchOnMount.never,
+          enabled: isEnabled.value,
           builder: (context, todos) {
             if (todos.isLoading) {
               return const Center(
