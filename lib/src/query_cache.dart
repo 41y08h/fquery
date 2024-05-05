@@ -1,10 +1,11 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/foundation.dart';
 import 'package:fquery/src/query.dart';
 import 'package:fquery/src/query_client.dart';
 
 typedef QueriesMap = Map<IList<dynamic>, Query>;
 
-class QueryCache {
+class QueryCache extends ChangeNotifier {
   final QueriesMap _queries = {};
   QueriesMap get queries => _queries;
 
@@ -14,10 +15,12 @@ class QueryCache {
 
   void add(QueryKey queryKey, Query query) {
     _queries[queryKey.lock] = query;
+    notifyListeners();
   }
 
   void remove(Query query) {
     _queries.removeWhere((key, value) => value == query);
+    notifyListeners();
   }
 
   /// Returns a query identified by the query key.
@@ -31,5 +34,9 @@ class QueryCache {
         get<TData, TError>(queryKey) ?? Query(client: client, key: queryKey);
     add(queryKey, query);
     return query;
+  }
+
+  void onQueryUpdated() {
+    notifyListeners();
   }
 }

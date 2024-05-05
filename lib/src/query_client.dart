@@ -93,4 +93,10 @@ class QueryClient {
       }
     });
   }
+
+  int isFetching() {
+    return queryCache.queries.entries
+        .where((queryMap) => queryMap.value.state.isFetching)
+        .length;
+  }
 }

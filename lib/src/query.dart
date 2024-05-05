@@ -137,6 +137,7 @@ class Query<TData, TError> extends Removable {
   void dispatch(DispatchAction action, dynamic data) {
     _state = _reducer(state, action, data);
     _notifyObservers();
+    client.queryCache.onQueryUpdated();
   }
 
   /// This is called from the [Observer]
