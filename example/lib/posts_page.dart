@@ -1,4 +1,5 @@
 import 'package:basic/post.dart';
+import 'package:basic/todos.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:fquery/fquery.dart';
 
 Future<Post> getPost(int id) async {
   final res = await Dio().get('https://jsonplaceholder.typicode.com/posts/$id');
+  await MockServer.delay();
   return Post.fromMap(res.data);
 }
 
@@ -26,6 +28,7 @@ class PostsPage extends HookWidget {
         refetchOnMount: RefetchOnMount.never,
       ),
     );
+    final fetchingCount = useIsFetching();
     final posts = useQueries<Post, Exception>(postsOptions);
 
     return CupertinoPageScaffold(
@@ -41,11 +44,12 @@ class PostsPage extends HookWidget {
                   size: 25,
                 )),
             const Text(
-              'Posts',
+              'Posts ',
               style: TextStyle(fontWeight: FontWeight.bold),
             )
           ],
         ),
+        trailing: Text("currently fetching $fetchingCount queries"),
       ),
       child: SafeArea(
         child: Padding(
