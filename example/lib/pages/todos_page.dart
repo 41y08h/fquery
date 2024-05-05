@@ -2,8 +2,8 @@
 
 import 'dart:math';
 import 'package:basic/main.dart';
-import 'package:basic/todo_list_tile.dart';
-import 'package:basic/todos.dart';
+import 'package:basic/widgets/todo_list_tile.dart';
+import 'package:basic/models/todos.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';

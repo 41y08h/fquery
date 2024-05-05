@@ -1,5 +1,5 @@
-import 'package:basic/post.dart';
-import 'package:basic/todos.dart';
+import 'package:basic/models/post.dart';
+import 'package:basic/models/todos.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
