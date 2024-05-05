@@ -138,6 +138,17 @@ class Query<TData, TError> extends Removable {
     _state = _reducer(state, action, data);
     _notifyObservers();
     client.queryCache.onQueryUpdated();
+
+    // Refetching is scheduled here after success or error
+    final scheduleRefetchActions = [
+      DispatchAction.success,
+      DispatchAction.error
+    ];
+    if (scheduleRefetchActions.contains(action)) {
+      for (var observer in _observers) {
+        observer.scheduleRefetch();
+      }
+    }
   }
 
   /// This is called from the [Observer]

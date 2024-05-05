@@ -127,12 +127,8 @@ class Observer<TData, TError> extends ChangeNotifier {
     // function invocation in the following callbacks
     await resolver.resolve<TData>(fetcher, onResolve: (data) {
       query.dispatch(DispatchAction.success, data);
-
-      scheduleRefetch();
     }, onError: (error) {
       query.dispatch(DispatchAction.error, error);
-
-      scheduleRefetch();
     }, onCancel: () {
       query.dispatch(DispatchAction.cancelFetch, null);
     });

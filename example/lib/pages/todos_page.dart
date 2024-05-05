@@ -91,6 +91,7 @@ class TodosPage extends HookWidget {
           const ['todos'],
           todosAPI.getAll,
           refetchOnMount: RefetchOnMount.never,
+          refetchInterval: const Duration(seconds: 10),
           enabled: isEnabled.value,
           builder: (context, todos) {
             if (todos.isLoading) {
