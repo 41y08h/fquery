@@ -1,5 +1,5 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:fquery/src/query.dart';
 import 'package:fquery/src/query_client.dart';
 
@@ -37,6 +37,8 @@ class QueryCache extends ChangeNotifier {
   }
 
   void onQueryUpdated() {
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 }

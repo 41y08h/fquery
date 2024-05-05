@@ -38,6 +38,7 @@ class QueryBuilder<TData, TError> extends HookWidget {
       refetchOnMount: refetchOnMount,
       staleDuration: staleDuration,
     );
+    // TODO: refetchInterval not working in QueryBuilder
 
     return Builder(builder: (context) {
       return builder(context, query);
