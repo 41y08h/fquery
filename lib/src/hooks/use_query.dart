@@ -37,6 +37,8 @@ class UseQueryOptions<TData, TError> {
   final Duration? staleDuration;
   final Duration? cacheDuration;
   final Duration? refetchInterval;
+  final int retryCount;
+  final Duration retryDelay;
 
   UseQueryOptions({
     required this.enabled,
@@ -44,6 +46,8 @@ class UseQueryOptions<TData, TError> {
     this.staleDuration,
     this.cacheDuration,
     this.refetchInterval,
+    this.retryCount = 3,
+    this.retryDelay = const Duration(seconds: 1, milliseconds: 500),
   });
 }
 
@@ -82,6 +86,8 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
   Duration? staleDuration,
   Duration? cacheDuration,
   Duration? refetchInterval,
+  int retryCount = 3,
+  Duration retryDelay = const Duration(seconds: 1, milliseconds: 500),
 }) {
   final options = useMemoized(
     () => UseQueryOptions<TData, TError>(
@@ -90,6 +96,8 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
       staleDuration: staleDuration,
       cacheDuration: cacheDuration,
       refetchInterval: refetchInterval,
+      retryCount: retryCount,
+      retryDelay: retryDelay,
     ),
     [
       enabled,
@@ -97,6 +105,8 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
       staleDuration,
       cacheDuration,
       refetchInterval,
+      retryCount,
+      retryDelay
     ],
   );
   final client = useQueryClient();

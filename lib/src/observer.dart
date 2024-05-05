@@ -79,6 +79,8 @@ class Observer<TData, TError> extends ChangeNotifier {
       cacheDuration:
           options.cacheDuration ?? client.defaultQueryOptions.cacheDuration,
       refetchInterval: options.refetchInterval,
+      retryCount: options.retryCount,
+      retryDelay: options.retryDelay,
     );
   }
 

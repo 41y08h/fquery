@@ -7,12 +7,16 @@ class DefaultQueryOptions {
   final Duration staleDuration;
   final Duration cacheDuration;
   final Duration? refetchInterval;
+  final int retryCount;
+  final Duration retryDelay;
 
   DefaultQueryOptions({
     this.refetchOnMount = RefetchOnMount.stale,
     this.staleDuration = Duration.zero,
     this.cacheDuration = const Duration(minutes: 5),
     this.refetchInterval,
+    this.retryCount = 3,
+    this.retryDelay = const Duration(seconds: 1, milliseconds: 500),
   });
 }
 

@@ -30,6 +30,8 @@ class QueryOptions<TData, TError> {
   final Duration staleDuration;
   final Duration cacheDuration;
   final Duration? refetchInterval;
+  final int retryCount;
+  final Duration retryDelay;
 
   QueryOptions({
     required this.enabled,
@@ -37,6 +39,8 @@ class QueryOptions<TData, TError> {
     required this.staleDuration,
     required this.cacheDuration,
     this.refetchInterval,
+    this.retryCount = 3,
+    this.retryDelay = const Duration(seconds: 1, milliseconds: 500),
   });
 }
 

@@ -8,6 +8,8 @@ class RetryResolver {
 
   Future<void> resolve<T>(
     FutureOr<T> Function() fn, {
+    int retryCount = 3,
+    Duration retryDelay = const Duration(seconds: 1, milliseconds: 500),
     required void Function(T value) onResolve,
     required void Function(dynamic error) onError,
     required void Function() onCancel,
@@ -17,9 +19,9 @@ class RetryResolver {
     isRunning = true;
 
     var attempts = 0;
-    while (attempts++ != 5) {
+    while (attempts++ != retryCount) {
       if (!isRunning) return;
-      final isLastAttempt = attempts == 5;
+      final isLastAttempt = attempts == retryCount;
       try {
         final value = await fn();
         if (!isRunning) return;
@@ -30,7 +32,7 @@ class RetryResolver {
           onError(e);
           break;
         }
-        await Future.delayed(const Duration(seconds: 1, milliseconds: 500));
+        await Future.delayed(retryDelay);
       }
     }
     reset();
