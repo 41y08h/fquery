@@ -15,11 +15,11 @@ class PostsPage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = useTextEditingController(text: "1");
-    final text = useState('1');
+    final postsCountInputController = useTextEditingController(text: "1");
+    final text = useState(1);
 
     final postsOptions = List<UseQueriesOptions<Post, Exception>>.generate(
-      int.parse(text.value == "" ? "1" : text.value),
+      text.value,
       (i) => UseQueriesOptions(
         queryKey: ['posts', i + 1],
         fetcher: () => getPost(i + 1),
@@ -53,10 +53,11 @@ class PostsPage extends HookWidget {
           child: Column(
             children: [
               CupertinoTextField(
-                controller: t,
+                controller: postsCountInputController,
                 keyboardType: TextInputType.number,
                 onChanged: ((value) {
-                  text.value = value;
+                  final intValue = int.tryParse(value);
+                  if (intValue != null) text.value = intValue;
                 }),
               ),
               const SizedBox(
