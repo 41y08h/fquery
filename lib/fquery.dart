@@ -9,3 +9,4 @@ export 'src/hooks/use_queries.dart';
 export 'src/hooks/use_is_fetching.dart';
 export 'src/query.dart' show RefetchOnMount, QueryStatus;
 export 'src/widgets/query_builder.dart';
+export 'src/widgets/mutation_builder.dart';

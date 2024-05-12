@@ -53,21 +53,6 @@ class TodoListTile extends HookWidget {
       );
     });
 
-    final deleteMutation = useMutation<int, Exception, int, void>((id) async {
-      await todosAPI.delete(todo.id);
-      return id;
-    }, onSuccess: (id, _, ctx) {
-      client.setQueryData<List<Todo>>(
-        ['todos'],
-        (previous) {
-          if (previous == null) return [];
-          return previous.where((e) {
-            return (e.id != id);
-          }).toList();
-        },
-      );
-    });
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -165,15 +150,30 @@ class TodoListTile extends HookWidget {
                     markMutation.mutate(value);
                   },
                 ),
-                CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: deleteMutation.isPending
-                      ? null
-                      : () {
-                          deleteMutation.mutate(todo.id);
-                        },
-                  child: const Icon(CupertinoIcons.delete_solid),
-                ),
+                MutationBuilder((id) async {
+                  await todosAPI.delete(todo.id);
+                  return id;
+                }, onSuccess: (id, _, ctx) {
+                  client.setQueryData<List<Todo>>(
+                    ['todos'],
+                    (previous) {
+                      if (previous == null) return [];
+                      return previous.where((e) {
+                        return (e.id != id);
+                      }).toList();
+                    },
+                  );
+                }, builder: (context, mutation) {
+                  return CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: mutation.isPending
+                        ? null
+                        : () {
+                            mutation.mutate(todo.id);
+                          },
+                    child: const Icon(CupertinoIcons.delete_solid),
+                  );
+                }),
               ],
             ),
         ],
