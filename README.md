@@ -36,6 +36,7 @@ As a developer, you too can leverage the power of this tool to create a high-qua
 - State data invalidation
 - Manual updates available
 - Dependent queries and parallel queries supported
+- Mutations
 
 ## ❔Defining the problem
 
@@ -86,7 +87,7 @@ class Posts extends HookWidget {
 
 ## 🧑‍💻 Usage
 
-You'll need to install [flutter_hooks](https://pub.dev/packages/flutter_hooks) before using this library. You'll need to wrap
+You can either install [flutter_hooks](https://pub.dev/packages/flutter_hooks) before using this library or use the widgets like `QueryBuilder` and `MutationBuilder` that comes with fquery. You'll need to wrap
 your entire app inside a `QueryClientProvider` and you are good to go.
 
 ```dart
@@ -99,7 +100,7 @@ void main() {
 
 ### Queries
 
-To query data in your widgets, you'll need to extend the widget using `HookWidget` or `StatefulHookWidget` (for stateful widgets). These classes are exported from the [flutter_hooks](https://pub.dev/packages/flutter_hooks) package.
+To query data in your widgets, you can either extend your widget using `HookWidget` or `StatefulHookWidget` (for stateful widgets) or use the `QueryBuilder` widget, see below. These classes are exported from the [flutter_hooks](https://pub.dev/packages/flutter_hooks) package.
 
 A query instance is a subscription to asynchronous data stored in the cache. Every query needs -
 
@@ -149,6 +150,34 @@ return ListView.builder(
 );
 ```
 
+### Query without `flutter_hooks`
+
+You can have queries without extending your widget with `HookWidget`. Just use the `QueryBuilder` widget and you're good to go.
+
+The `QueryBuilder` takes 3 required arguments, first one is the query key, second one is query function and the third one is a named parameter, `builder`.
+
+```dart
+QueryBuilder<List<Todo>, Error>(
+  const ['todos'],
+  todosAPI.getAll,
+  refetchOnMount: RefetchOnMount.never,
+  refetchInterval: const Duration(seconds: 10),
+  enabled: isEnabled.value,
+  builder: (context, todos) {
+    if (todos.isLoading) {
+      return const Center(
+        child: CupertinoActivityIndicator(),
+      );
+    }
+    if (todos.isError) {
+      return Center(
+        child: Text(todos.error.toString()),
+      );
+    }
+
+    ...
+```
+
 ### Query configuration
 
 A query is fully customizable to match your needs, these configurations can be passed as named parameters into the `useQuery` hook
@@ -163,6 +192,8 @@ final posts = useQuery(
   refetchInterval: null // The query will not re-fetch by default,
   refetchOnMount: RefetchOnMount.stale,
   staleDuration: const Duration(seconds: 10),
+  retryCount: 3,
+  retryDelay: const Duration(seconds: 1, milliseconds: 500)
 );
 ```
 
@@ -174,6 +205,8 @@ final posts = useQuery(
   - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`).
   - `RefetchOnMount.never` - will never re-fetch.
 - `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually.
+- `retryCount` - specifies the number of times the query will retry before showing an error
+- `retryDelay` - specifies the delay between each retry
 
 ### Dependent Query
 
@@ -189,6 +222,42 @@ final posts = useQuery(['posts', ], getPosts, enabled: !username);
 
 final isAuthenticated = session != null;
 final keys = useQuery(['keys', session.id], enabled: isAuthenticated)
+```
+
+### Parallel queries
+
+Parallel queries are queries that are executed in parallel.
+When the number of parallel queries does not change, there is **no extra effort** to use parallel queries.
+
+```dart
+// These will execute in parallel
+final posts = useQuery(['posts'], getProfile)
+final comments = useQuery(['comments'], getProfile)
+```
+
+### Dynamic Parallel queries
+
+If the number of queries you need to execute is changing from render to render, you cannot use manual querying since that would violate the rules of hooks. Instead fquery provides the `useQueries` hook for that purpose.
+
+```dart
+// See how the number of queries are changing with `text.value`
+final posts = useQueries<Post, Error>(
+  List<UseQueriesOptions<Post, Error>>.generate(text.value,
+  (i) => UseQueriesOptions(
+    queryKey: ['posts', i + 1],
+    fetcher: () => getPost(i + 1),
+    refetchOnMount: RefetchOnMount.never,
+  ),
+));
+```
+
+### Global fetching indicators
+
+If you want to know the number of all the queries that are being fetched at the moment, you can use the `useIsFetching` hook provided by the library.
+
+```dart
+// `fetchingCount` is an int
+final fetchingCount = useIsFetching();
 ```
 
 ### Query invalidation
@@ -296,7 +365,9 @@ final addTodoMutation = useMutation<Todo, Exception, String, List<Todo>>(
 
 ### Usage
 
-To use mutations, you need a mutation function that will receive a variable parameter when you call the `mutate` function. Here in the example, it's the `text` parameter that we're using as a variable that the mutation function will receive. Like queries, to use mutations you'll also need to extend the widget using `HookWidget` or `StatefulHookWidget` (for stateful widgets).
+To use mutations, you need a mutation function that will receive a variable parameter when you call the `mutate` function. Here in the example, it's the `text` parameter that we're using as a variable that the mutation function will receive.
+
+Like queries, to use mutations you can either extend the widget using `HookWidget` or `StatefulHookWidget` (for stateful widgets) or use the `MutationBuilder` widget, see below.
 
 The `useMutation` hook takes 4 type arguments -
 
@@ -326,6 +397,31 @@ final Future<void> Function(TVariables) mutate;
 final DateTime? submittedAt;
 final void Function() reset;
 final TVariables? variables;
+```
+
+### Mutation without `flutter_hooks`
+
+You can have queries without extending your widget with `HookWidget`. Just use the `QueryBuilder` widget and you're good to go.
+
+The `MutationBuilder` takes 2 required arguments, first one is the mutation function and second one is a named parameter, `builder`.
+
+```dart
+MutationBuilder((id) async {
+  await todosAPI.delete(todo.id);
+  return id;
+}, onSuccess: (id, _, ctx) {
+  client.setQueryData<List<Todo>>(
+    ['todos'],
+    (previous) {
+      if (previous == null) return [];
+      return previous.where((e) {
+        return (e.id != id);
+      }).toList();
+    },
+  );
+}, builder: (context, mutation) {
+  return CupertinoButton(
+  ...
 ```
 
 ## Contributing
