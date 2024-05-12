@@ -115,9 +115,11 @@ class Query<TData, TError> extends Removable {
       case DispatchAction.error:
         return state.copyWith(
           status: QueryStatus.error,
+          data: null,
           error: data as TError,
           errorUpdatedAt: DateTime.now(),
           isFetching: false,
+          isInvalidated: false,
         );
       case DispatchAction.success:
         return state.copyWith(
