@@ -32,3 +32,13 @@
 ## 1.1.0-beta.1
 
 - New feature: Mutations
+
+## 1.2.0-beta.1
+
+- New feature: `QueryBuilder` widget, can be used without extending the widget with `HookWidget`
+- New feature: `MutationBuilder` widget, can be used without extending the widget with `HookWidget`
+- New feature: `useQueries` hook, can be used to have dynamic parallel queries
+- New feature: `useIsFetching` hook, can be used to get the number of queries that are being fetched
+- New feature: `retryCount` and `retryDelay` option is now available with `useQuery`/`useQueries`
+- Bug fix: query didn't cancel when it was being fetched and enabled option changed to false
+- Bug fix: indefinite loading state when there is an error and invalidate is called
