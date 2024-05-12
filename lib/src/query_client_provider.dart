@@ -5,10 +5,10 @@ import 'query_client.dart';
 class QueryClientProvider extends InheritedWidget {
   final QueryClient queryClient;
   const QueryClientProvider({
-    Key? key,
+    super.key,
     required this.queryClient,
-    required Widget child,
-  }) : super(key: key, child: child);
+    required super.child,
+  });
 
   @override
   bool updateShouldNotify(InheritedWidget oldWidget) => oldWidget != this;
