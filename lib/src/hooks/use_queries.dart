@@ -19,6 +19,8 @@ class UseQueriesOptions<TData, TError> extends UseQueryOptions<TData, TError> {
     super.refetchInterval,
     super.refetchOnMount,
     super.staleDuration,
+    super.retryCount,
+    super.retryDelay,
   });
 }
 
