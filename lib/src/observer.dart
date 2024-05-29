@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:fquery/src/hooks/use_query.dart';
+import 'package:fquery/src/query_listener.dart';
 import 'query.dart';
 import 'query_client.dart';
 import 'retry_resolver.dart';
@@ -11,7 +12,7 @@ typedef QueryFn<TData> = Future<TData> Function();
 /// It is responsible for fetching the query and updating the cache.
 /// There can be multiple observers for the same query and hence
 /// sharing the same piece of data throughout the whole application.
-class Observer<TData, TError> extends ChangeNotifier {
+class Observer<TData, TError> extends ChangeNotifier with QueryListener {
   final QueryKey queryKey;
   final QueryClient client;
   final QueryFn<TData> fetcher;
@@ -138,6 +139,7 @@ class Observer<TData, TError> extends ChangeNotifier {
 
   /// This is called from the [Query] class whenever the query state changes.
   /// It notifies the observers about the change and it also nofities the [useQuery] hook.
+  @override
   void onQueryUpdated() {
     notifyListeners();
     if (query.state.isInvalidated) {
@@ -153,6 +155,7 @@ class Observer<TData, TError> extends ChangeNotifier {
   }
 
   /// Schedules the next fetch if the [options.refetchInterval] is set.
+  @override
   void scheduleRefetch() {
     if (options.refetchInterval == null) return;
     refetchTimer?.cancel();

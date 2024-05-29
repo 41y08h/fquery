@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:fquery/fquery.dart';
 
-class Removable {
+mixin Removable {
   Duration? _cacheDuration;
   Timer? _garbageCollectionTimer;
 

@@ -1,5 +1,7 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
+import 'package:fquery/src/query_listener.dart';
 import 'package:fquery/src/removable.dart';
 
 typedef QueryKey = List<dynamic>;
@@ -44,6 +46,23 @@ class QueryOptions<TData, TError> {
   });
 }
 
+enum FetchDirection { forward, backward }
+
+class FetchMeta {
+  FetchDirection direction;
+  FetchMeta({
+    required this.direction,
+  });
+
+  FetchMeta copyWith({
+    FetchDirection? direction,
+  }) {
+    return FetchMeta(
+      direction: direction ?? this.direction,
+    );
+  }
+}
+
 class QueryState<TData, TError> {
   final TData? data;
   final TError? error;
@@ -52,6 +71,7 @@ class QueryState<TData, TError> {
   final bool isFetching;
   final QueryStatus status;
   final bool isInvalidated;
+  final FetchMeta? fetchMeta;
 
   bool get isLoading => status == QueryStatus.loading;
   bool get isSuccess => status == QueryStatus.success;
@@ -65,6 +85,7 @@ class QueryState<TData, TError> {
     this.isFetching = false,
     this.status = QueryStatus.loading,
     this.isInvalidated = false,
+    this.fetchMeta,
   });
 
   QueryState<TData, TError> copyWith({
@@ -75,8 +96,9 @@ class QueryState<TData, TError> {
     bool? isFetching,
     QueryStatus? status,
     bool? isInvalidated,
+    FetchMeta? fetchMeta,
   }) {
-    return QueryState(
+    return QueryState<TData, TError>(
       data: data ?? this.data,
       error: error ?? this.error,
       dataUpdatedAt: dataUpdatedAt ?? this.dataUpdatedAt,
@@ -84,17 +106,18 @@ class QueryState<TData, TError> {
       isFetching: isFetching ?? this.isFetching,
       status: status ?? this.status,
       isInvalidated: isInvalidated ?? this.isInvalidated,
+      fetchMeta: fetchMeta ?? this.fetchMeta,
     );
   }
 }
 
-class Query<TData, TError> extends Removable {
+class Query<TData, TError> with Removable {
   final QueryClient client;
   final QueryKey key;
 
   QueryState<TData, TError> _state = QueryState<TData, TError>();
   QueryState<TData, TError> get state => _state;
-  final List<Observer> _observers = [];
+  final List<QueryListener> _listeners = [];
 
   Query({required this.client, required this.key});
 
@@ -107,6 +130,7 @@ class Query<TData, TError> extends Removable {
           isFetching: true,
           status:
               state.dataUpdatedAt == null ? QueryStatus.loading : state.status,
+          fetchMeta: data,
         );
       case DispatchAction.cancelFetch:
         return state.copyWith(
@@ -142,7 +166,7 @@ class Query<TData, TError> extends Removable {
   /// Dispatches an action to the reducer and notifies observers
   void dispatch(DispatchAction action, dynamic data) {
     _state = _reducer(state, action, data);
-    _notifyObservers();
+    _notifyListeners();
     client.queryCache.onQueryUpdated();
 
     // Refetching is scheduled here after success or error
@@ -151,33 +175,33 @@ class Query<TData, TError> extends Removable {
       DispatchAction.error
     ];
     if (scheduleRefetchActions.contains(action)) {
-      for (var observer in _observers) {
-        observer.scheduleRefetch();
+      for (var listener in _listeners) {
+        listener.scheduleRefetch();
       }
     }
   }
 
   /// This is called from the [Observer]
   /// to subscribe to the query
-  void subscribe(Observer observer) {
-    _observers.add(observer);
+  void subscribe(QueryListener observer) {
+    _listeners.add(observer);
 
     // At least we have one observer
     // So no need to garbage collect
     cancelGarbageCollection();
   }
 
-  void unsubscribe(Observer observer) {
-    _observers.remove(observer);
+  void unsubscribe(QueryListener observer) {
+    _listeners.remove(observer);
 
-    if (_observers.isEmpty) {
+    if (_listeners.isEmpty) {
       scheduleGarbageCollection();
     }
   }
 
-  void _notifyObservers() {
-    for (var observer in _observers) {
-      observer.onQueryUpdated();
+  void _notifyListeners() {
+    for (var listener in _listeners) {
+      listener.onQueryUpdated();
     }
   }
 

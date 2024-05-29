@@ -34,6 +34,7 @@ class Home extends HookWidget {
           children: const [
             HomeListTile(title: "Todos", route: "/todos"),
             HomeListTile(title: "Posts", route: "/posts"),
+            HomeListTile(title: "Infinity", route: "/infinity"),
           ],
         ));
   }
