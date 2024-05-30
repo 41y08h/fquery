@@ -15,7 +15,7 @@ class PageResult {
 class Infinity {
   // Private static instance variable
   static Infinity? _instance;
-  List<String> items = List.generate(100, (index) => "Item ${index + 1}");
+  List<String> items = List.generate(200, (index) => "Item ${index + 1}");
 
   // Private constructor
   Infinity._();
@@ -28,8 +28,10 @@ class Infinity {
   }
 
   Future<PageResult> get(int page) async {
+    const itemsPerPage = 20;
     await MockServer.delay();
-    final content = items.sublist((page - 1) * 10, page * 10);
+    final content =
+        items.sublist((page - 1) * itemsPerPage, page * itemsPerPage);
     return PageResult(content: content, hasMore: page < 10, page: page);
   }
 }

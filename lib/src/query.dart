@@ -12,6 +12,8 @@ enum DispatchAction {
   success,
   cancelFetch,
   invalidate,
+  refetchSequence,
+  refetchError,
 }
 
 enum QueryStatus {
@@ -72,6 +74,7 @@ class QueryState<TData, TError> {
   final QueryStatus status;
   final bool isInvalidated;
   final FetchMeta? fetchMeta;
+  final bool isRefetchError;
 
   bool get isLoading => status == QueryStatus.loading;
   bool get isSuccess => status == QueryStatus.success;
@@ -86,6 +89,7 @@ class QueryState<TData, TError> {
     this.status = QueryStatus.loading,
     this.isInvalidated = false,
     this.fetchMeta,
+    this.isRefetchError = false,
   });
 
   QueryState<TData, TError> copyWith({
@@ -97,6 +101,7 @@ class QueryState<TData, TError> {
     QueryStatus? status,
     bool? isInvalidated,
     FetchMeta? fetchMeta,
+    bool? isRefetchError,
   }) {
     return QueryState<TData, TError>(
       data: data ?? this.data,
@@ -106,7 +111,8 @@ class QueryState<TData, TError> {
       isFetching: isFetching ?? this.isFetching,
       status: status ?? this.status,
       isInvalidated: isInvalidated ?? this.isInvalidated,
-      fetchMeta: fetchMeta ?? this.fetchMeta,
+      fetchMeta: fetchMeta,
+      isRefetchError: isRefetchError ?? this.isRefetchError,
     );
   }
 }
@@ -135,6 +141,7 @@ class Query<TData, TError> with Removable {
       case DispatchAction.cancelFetch:
         return state.copyWith(
           isFetching: false,
+          fetchMeta: null,
         );
       case DispatchAction.error:
         return state.copyWith(
@@ -144,6 +151,7 @@ class Query<TData, TError> with Removable {
           errorUpdatedAt: DateTime.now(),
           isFetching: false,
           isInvalidated: false,
+          fetchMeta: null,
         );
       case DispatchAction.success:
         return state.copyWith(
@@ -153,10 +161,30 @@ class Query<TData, TError> with Removable {
           dataUpdatedAt: DateTime.now(),
           isFetching: false,
           isInvalidated: false,
+          fetchMeta: null,
         );
       case DispatchAction.invalidate:
         return state.copyWith(
           isInvalidated: true,
+          fetchMeta: null,
+        );
+      case DispatchAction.refetchSequence:
+        return state.copyWith(
+          error: null,
+          data: data as TData,
+          dataUpdatedAt: DateTime.now(),
+          isInvalidated: false,
+          fetchMeta: null,
+        );
+      case DispatchAction.refetchError:
+        return state.copyWith(
+          isRefetchError: true,
+          status: QueryStatus.error,
+          error: data as TError,
+          errorUpdatedAt: DateTime.now(),
+          isFetching: false,
+          isInvalidated: false,
+          fetchMeta: null,
         );
       default:
         return state;

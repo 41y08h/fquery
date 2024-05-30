@@ -168,16 +168,29 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
     };
   }, [observer]);
 
+  final isFetchingNextPage = observer.query.state.isFetching &&
+      observer.query.state.fetchMeta?.direction == FetchDirection.forward;
+  final isFetchingPreviousPage = observer.query.state.isFetching &&
+      observer.query.state.fetchMeta?.direction == FetchDirection.backward;
+
+  final lastPage = observer.query.state.data?.pages.last;
+  final hasNextPage =
+      lastPage == null ? false : getNextPageParam(lastPage) != null;
+
+  final firstPage = observer.query.state.data?.pages.first;
+  final hasPreviousPage =
+      firstPage == null ? false : getPreviousPageParam?.call(firstPage) != null;
+
   return UseInfiniteQueryResult(
     fetchNextPage: observer.fetchNextPage,
     fetchPreviousPage: observer.fetchPreviousPage,
-    isFetchingNextPage: observer.query.state.isFetching &&
-        observer.query.state.fetchMeta?.direction == FetchDirection.forward,
-    isFetchingPreviousPage: observer.query.state.isFetching &&
-        observer.query.state.fetchMeta?.direction == FetchDirection.backward,
-    hasNextPage: observer.hasNextPage,
-    hasPreviousPage: observer.hasPreviousPage,
-    isRefetching: false,
+    isFetchingNextPage: isFetchingNextPage,
+    isFetchingPreviousPage: isFetchingPreviousPage,
+    hasNextPage: hasNextPage,
+    hasPreviousPage: hasPreviousPage,
+    isRefetching: observer.query.state.isFetching &&
+        !isFetchingNextPage &&
+        !isFetchingPreviousPage,
     data: observer.query.state.data,
     dataUpdatedAt: observer.query.state.dataUpdatedAt,
     error: observer.query.state.error,

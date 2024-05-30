@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
+import '../widgets/home_list_tile.dart';
 
 Future<List<Post>> getPosts() async {
   final res = await Dio().get('https://jsonplaceholder.typicode.com/posts');
@@ -20,11 +21,11 @@ class Home extends HookWidget {
   Widget build(BuildContext context) {
     // Fetch a query here so that
     // we can see it refetching in the background on posts page
-    useQuery<List<Post>, Error>(
-      ['posts'],
-      getPosts,
-      refetchInterval: const Duration(seconds: 5),
-    );
+    // useQuery<List<Post>, Error>(
+    //   ['posts'],
+    //   getPosts,
+    //   refetchInterval: const Duration(seconds: 5),
+    // );
 
     return CupertinoPageScaffold(
         navigationBar: const CupertinoNavigationBar(
@@ -37,33 +38,5 @@ class Home extends HookWidget {
             HomeListTile(title: "Infinity", route: "/infinity"),
           ],
         ));
-  }
-}
-
-class HomeListTile extends StatelessWidget {
-  final String title;
-  final String route;
-  const HomeListTile({
-    Key? key,
-    required this.title,
-    required this.route,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.grey, width: 0.5),
-        ),
-      ),
-      child: CupertinoListTile(
-        title: Text(title),
-        onTap: () {
-          Navigator.pushNamed(context, route);
-        },
-        trailing: const Icon(CupertinoIcons.chevron_forward),
-      ),
-    );
   }
 }

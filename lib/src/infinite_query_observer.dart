@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/hooks/use_infinite_query.dart';
 import 'package:fquery/src/query.dart';
 import 'package:fquery/src/retry_resolver.dart';
 import 'package:fquery/src/query_listener.dart';
@@ -47,9 +47,6 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
   final resolver = RetryResolver();
   Timer? refetchTimer;
 
-  bool hasNextPage = false;
-  bool hasPreviousPage = false;
-
   InfiniteQueryObserver(
     this.queryKey,
     this.fetcher, {
@@ -80,13 +77,13 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     if (isRefetching && !isInvalidated) {
       switch (options.refetchOnMount) {
         case RefetchOnMount.always:
-          // fetch(options);
+          refetch();
           break;
         case RefetchOnMount.stale:
           DateTime? staleAt =
               query.state.dataUpdatedAt?.add(options.staleDuration);
           final isStale = staleAt?.isBefore(DateTime.now()) ?? true;
-          // if (isStale) fetch();
+          if (isStale) refetch();
           break;
         case RefetchOnMount.never:
           break;
@@ -134,7 +131,12 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
 
     if (isEnabledChanged) {
       if (options.enabled) {
-        // fetch();
+        if (query.state.isLoading) {
+          fetch(
+            options.initialPageParam,
+            FetchMeta(direction: FetchDirection.forward),
+          );
+        }
       } else {
         resolver.cancel();
         refetchTimer?.cancel();
@@ -157,21 +159,48 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
   }
 
   void fetchNextPage() {
-    final nextPageParam =
-        options.getNextPageParam(query.state.data!.pages.last);
+    final lastPage = query.state.data?.pages.last;
+    if (lastPage == null) return;
 
-    if (nextPageParam != null) {
-      fetch(nextPageParam, FetchMeta(direction: FetchDirection.forward));
-    }
+    final nextPageParam = options.getNextPageParam(lastPage);
+    if (nextPageParam == null) return;
+
+    fetch(nextPageParam, FetchMeta(direction: FetchDirection.forward));
   }
 
   void fetchPreviousPage() {
-    final previousParam =
-        options.getPreviousPageParam?.call(query.state.data!.pages.first);
+    final firstPage = query.state.data?.pages.first;
+    if (firstPage == null) return;
 
-    if (previousParam != null) {
-      fetch(previousParam, FetchMeta(direction: FetchDirection.backward));
-    }
+    final previousParam = options.getPreviousPageParam?.call(firstPage);
+    if (previousParam == null) return;
+
+    fetch(previousParam, FetchMeta(direction: FetchDirection.backward));
+  }
+
+  void refetch() {
+    final pageParams = query.state.data?.pageParams;
+
+    query.dispatch(DispatchAction.fetch, null);
+    pageParams?.forEachIndexed((i, param) async {
+      final resolver = RetryResolver();
+      await resolver.resolve<TData>(() => fetcher(param), onResolve: (data) {
+        final isLastPage = i + 1 == pageParams.length;
+        final newPages = [...(query.state.data?.pages ?? [])];
+        newPages[i] = data;
+
+        final newData = query.state.data?.copyWith(pages: [...newPages]);
+        final action = isLastPage
+            ? DispatchAction.success
+            : DispatchAction.refetchSequence;
+
+        query.dispatch(action, newData);
+      }, onError: (error) {
+        query.dispatch(DispatchAction.refetchError, error);
+      }, onCancel: () {
+        query.dispatch(DispatchAction.cancelFetch, null);
+      });
+    });
   }
 
   /// This is "the" function responsible for fetching the query.
@@ -180,13 +209,16 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     // Important: State change, then any other
     // function invocation in the following callbacks
     await resolver.resolve<TData>(() => fetcher(pageParam), onResolve: (data) {
+      final pages = query.state.data?.pages ?? [];
+      final pageParams = query.state.data?.pageParams ?? [];
+
       final newData = query.state.data?.copyWith(
         pages: meta.direction == FetchDirection.forward
-            ? [...(query.state.data?.pages ?? []), data]
-            : [data, ...(query.state.data?.pages ?? [])],
+            ? [...pages, data]
+            : [data, ...pages],
         pageParams: meta.direction == FetchDirection.forward
-            ? [...(query.state.data?.pageParams ?? []), pageParam]
-            : [pageParam, ...(query.state.data?.pageParams ?? [])],
+            ? [...pageParams, pageParam]
+            : [pageParam, ...pageParams],
       );
 
       query.dispatch(
@@ -202,13 +234,6 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     }, onCancel: () {
       query.dispatch(DispatchAction.cancelFetch, null);
     });
-
-    hasNextPage =
-        options.getNextPageParam(query.state.data!.pages.last) != null;
-    hasPreviousPage =
-        options.getPreviousPageParam?.call(query.state.data!.pages.first) !=
-            null;
-    notifyListeners();
   }
 
   /// This is called from the [Query] class whenever the query state changes.
@@ -217,7 +242,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
   void onQueryUpdated() {
     notifyListeners();
     if (query.state.isInvalidated) {
-      // fetch();
+      refetch();
     }
   }
 
@@ -233,6 +258,6 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
   void scheduleRefetch() {
     if (options.refetchInterval == null) return;
     refetchTimer?.cancel();
-    // refetchTimer = Timer(options.refetchInterval as Duration, fetch);
+    refetchTimer = Timer(options.refetchInterval as Duration, refetch);
   }
 }
