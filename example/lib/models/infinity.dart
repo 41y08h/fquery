@@ -32,6 +32,7 @@ class Infinity {
     await MockServer.delay();
     final content =
         items.sublist((page - 1) * itemsPerPage, page * itemsPerPage);
-    return PageResult(content: content, hasMore: page < 10, page: page);
+    return PageResult(
+        content: content, hasMore: page < 10 && page > 1, page: page);
   }
 }

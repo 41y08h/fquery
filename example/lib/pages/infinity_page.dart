@@ -13,11 +13,15 @@ class InfinityPage extends HookWidget {
     final items = useInfiniteQuery<PageResult, Error, int>(
       ['infinity'],
       (page) => infinityAPI.get(page),
-      initialPageParam: 1,
+      initialPageParam: 6,
       getNextPageParam: ((lastPage, allPages, lastPageParam, allPageParam) {
         return lastPage.hasMore ? lastPage.page + 1 : null;
       }),
-      maxPages: 3,
+      getPreviousPageParam:
+          (firstPage, allPages, firstPageParam, allPageParam) {
+        return firstPage.hasMore ? firstPage.page - 1 : null;
+      },
+      maxPages: 2,
     );
 
     useEffect(() {
@@ -25,6 +29,11 @@ class InfinityPage extends HookWidget {
         if (scrollController.position.pixels ==
             scrollController.position.maxScrollExtent) {
           items.fetchNextPage();
+        }
+
+        if (scrollController.position.pixels ==
+            scrollController.position.minScrollExtent) {
+          items.fetchPreviousPage();
         }
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -59,6 +68,12 @@ class InfinityPage extends HookWidget {
 
             return Column(
               children: [
+                if (items.isFetchingPreviousPage)
+                  const SizedBox(
+                    height: 100,
+                    width: double.maxFinite,
+                    child: CupertinoActivityIndicator(),
+                  ),
                 Expanded(
                   child: ListView.builder(
                       controller: scrollController,
