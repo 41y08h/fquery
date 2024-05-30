@@ -50,7 +50,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
 
   late InfiniteQueryOptions<TData, TError, TPageParam> options;
 
-  final firstPageResolver = RetryResolver();
+  final resolver = RetryResolver();
   var refetchResolvers = <RetryResolver>[];
   Timer? refetchTimer;
 
@@ -145,7 +145,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
           );
         }
       } else {
-        firstPageResolver.cancel();
+        resolver.cancel();
         refetchTimer?.cancel();
       }
     }
@@ -254,8 +254,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     query.dispatch(DispatchAction.fetch, meta);
     // Important: State change, then any other
     // function invocation in the following callbacks
-    await firstPageResolver.resolve<TData>(() => fetcher(pageParam),
-        onResolve: (data) {
+    await resolver.resolve<TData>(() => fetcher(pageParam), onResolve: (data) {
       final pages = query.state.data?.pages ?? [];
       final pageParams = query.state.data?.pageParams ?? [];
 
@@ -296,7 +295,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
   /// This is called from the [useQuery] hook when the widget is unmounted.
   void destroy() {
     query.unsubscribe(this);
-    firstPageResolver.cancel();
+    resolver.cancel();
     for (var resolver in refetchResolvers) {
       resolver.cancel();
     }
