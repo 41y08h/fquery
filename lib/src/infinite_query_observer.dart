@@ -255,9 +255,19 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     // Important: State change, then any other
     // function invocation in the following callbacks
     await resolver.resolve<TData>(() => fetcher(pageParam), onResolve: (data) {
-      final pages = query.state.data?.pages ?? [];
-      final pageParams = query.state.data?.pageParams ?? [];
+      final pages = [...(query.state.data?.pages ?? [])];
+      final pageParams = [...(query.state.data?.pageParams ?? [])];
 
+      if (pages.length == options.maxPages) {
+        if (meta.direction == FetchDirection.forward) {
+          // Remove the first page
+          pages.removeAt(0);
+          pageParams.removeAt(0);
+        } else {
+          pages.removeLast();
+          pageParams.removeLast();
+        }
+      }
       final newData = query.state.data?.copyWith(
         pages: meta.direction == FetchDirection.forward
             ? [...pages, data]

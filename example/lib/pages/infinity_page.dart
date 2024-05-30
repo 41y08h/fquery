@@ -17,6 +17,7 @@ class InfinityPage extends HookWidget {
       getNextPageParam: ((lastPage, allPages, lastPageParam, allPageParam) {
         return lastPage.hasMore ? lastPage.page + 1 : null;
       }),
+      maxPages: 3,
     );
 
     useEffect(() {
