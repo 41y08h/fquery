@@ -29,8 +29,8 @@ class InfinityPage extends HookWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (scrollController.hasClients) {
           scrollController.animateTo(
-            // Subtract 5 pixels to stop fetching the next page automatically
-            scrollController.position.maxScrollExtent - 5,
+            // Subtract 1 pixels to stop fetching the next page automatically
+            scrollController.position.maxScrollExtent - 1,
             duration: const Duration(seconds: 2),
             curve: Curves.fastOutSlowIn,
           );
