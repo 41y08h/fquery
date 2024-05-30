@@ -44,7 +44,8 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
 
   late InfiniteQueryOptions<TData, TError, TPageParam> options;
 
-  final resolver = RetryResolver();
+  final firstPageResolver = RetryResolver();
+  var refetchResolvers = <RetryResolver>[];
   Timer? refetchTimer;
 
   InfiniteQueryObserver(
@@ -89,7 +90,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
           break;
       }
     } else {
-      fetch(
+      fetchFirstPage(
         options.initialPageParam,
         FetchMeta(direction: FetchDirection.forward),
       );
@@ -132,13 +133,13 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     if (isEnabledChanged) {
       if (options.enabled) {
         if (query.state.isLoading) {
-          fetch(
+          fetchFirstPage(
             options.initialPageParam,
             FetchMeta(direction: FetchDirection.forward),
           );
         }
       } else {
-        resolver.cancel();
+        firstPageResolver.cancel();
         refetchTimer?.cancel();
       }
     }
@@ -165,7 +166,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     final nextPageParam = options.getNextPageParam(lastPage);
     if (nextPageParam == null) return;
 
-    fetch(nextPageParam, FetchMeta(direction: FetchDirection.forward));
+    fetchFirstPage(nextPageParam, FetchMeta(direction: FetchDirection.forward));
   }
 
   void fetchPreviousPage() {
@@ -175,15 +176,19 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     final previousParam = options.getPreviousPageParam?.call(firstPage);
     if (previousParam == null) return;
 
-    fetch(previousParam, FetchMeta(direction: FetchDirection.backward));
+    fetchFirstPage(
+        previousParam, FetchMeta(direction: FetchDirection.backward));
   }
 
   void refetch() {
     final pageParams = query.state.data?.pageParams;
 
     query.dispatch(DispatchAction.fetch, null);
+    refetchResolvers = [];
     pageParams?.forEachIndexed((i, param) async {
       final resolver = RetryResolver();
+      refetchResolvers.add(resolver);
+
       await resolver.resolve<TData>(() => fetcher(param), onResolve: (data) {
         final isLastPage = i + 1 == pageParams.length;
         final newPages = [...(query.state.data?.pages ?? [])];
@@ -204,11 +209,12 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
   }
 
   /// This is "the" function responsible for fetching the query.
-  Future<void> fetch(TPageParam pageParam, FetchMeta meta) async {
+  Future<void> fetchFirstPage(TPageParam pageParam, FetchMeta meta) async {
     query.dispatch(DispatchAction.fetch, meta);
     // Important: State change, then any other
     // function invocation in the following callbacks
-    await resolver.resolve<TData>(() => fetcher(pageParam), onResolve: (data) {
+    await firstPageResolver.resolve<TData>(() => fetcher(pageParam),
+        onResolve: (data) {
       final pages = query.state.data?.pages ?? [];
       final pageParams = query.state.data?.pageParams ?? [];
 
@@ -249,7 +255,10 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
   /// This is called from the [useQuery] hook when the widget is unmounted.
   void destroy() {
     query.unsubscribe(this);
-    resolver.cancel();
+    firstPageResolver.cancel();
+    for (var resolver in refetchResolvers) {
+      resolver.cancel();
+    }
     refetchTimer?.cancel();
   }
 
