@@ -31,9 +31,15 @@ class UseInfiniteQueryOptions<TData, TError, TPageParam>
   final TPageParam initialPageParam;
   final TPageParam? Function(
     TData,
+    List<TData>,
+    TPageParam,
+    List<TPageParam>,
   ) getNextPageParam;
   final TPageParam? Function(
     TData,
+    List<TData>,
+    TPageParam,
+    List<TPageParam>,
   )? getPreviousPageParam;
   int? maxPages;
   UseInfiniteQueryOptions({
@@ -96,9 +102,15 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
   required TPageParam initialPageParam,
   required TPageParam? Function(
     TData,
+    List<TData>,
+    TPageParam,
+    List<TPageParam>,
   ) getNextPageParam,
   TPageParam? Function(
     TData,
+    List<TData>,
+    TPageParam,
+    List<TPageParam>,
   )? getPreviousPageParam,
   int? maxPages,
   bool enabled = true,
@@ -173,13 +185,50 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
   final isFetchingPreviousPage = observer.query.state.isFetching &&
       observer.query.state.fetchMeta?.direction == FetchDirection.backward;
 
-  final lastPage = observer.query.state.data?.pages.last;
-  final hasNextPage =
-      lastPage == null ? false : getNextPageParam(lastPage) != null;
+  // ************hasNextPage********************
+  final pages = observer.query.state.data?.pages;
+  final lastPage = pages?.last;
 
-  final firstPage = observer.query.state.data?.pages.first;
-  final hasPreviousPage =
-      firstPage == null ? false : getPreviousPageParam?.call(firstPage) != null;
+  final pageParams = observer.query.state.data?.pageParams;
+  final lastPageParam = pageParams?.last;
+
+  late final bool hasNextPage;
+  if (lastPage == null ||
+      pages == null ||
+      lastPageParam == null ||
+      pageParams == null) {
+    hasNextPage = false;
+  } else {
+    final nextPageParam = options.getNextPageParam(
+      lastPage,
+      pages,
+      lastPageParam,
+      pageParams,
+    );
+    hasNextPage = nextPageParam != null;
+  }
+  // ******************************
+
+  // ************hasPreviousPage********************
+  final firstPage = pages?.first;
+  final firstPageParam = pageParams?.last;
+
+  late final bool hasPreviousPage;
+  if (firstPage == null ||
+      pages == null ||
+      firstPageParam == null ||
+      pageParams == null) {
+    hasPreviousPage = false;
+  } else {
+    final previousPageParam = options.getNextPageParam(
+      firstPage,
+      pages,
+      firstPageParam,
+      pageParams,
+    );
+    hasPreviousPage = previousPageParam != null;
+  }
+  // ******************************
 
   return UseInfiniteQueryResult(
     fetchNextPage: observer.fetchNextPage,

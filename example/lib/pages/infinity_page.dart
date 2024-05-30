@@ -14,7 +14,7 @@ class InfinityPage extends HookWidget {
       ['infinity'],
       (page) => infinityAPI.get(page),
       initialPageParam: 1,
-      getNextPageParam: ((lastPage) {
+      getNextPageParam: ((lastPage, allPages, lastPageParam, allPageParam) {
         return lastPage.hasMore ? lastPage.page + 1 : null;
       }),
     );

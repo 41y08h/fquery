@@ -12,9 +12,15 @@ class InfiniteQueryOptions<TData, TError, TPageParam>
   final TPageParam initialPageParam;
   final TPageParam? Function(
     TData,
+    List<TData>,
+    TPageParam,
+    List<TPageParam>,
   ) getNextPageParam;
   final TPageParam? Function(
     TData,
+    List<TData>,
+    TPageParam,
+    List<TPageParam>,
   )? getPreviousPageParam;
   int? maxPages;
 
@@ -160,24 +166,51 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
   }
 
   void fetchNextPage() {
-    final lastPage = query.state.data?.pages.last;
-    if (lastPage == null) return;
+    final pages = query.state.data?.pages;
+    final lastPage = pages?.last;
 
-    final nextPageParam = options.getNextPageParam(lastPage);
+    final pageParams = query.state.data?.pageParams;
+    final lastPageParam = pageParams?.last;
+
+    if (lastPage == null || pages == null) return;
+    if (lastPageParam == null || pageParams == null) return;
+
+    final nextPageParam = options.getNextPageParam(
+      lastPage,
+      pages,
+      lastPageParam,
+      pageParams,
+    );
     if (nextPageParam == null) return;
 
-    fetchFirstPage(nextPageParam, FetchMeta(direction: FetchDirection.forward));
+    fetchFirstPage(
+      nextPageParam,
+      FetchMeta(direction: FetchDirection.forward),
+    );
   }
 
   void fetchPreviousPage() {
-    final firstPage = query.state.data?.pages.first;
-    if (firstPage == null) return;
+    final pages = query.state.data?.pages;
+    final firstPage = pages?.first;
 
-    final previousParam = options.getPreviousPageParam?.call(firstPage);
+    final pageParams = query.state.data?.pageParams;
+    final firstPageParam = pageParams?.first;
+
+    if (firstPage == null || pages == null) return;
+    if (firstPageParam == null || pageParams == null) return;
+
+    final previousParam = options.getPreviousPageParam?.call(
+      firstPage,
+      pages,
+      firstPageParam,
+      pageParams,
+    );
     if (previousParam == null) return;
 
     fetchFirstPage(
-        previousParam, FetchMeta(direction: FetchDirection.backward));
+      previousParam,
+      FetchMeta(direction: FetchDirection.backward),
+    );
   }
 
   void refetch() {
