@@ -4,6 +4,7 @@ import 'package:basic/models/todos.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:fquery/fquery.dart';
 import '../widgets/home_list_tile.dart';
 
 Future<List<Post>> getPosts() async {
@@ -19,11 +20,11 @@ class Home extends HookWidget {
   Widget build(BuildContext context) {
     // Fetch a query here so that
     // we can see it refetching in the background on posts page
-    // useQuery<List<Post>, Error>(
-    //   ['posts'],
-    //   getPosts,
-    //   refetchInterval: const Duration(seconds: 5),
-    // );
+    useQuery<List<Post>, Error>(
+      ['posts'],
+      getPosts,
+      refetchInterval: const Duration(seconds: 5),
+    );
 
     return CupertinoPageScaffold(
         navigationBar: const CupertinoNavigationBar(
