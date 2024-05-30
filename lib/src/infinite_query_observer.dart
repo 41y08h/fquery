@@ -96,7 +96,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
           break;
       }
     } else {
-      fetchFirstPage(
+      fetch(
         options.initialPageParam,
         FetchMeta(direction: FetchDirection.forward),
       );
@@ -139,7 +139,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     if (isEnabledChanged) {
       if (options.enabled) {
         if (query.state.isLoading) {
-          fetchFirstPage(
+          fetch(
             options.initialPageParam,
             FetchMeta(direction: FetchDirection.forward),
           );
@@ -183,7 +183,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     );
     if (nextPageParam == null) return;
 
-    fetchFirstPage(
+    fetch(
       nextPageParam,
       FetchMeta(direction: FetchDirection.forward),
     );
@@ -207,13 +207,17 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     );
     if (previousParam == null) return;
 
-    fetchFirstPage(
+    fetch(
       previousParam,
       FetchMeta(direction: FetchDirection.backward),
     );
   }
 
   void refetch() {
+    if (!options.enabled || query.state.isFetching) {
+      return;
+    }
+
     final pageParams = query.state.data?.pageParams;
 
     query.dispatch(DispatchAction.fetch, null);
@@ -242,7 +246,11 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
   }
 
   /// This is "the" function responsible for fetching the query.
-  Future<void> fetchFirstPage(TPageParam pageParam, FetchMeta meta) async {
+  Future<void> fetch(TPageParam pageParam, FetchMeta meta) async {
+    if (!options.enabled || query.state.isFetching) {
+      return;
+    }
+
     query.dispatch(DispatchAction.fetch, meta);
     // Important: State change, then any other
     // function invocation in the following callbacks
