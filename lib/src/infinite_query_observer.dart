@@ -166,14 +166,13 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
   }
 
   void fetchNextPage() {
-    final pages = query.state.data?.pages;
-    final lastPage = pages?.last;
+    final data = query.state.data;
+    if (data == null) return;
 
-    final pageParams = query.state.data?.pageParams;
-    final lastPageParam = pageParams?.last;
-
-    if (lastPage == null || pages == null) return;
-    if (lastPageParam == null || pageParams == null) return;
+    final pages = data.pages;
+    final pageParams = data.pageParams;
+    final lastPage = pages.last;
+    final lastPageParam = pageParams.last;
 
     final nextPageParam = options.getNextPageParam(
       lastPage,
@@ -190,14 +189,13 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
   }
 
   void fetchPreviousPage() {
-    final pages = query.state.data?.pages;
-    final firstPage = pages?.first;
+    final data = query.state.data;
+    if (data == null) return;
 
-    final pageParams = query.state.data?.pageParams;
-    final firstPageParam = pageParams?.first;
-
-    if (firstPage == null || pages == null) return;
-    if (firstPageParam == null || pageParams == null) return;
+    final pages = data.pages;
+    final pageParams = data.pageParams;
+    final firstPage = pages.first;
+    final firstPageParam = pageParams.first;
 
     final previousParam = options.getPreviousPageParam?.call(
       firstPage,
