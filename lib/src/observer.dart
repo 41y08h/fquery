@@ -47,7 +47,7 @@ class Observer<TData, TError> extends ChangeNotifier with QueryListener {
     final isRefetching = !query.state.isLoading;
     final isInvalidated = query.state.isInvalidated;
 
-    // [RefetchOnMount] behavior is specified here
+    // [RefetchOnMount] behaviour is specified here
     if (isRefetching && !isInvalidated) {
       switch (options.refetchOnMount) {
         case RefetchOnMount.always:
