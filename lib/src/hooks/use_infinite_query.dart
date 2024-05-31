@@ -185,50 +185,38 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
   final isFetchingPreviousPage = observer.query.state.isFetching &&
       observer.query.state.fetchMeta?.direction == FetchDirection.backward;
 
-  // ************hasNextPage********************
-  final pages = observer.query.state.data?.pages;
-  final lastPage = pages?.last;
-
-  final pageParams = observer.query.state.data?.pageParams;
-  final lastPageParam = pageParams?.last;
-
   late final bool hasNextPage;
-  if (lastPage == null ||
-      pages == null ||
-      lastPageParam == null ||
-      pageParams == null) {
+  late final bool hasPreviousPage;
+  final data = observer.query.state.data;
+
+  if (data == null) {
     hasNextPage = false;
+    hasPreviousPage = false;
   } else {
+    final pages = data.pages;
+    final firstPage = pages.first;
+    final lastPage = pages.last;
+    final pageParams = data.pageParams;
+    final firstPageParam = pageParams.last;
+    final lastPageParam = pageParams.last;
+
     final nextPageParam = options.getNextPageParam(
       lastPage,
       pages,
       lastPageParam,
       pageParams,
     );
-    hasNextPage = nextPageParam != null;
-  }
-  // ******************************
 
-  // ************hasPreviousPage********************
-  final firstPage = pages?.first;
-  final firstPageParam = pageParams?.last;
-
-  late final bool hasPreviousPage;
-  if (firstPage == null ||
-      pages == null ||
-      firstPageParam == null ||
-      pageParams == null) {
-    hasPreviousPage = false;
-  } else {
     final previousPageParam = options.getNextPageParam(
       firstPage,
       pages,
       firstPageParam,
       pageParams,
     );
+
+    hasNextPage = nextPageParam != null;
     hasPreviousPage = previousPageParam != null;
   }
-  // ******************************
 
   return UseInfiniteQueryResult(
     fetchNextPage: observer.fetchNextPage,
