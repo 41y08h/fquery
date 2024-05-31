@@ -216,24 +216,33 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
       return;
     }
 
-    final pageParams = query.state.data?.pageParams;
+    // Can't refetch if there's no data already
+    final data = query.state.data;
+    if (data == null) return;
 
     query.dispatch(DispatchAction.fetch, null);
+    final pageParams = data.pageParams;
     refetchResolvers = [];
-    pageParams?.forEachIndexed((i, param) async {
+
+    pageParams.forEachIndexed((i, param) async {
       final resolver = RetryResolver();
       refetchResolvers.add(resolver);
 
-      await resolver.resolve<TData>(() => fetcher(param), onResolve: (data) {
-        final isLastPage = i + 1 == pageParams.length;
-        final newPages = [...(query.state.data?.pages ?? [])];
-        newPages[i] = data;
+      await resolver.resolve<TData>(() => fetcher(param),
+          onResolve: (refetchedData) {
+        // Make a copy of pages to replace with refetched
+        // data without directly mutataing the old `pages`
+        final newPages = [...data.pages];
+        newPages[i] = refetchedData;
 
-        final newData = query.state.data?.copyWith(pages: [...newPages]);
+        // Only dispatch success action when we're done refetching
+        // i.e we've fetched the last page
+        final isLastPage = i + 1 == pageParams.length;
         final action = isLastPage
             ? DispatchAction.success
             : DispatchAction.refetchSequence;
 
+        final newData = data.copyWith(pages: [...newPages]);
         query.dispatch(action, newData);
       }, onError: (error) {
         query.dispatch(DispatchAction.refetchError, error);
@@ -256,6 +265,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
       final pages = [...(query.state.data?.pages ?? [])];
       final pageParams = [...(query.state.data?.pageParams ?? [])];
 
+      // `maxPages` option's behaviour is defined here
       if (pages.length == options.maxPages) {
         if (meta.direction == FetchDirection.forward) {
           // Remove the first page
@@ -267,22 +277,19 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
         }
       }
       final newData = query.state.data?.copyWith(
-        pages: meta.direction == FetchDirection.forward
-            ? [...pages, data]
-            : [data, ...pages],
-        pageParams: meta.direction == FetchDirection.forward
-            ? [...pageParams, pageParam]
-            : [pageParam, ...pageParams],
-      );
+            pages: meta.direction == FetchDirection.forward
+                ? [...pages, data]
+                : [data, ...pages],
+            pageParams: meta.direction == FetchDirection.forward
+                ? [...pageParams, pageParam]
+                : [pageParam, ...pageParams],
+          ) ??
+          InfiniteQueryData<TData, TPageParam>(
+            pages: [data],
+            pageParams: [pageParam],
+          );
 
-      query.dispatch(
-        DispatchAction.success,
-        newData ??
-            InfiniteQueryData<TData, TPageParam>(
-              pages: [data],
-              pageParams: [pageParam],
-            ),
-      );
+      query.dispatch(DispatchAction.success, newData);
     }, onError: (error) {
       query.dispatch(DispatchAction.error, error);
     }, onCancel: () {
