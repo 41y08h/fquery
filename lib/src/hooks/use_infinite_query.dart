@@ -74,6 +74,8 @@ class UseInfiniteQueryResult<TData, TError, TPageParam> {
   final bool hasNextPage;
   final bool hasPreviousPage;
   final bool isRefetching;
+  final bool isFetchNextPageError;
+  final bool isFetchPreviousPageError;
 
   UseInfiniteQueryResult({
     this.data,
@@ -92,6 +94,8 @@ class UseInfiniteQueryResult<TData, TError, TPageParam> {
     required this.hasNextPage,
     required this.hasPreviousPage,
     required this.isRefetching,
+    required this.isFetchNextPageError,
+    required this.isFetchPreviousPageError,
   });
 }
 
@@ -185,6 +189,11 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
   final isFetchingPreviousPage = observer.query.state.isFetching &&
       observer.query.state.fetchMeta?.direction == FetchDirection.backward;
 
+  final isFetchNextPageError = observer.query.state.isError &&
+      observer.query.state.fetchMeta?.direction == FetchDirection.forward;
+  final isFetchPreviousPageError = observer.query.state.isError &&
+      observer.query.state.fetchMeta?.direction == FetchDirection.backward;
+
   late final bool hasNextPage;
   late final bool hasPreviousPage;
   final data = observer.query.state.data;
@@ -237,5 +246,7 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
     isFetching: observer.query.state.isFetching,
     isSuccess: observer.query.state.isSuccess,
     status: observer.query.state.status,
+    isFetchNextPageError: isFetchNextPageError,
+    isFetchPreviousPageError: isFetchPreviousPageError,
   );
 }

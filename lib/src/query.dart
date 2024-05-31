@@ -128,6 +128,7 @@ class Query<TData, TError> with Removable {
   Query({required this.client, required this.key});
 
   /// The single source of truth for how the cache data changes.
+  /// TODO: fix the states in each action in the reducer and how it changes, or it could lead to many issues
   QueryState<TData, TError> _reducer(
       QueryState<TData, TError> state, DispatchAction action, dynamic data) {
     switch (action) {
@@ -146,12 +147,11 @@ class Query<TData, TError> with Removable {
       case DispatchAction.error:
         return state.copyWith(
           status: QueryStatus.error,
-          data: null,
           error: data as TError,
           errorUpdatedAt: DateTime.now(),
           isFetching: false,
           isInvalidated: false,
-          fetchMeta: null,
+          fetchMeta: state.fetchMeta,
         );
       case DispatchAction.success:
         return state.copyWith(
@@ -194,6 +194,7 @@ class Query<TData, TError> with Removable {
   /// Dispatches an action to the reducer and notifies observers
   void dispatch(DispatchAction action, dynamic data) {
     _state = _reducer(state, action, data);
+    print(action);
     _notifyListeners();
     client.queryCache.onQueryUpdated();
 
