@@ -2,6 +2,7 @@
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
 import 'package:fquery/src/query_listener.dart';
+import 'package:fquery/src/query_state.dart';
 import 'package:fquery/src/removable.dart';
 
 typedef QueryKey = List<dynamic>;
@@ -65,58 +66,6 @@ class FetchMeta {
   }
 }
 
-class QueryState<TData, TError> {
-  final TData? data;
-  final TError? error;
-  final DateTime? dataUpdatedAt;
-  final DateTime? errorUpdatedAt;
-  final bool isFetching;
-  final QueryStatus status;
-  final bool isInvalidated;
-  final FetchMeta? fetchMeta;
-  final bool isRefetchError;
-
-  bool get isLoading => status == QueryStatus.loading;
-  bool get isSuccess => status == QueryStatus.success;
-  bool get isError => status == QueryStatus.error;
-
-  QueryState({
-    this.data,
-    this.error,
-    this.dataUpdatedAt,
-    this.errorUpdatedAt,
-    this.isFetching = false,
-    this.status = QueryStatus.loading,
-    this.isInvalidated = false,
-    this.fetchMeta,
-    this.isRefetchError = false,
-  });
-
-  QueryState<TData, TError> copyWith({
-    TData? data,
-    TError? error,
-    DateTime? dataUpdatedAt,
-    DateTime? errorUpdatedAt,
-    bool? isFetching,
-    QueryStatus? status,
-    bool? isInvalidated,
-    FetchMeta? fetchMeta,
-    bool? isRefetchError,
-  }) {
-    return QueryState<TData, TError>(
-      data: data ?? this.data,
-      error: error ?? this.error,
-      dataUpdatedAt: dataUpdatedAt ?? this.dataUpdatedAt,
-      errorUpdatedAt: errorUpdatedAt ?? this.errorUpdatedAt,
-      isFetching: isFetching ?? this.isFetching,
-      status: status ?? this.status,
-      isInvalidated: isInvalidated ?? this.isInvalidated,
-      fetchMeta: fetchMeta,
-      isRefetchError: isRefetchError ?? this.isRefetchError,
-    );
-  }
-}
-
 class Query<TData, TError> with Removable {
   final QueryClient client;
   final QueryKey key;
@@ -128,7 +77,6 @@ class Query<TData, TError> with Removable {
   Query({required this.client, required this.key});
 
   /// The single source of truth for how the cache data changes.
-  /// TODO: fix the states in each action in the reducer and how it changes, or it could lead to many issues
   QueryState<TData, TError> _reducer(
       QueryState<TData, TError> state, DispatchAction action, dynamic data) {
     switch (action) {
@@ -166,7 +114,6 @@ class Query<TData, TError> with Removable {
       case DispatchAction.invalidate:
         return state.copyWith(
           isInvalidated: true,
-          fetchMeta: null,
         );
       case DispatchAction.refetchSequence:
         return state.copyWith(
