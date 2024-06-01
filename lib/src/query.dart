@@ -141,7 +141,6 @@ class Query<TData, TError> with Removable {
   /// Dispatches an action to the reducer and notifies observers
   void dispatch(DispatchAction action, dynamic data) {
     _state = _reducer(state, action, data);
-    print(action);
     _notifyListeners();
     client.queryCache.onQueryUpdated();
 
