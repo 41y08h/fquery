@@ -42,3 +42,7 @@
 - New feature: `retryCount` and `retryDelay` option is now available with `useQuery`/`useQueries`
 - Bug fix: query didn't cancel when it was being fetched and enabled option changed to false
 - Bug fix: indefinite loading state when there is an error and invalidate is called
+
+## 1.3.0-beta.1
+
+- New feature: Infinite queries with `useInfiniteQuery`
