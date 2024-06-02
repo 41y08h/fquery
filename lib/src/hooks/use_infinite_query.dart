@@ -99,6 +99,24 @@ class UseInfiniteQueryResult<TData, TError, TPageParam> {
   });
 }
 
+/// Used for infinite query. In addition to `queryKey` and `queryFn`,
+/// it requires an `initialPageParam` and `getNextPageParam` option.
+/// The query function receives the `pageParam` parameter
+/// that can be used to fetch the current page.
+///
+/// Returns a [UseInfiniteQueryResult]
+///
+/// Example:
+/// ```dart
+/// final items = useInfiniteQuery<PageResult, Error, int>(
+///   ['infinity'],
+///   (page) => infinityAPI.get(page),
+///   initialPageParam: 1,
+///   getNextPageParam: ((lastPage, allPages, lastPageParam, allPageParam) {
+///     return lastPage.hasMore ? lastPage.page + 1 : null;
+///   }),
+/// );
+/// ```
 UseInfiniteQueryResult<TData, TError, TPageParam>
     useInfiniteQuery<TData, TError, TPageParam>(
   QueryKey queryKey,

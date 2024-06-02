@@ -10,7 +10,7 @@ With this powerful tool at your disposal, managing server state (REST API, Graph
 
 <a href="https://discord.gg/udhkduc9sQ" target="_blank" >
   <img src="https://discord.com/api/guilds/1173047378190811257/widget.png?style=banner3" alt="discord server invite" />
-</a>  
+</a>
 
 ## Trusted & Used by
 
@@ -19,7 +19,7 @@ With this powerful tool at your disposal, managing server state (REST API, Graph
 ![UC San Diego](https://github.com/41y08h/fquery/blob/main/media/ucsd-banner.png?raw=true)
 
 The University of California, San Diego has shifted to [fquery](https://github.com/41y08h/fquery/), _moving away from traditional state management solutions like provider, bloc, etc,_ as the backbone of their [mobile application](https://mobile.ucsd.edu/), which has over 30,000 users and serves as the app used by the generations of students.
-With fquery's efficient and easy-to-use async state management, the developers are now enjoying the comfort of seamless state management by refactoring spaghetti blocks of codes, even files with 200 lines to just 20 lines. They also noticed a significant reduction in the hot reload.
+With fquery's efficient and easy-to-use async state management, the developers are now enjoying the comfort of seamless state management by refactoring spaghetti blocks of codes, even files with 200 lines to just 20 lines. They also noticed a significant reduction of time in the hot reload.
 
 All of this is only to have more time, and an easy-to-manage structure to develop the features that matter the most. They are confident that the codebase will continue to be manageable, and provide the team with a better structure.
 
@@ -41,7 +41,9 @@ As a developer, you too can leverage the power of this tool to create a high-qua
 - Automatic re-fetching of stale data
 - State data invalidation
 - Manual updates available
-- Dependent queries and parallel queries supported
+- Dependent queries
+- Parallel queries
+- Infinite queries
 - Mutations
 
 ## ❔Defining the problem
@@ -228,6 +230,28 @@ final posts = useQuery(['posts', ], getPosts, enabled: !username);
 
 final isAuthenticated = session != null;
 final keys = useQuery(['keys', session.id], enabled: isAuthenticated)
+```
+
+### Infinite queries
+
+Infinite scroll is a very common UI pattern and fquery comes with a `useInfiniteQuery` hook to handle those needs. In addition to `queryKey` and `queryFn`,
+it requires an `initialPageParam` and `getNextPageParam` option.
+The query function receives the `pageParam` parameter
+that can be used to fetch the current page.
+
+It can also be used to create bi-directional infinite scroll by using the `getPreviousPageParam`.
+
+Example:
+
+```dart
+final items = useInfiniteQuery<PageResult, Error, int>(
+  ['infinity'],
+  (page) => infinityAPI.get(page),
+  initialPageParam: 1,
+  getNextPageParam: ((lastPage, allPages, lastPageParam, allPageParam) {
+    return lastPage.hasMore ? lastPage.page + 1 : null;
+  }),
+);
 ```
 
 ### Parallel queries

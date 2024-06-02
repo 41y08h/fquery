@@ -69,7 +69,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     query.setCacheDuration(this.options.cacheDuration);
   }
 
-  // This is called from the [useQuery] hook
+  // This is called from the [useInfiniteQuery] hook
   // whenever the first widget build is done
   void initialize() {
     // Subcribe to any query state changes
@@ -103,7 +103,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     }
   }
 
-  /// Takes a [UseQueryOptions] and sets the [options] field.
+  /// Takes a [UseInfiniteQueryOptions] and sets the [options] field.
   /// The [DefaultQueryOptions] from the [QueryClient]
   /// is used if a field is not specified.
   void _setOptions(UseInfiniteQueryOptions<TData, TError, TPageParam> options) {
@@ -211,6 +211,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     );
   }
 
+  /// Used to refetch query, it fetches all the pages sequentially.
   void refetch() {
     if (!options.enabled || query.state.isFetching) {
       return;
