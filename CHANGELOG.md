@@ -46,3 +46,7 @@
 ## 1.3.0-beta.1
 
 - New feature: Infinite queries with `useInfiniteQuery`
+
+## 1.3.1-beta.1
+
+- Bug fix: Rebuild error when navigating between screens with the same useQuery
