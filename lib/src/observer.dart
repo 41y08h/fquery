@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:fquery/src/hooks/use_query.dart';
 import 'package:fquery/src/query_listener.dart';
 import 'query.dart';
@@ -48,23 +49,25 @@ class Observer<TData, TError> extends ChangeNotifier with QueryListener {
     final isInvalidated = query.state.isInvalidated;
 
     // [RefetchOnMount] behaviour is specified here
-    if (isRefetching && !isInvalidated) {
-      switch (options.refetchOnMount) {
-        case RefetchOnMount.always:
-          fetch();
-          break;
-        case RefetchOnMount.stale:
-          DateTime? staleAt =
-              query.state.dataUpdatedAt?.add(options.staleDuration);
-          final isStale = staleAt?.isBefore(DateTime.now()) ?? true;
-          if (isStale) fetch();
-          break;
-        case RefetchOnMount.never:
-          break;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isRefetching && !isInvalidated) {
+        switch (options.refetchOnMount) {
+          case RefetchOnMount.always:
+            fetch();
+            break;
+          case RefetchOnMount.stale:
+            DateTime? staleAt =
+                query.state.dataUpdatedAt?.add(options.staleDuration);
+            final isStale = staleAt?.isBefore(DateTime.now()) ?? true;
+            if (isStale) fetch();
+            break;
+          case RefetchOnMount.never:
+            break;
+        }
+      } else {
+        fetch();
       }
-    } else {
-      fetch();
-    }
+    });
   }
 
   /// Takes a [UseQueryOptions] and sets the [options] field.
