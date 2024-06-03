@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/query.dart';
 import 'package:fquery/src/retry_resolver.dart';
@@ -81,26 +82,28 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     final isInvalidated = query.state.isInvalidated;
 
     // [RefetchOnMount] behavior is specified here
-    if (isRefetching && !isInvalidated) {
-      switch (options.refetchOnMount) {
-        case RefetchOnMount.always:
-          refetch();
-          break;
-        case RefetchOnMount.stale:
-          DateTime? staleAt =
-              query.state.dataUpdatedAt?.add(options.staleDuration);
-          final isStale = staleAt?.isBefore(DateTime.now()) ?? true;
-          if (isStale) refetch();
-          break;
-        case RefetchOnMount.never:
-          break;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isRefetching && !isInvalidated) {
+        switch (options.refetchOnMount) {
+          case RefetchOnMount.always:
+            refetch();
+            break;
+          case RefetchOnMount.stale:
+            DateTime? staleAt =
+                query.state.dataUpdatedAt?.add(options.staleDuration);
+            final isStale = staleAt?.isBefore(DateTime.now()) ?? true;
+            if (isStale) refetch();
+            break;
+          case RefetchOnMount.never:
+            break;
+        }
+      } else {
+        fetch(
+          options.initialPageParam,
+          FetchMeta(direction: FetchDirection.forward),
+        );
       }
-    } else {
-      fetch(
-        options.initialPageParam,
-        FetchMeta(direction: FetchDirection.forward),
-      );
-    }
+    });
   }
 
   /// Takes a [UseInfiniteQueryOptions] and sets the [options] field.
