@@ -81,28 +81,26 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     final isInvalidated = query.state.isInvalidated;
 
     // [RefetchOnMount] behavior is specified here
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (isRefetching && !isInvalidated) {
-        switch (options.refetchOnMount) {
-          case RefetchOnMount.always:
-            refetch();
-            break;
-          case RefetchOnMount.stale:
-            DateTime? staleAt =
-                query.state.dataUpdatedAt?.add(options.staleDuration);
-            final isStale = staleAt?.isBefore(DateTime.now()) ?? true;
-            if (isStale) refetch();
-            break;
-          case RefetchOnMount.never:
-            break;
-        }
-      } else {
-        fetch(
-          options.initialPageParam,
-          FetchMeta(direction: FetchDirection.forward),
-        );
+    if (isRefetching && !isInvalidated) {
+      switch (options.refetchOnMount) {
+        case RefetchOnMount.always:
+          refetch();
+          break;
+        case RefetchOnMount.stale:
+          DateTime? staleAt =
+              query.state.dataUpdatedAt?.add(options.staleDuration);
+          final isStale = staleAt?.isBefore(DateTime.now()) ?? true;
+          if (isStale) refetch();
+          break;
+        case RefetchOnMount.never:
+          break;
       }
-    });
+    } else {
+      fetch(
+        options.initialPageParam,
+        FetchMeta(direction: FetchDirection.forward),
+      );
+    }
   }
 
   /// Takes a [UseInfiniteQueryOptions] and sets the [options] field.
@@ -304,7 +302,9 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
   /// It notifies the observers about the change and it also nofities the [useQuery] hook.
   @override
   void onQueryUpdated() {
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
     if (query.state.isInvalidated) {
       refetch();
     }

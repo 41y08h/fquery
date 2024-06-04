@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
@@ -51,23 +51,28 @@ class QueriesObserver<TData, TError> extends ChangeNotifier {
               ),
             );
 
-        observer.updateOptions(UseQueryOptions(
-          enabled: option.enabled,
-          cacheDuration: option.cacheDuration,
-          refetchInterval: option.refetchInterval,
-          refetchOnMount: option.refetchOnMount,
-          staleDuration: option.staleDuration,
-        ));
-
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          observer.updateOptions(UseQueryOptions(
+            enabled: option.enabled,
+            cacheDuration: option.cacheDuration,
+            refetchInterval: option.refetchInterval,
+            refetchOnMount: option.refetchOnMount,
+            staleDuration: option.staleDuration,
+          ));
+        });
         return observer;
       },
     ).toList();
 
     difference(newObservers, previousObservers).forEach((observer) {
       observer.addListener(() {
-        notifyListeners();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          notifyListeners();
+        });
       });
-      observer.initialize();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        observer.initialize();
+      });
     });
 
     difference(previousObservers, newObservers).forEach((observer) {
@@ -75,6 +80,8 @@ class QueriesObserver<TData, TError> extends ChangeNotifier {
     });
 
     observers = newObservers;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/mutation.dart';
 
@@ -45,7 +45,7 @@ class MutationObserver<TData, TError, TVariables, TContext>
     if (mutation.state.isPending) return;
 
     this.vars = variables;
-    notifyListeners();
+    onMutationUpdated();
 
     mutation.dispatch(MutationDispatchAction.mutate, null);
     final ctx = await options.onMutate?.call(variables);
@@ -74,6 +74,8 @@ class MutationObserver<TData, TError, TVariables, TContext>
   /// This is called from the [Mutation] class whenever the mutation state changes.
   /// It notifies the observer about the change and it also nofities the [useMutation] hook.
   void onMutationUpdated() {
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 }

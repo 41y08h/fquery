@@ -15,12 +15,12 @@ class QueryCache extends ChangeNotifier {
 
   void add(QueryKey queryKey, Query query) {
     _queries[queryKey.lock] = query;
-    notifyListeners();
+    onQueryUpdated();
   }
 
   void remove(Query query) {
     _queries.removeWhere((key, value) => value == query);
-    notifyListeners();
+    onQueryUpdated();
   }
 
   /// Returns a query identified by the query key.
