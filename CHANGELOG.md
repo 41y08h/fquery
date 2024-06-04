@@ -54,3 +54,7 @@
 ## 1.3.1-beta.2
 
 - Remove unused import in code
+
+## 1.3.2-beta.2
+
+- Bug fix (re-fix): Rebuild error when navigating between screens with the same useQuery
