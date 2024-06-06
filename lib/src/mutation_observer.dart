@@ -74,7 +74,7 @@ class MutationObserver<TData, TError, TVariables, TContext>
   /// This is called from the [Mutation] class whenever the mutation state changes.
   /// It notifies the observer about the change and it also nofities the [useMutation] hook.
   void onMutationUpdated() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future.delayed(Duration.zero, () {
       notifyListeners();
     });
   }

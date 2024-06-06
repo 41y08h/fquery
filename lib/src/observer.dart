@@ -141,7 +141,7 @@ class Observer<TData, TError> extends ChangeNotifier with QueryListener {
   /// It notifies the observers about the change and it also nofities the [useQuery] hook.
   @override
   void onQueryUpdated() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future.delayed(Duration.zero, () {
       notifyListeners();
     });
     if (query.state.isInvalidated) {
