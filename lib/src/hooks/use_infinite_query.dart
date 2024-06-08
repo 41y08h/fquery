@@ -76,6 +76,8 @@ class UseInfiniteQueryResult<TData, TError, TPageParam> {
   final bool isRefetching;
   final bool isFetchNextPageError;
   final bool isFetchPreviousPageError;
+  final bool isInvalidated;
+  final bool isRefetchError;
 
   UseInfiniteQueryResult({
     this.data,
@@ -96,6 +98,8 @@ class UseInfiniteQueryResult<TData, TError, TPageParam> {
     required this.isRefetching,
     required this.isFetchNextPageError,
     required this.isFetchPreviousPageError,
+    required this.isInvalidated,
+    required this.isRefetchError,
   });
 }
 
@@ -266,5 +270,7 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
     status: observer.query.state.status,
     isFetchNextPageError: isFetchNextPageError,
     isFetchPreviousPageError: isFetchPreviousPageError,
+    isInvalidated: observer.query.state.isInvalidated,
+    isRefetchError: observer.query.state.isRefetchError,
   );
 }
