@@ -16,6 +16,8 @@ class UseQueryResult<TData, TError> {
   final bool isSuccess;
   final QueryStatus status;
   final Future<void> Function() refetch;
+  final bool isInvalidated;
+  final bool isRefetchError;
 
   UseQueryResult({
     required this.data,
@@ -28,6 +30,8 @@ class UseQueryResult<TData, TError> {
     required this.isSuccess,
     required this.status,
     required this.refetch,
+    required this.isInvalidated,
+    required this.isRefetchError,
   });
 }
 
@@ -151,5 +155,7 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
     isSuccess: observer.query.state.isSuccess,
     status: observer.query.state.status,
     refetch: observer.fetch,
+    isInvalidated: observer.query.state.isInvalidated,
+    isRefetchError: observer.query.state.isRefetchError,
   );
 }

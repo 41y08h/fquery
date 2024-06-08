@@ -60,6 +60,8 @@ List<UseQueryResult<TData, TError>> useQueries<TData, TError>(
           isSuccess: observer.query.state.isSuccess,
           status: observer.query.state.status,
           refetch: observer.fetch,
+          isInvalidated: observer.query.state.isInvalidated,
+          isRefetchError: observer.query.state.isRefetchError,
         ),
       )
       .toList();
