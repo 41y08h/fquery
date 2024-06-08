@@ -58,3 +58,8 @@
 ## 1.3.2-beta.2
 
 - Bug fix (re-fix): Rebuild error when navigating between screens with the same useQuery
+
+## 1.4.0-beta.1
+
+- Bug fixes
+- Expose `isInvalidated` and `isRefetchEror` in result of `useQuery` and `useInfiniteQuery`
