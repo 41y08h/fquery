@@ -80,8 +80,8 @@ class Observer<TData, TError> extends ChangeNotifier with QueryListener {
       cacheDuration:
           options.cacheDuration ?? client.defaultQueryOptions.cacheDuration,
       refetchInterval: options.refetchInterval,
-      retryCount: options.retryCount,
-      retryDelay: options.retryDelay,
+      retryCount: options.retryCount ?? client.defaultQueryOptions.retryCount,
+      retryDelay: options.retryDelay ?? client.defaultQueryOptions.retryDelay,
     );
   }
 

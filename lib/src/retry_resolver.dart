@@ -8,8 +8,8 @@ class RetryResolver {
 
   Future<void> resolve<T>(
     FutureOr<T> Function() fn, {
-    int retryCount = 3,
-    Duration retryDelay = const Duration(seconds: 1, milliseconds: 500),
+    required int retryCount,
+    required Duration retryDelay,
     required void Function(T value) onResolve,
     required void Function(dynamic error) onError,
     required void Function() onCancel,

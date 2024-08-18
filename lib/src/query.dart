@@ -44,8 +44,8 @@ class QueryOptions<TData, TError> {
     required this.staleDuration,
     required this.cacheDuration,
     this.refetchInterval,
-    this.retryCount = 3,
-    this.retryDelay = const Duration(seconds: 1, milliseconds: 500),
+    required this.retryCount,
+    required this.retryDelay,
   });
 }
 
