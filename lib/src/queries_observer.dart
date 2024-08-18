@@ -48,6 +48,8 @@ class QueriesObserver<TData, TError> extends ChangeNotifier {
                 refetchInterval: option.refetchInterval,
                 refetchOnMount: option.refetchOnMount,
                 staleDuration: option.staleDuration,
+                retryCount: option.retryCount,
+                retryDelay: option.retryDelay,
               ),
             );
 
@@ -58,6 +60,8 @@ class QueriesObserver<TData, TError> extends ChangeNotifier {
             refetchInterval: option.refetchInterval,
             refetchOnMount: option.refetchOnMount,
             staleDuration: option.staleDuration,
+            retryCount: option.retryCount,
+            retryDelay: option.retryDelay,
           ));
         });
         return observer;
