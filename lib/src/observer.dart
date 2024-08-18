@@ -130,15 +130,22 @@ class Observer<TData, TError> extends ChangeNotifier with QueryListener {
     query.dispatch(DispatchAction.fetch, null);
     // Important: State change, then any other
     // function invocation in the following callbacks
-    await resolver.resolve<TData>(fetcher, onResolve: (data) {
-      query.dispatch(DispatchAction.success, data);
-    }, onError: (error) {
-      final action =
-          isRefetching ? DispatchAction.refetchError : DispatchAction.error;
-      query.dispatch(action, error);
-    }, onCancel: () {
-      query.dispatch(DispatchAction.cancelFetch, null);
-    });
+    await resolver.resolve<TData>(
+      fetcher,
+      retryCount: options.retryCount,
+      retryDelay: options.retryDelay,
+      onResolve: (data) {
+        query.dispatch(DispatchAction.success, data);
+      },
+      onError: (error) {
+        final action =
+            isRefetching ? DispatchAction.refetchError : DispatchAction.error;
+        query.dispatch(action, error);
+      },
+      onCancel: () {
+        query.dispatch(DispatchAction.cancelFetch, null);
+      },
+    );
   }
 
   /// This is called from the [Query] class whenever the query state changes.
