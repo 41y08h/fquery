@@ -34,8 +34,8 @@ class InfiniteQueryOptions<TData, TError, TPageParam>
     required super.staleDuration,
     required super.cacheDuration,
     super.refetchInterval,
-    super.retryCount,
-    super.retryDelay,
+    required super.retryCount,
+    required super.retryDelay,
   });
 }
 
@@ -116,8 +116,8 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
       cacheDuration:
           options.cacheDuration ?? client.defaultQueryOptions.cacheDuration,
       refetchInterval: options.refetchInterval,
-      retryCount: options.retryCount,
-      retryDelay: options.retryDelay,
+      retryCount: options.retryCount ?? client.defaultQueryOptions.retryCount,
+      retryDelay: options.retryDelay ?? client.defaultQueryOptions.retryDelay,
       initialPageParam: options.initialPageParam,
       getNextPageParam: options.getNextPageParam,
       getPreviousPageParam: options.getPreviousPageParam,
@@ -229,27 +229,33 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
       final resolver = RetryResolver();
       refetchResolvers.add(resolver);
 
-      await resolver.resolve<TData>(() => fetcher(param),
-          onResolve: (refetchedData) {
-        // Make a copy of pages to replace with refetched
-        // data without directly mutataing the old `pages`
-        final newPages = [...data.pages];
-        newPages[i] = refetchedData;
+      await resolver.resolve<TData>(
+        () => fetcher(param),
+        retryCount: options.retryCount,
+        retryDelay: options.retryDelay,
+        onResolve: (refetchedData) {
+          // Make a copy of pages to replace with refetched
+          // data without directly mutataing the old `pages`
+          final newPages = [...data.pages];
+          newPages[i] = refetchedData;
 
-        // Only dispatch success action when we're done refetching
-        // i.e we've fetched the last page
-        final isLastPage = i + 1 == pageParams.length;
-        final action = isLastPage
-            ? DispatchAction.success
-            : DispatchAction.refetchSequence;
+          // Only dispatch success action when we're done refetching
+          // i.e we've fetched the last page
+          final isLastPage = i + 1 == pageParams.length;
+          final action = isLastPage
+              ? DispatchAction.success
+              : DispatchAction.refetchSequence;
 
-        final newData = data.copyWith(pages: [...newPages]);
-        query.dispatch(action, newData);
-      }, onError: (error) {
-        query.dispatch(DispatchAction.refetchError, error);
-      }, onCancel: () {
-        query.dispatch(DispatchAction.cancelFetch, null);
-      });
+          final newData = data.copyWith(pages: [...newPages]);
+          query.dispatch(action, newData);
+        },
+        onError: (error) {
+          query.dispatch(DispatchAction.refetchError, error);
+        },
+        onCancel: () {
+          query.dispatch(DispatchAction.cancelFetch, null);
+        },
+      );
     });
   }
 
@@ -262,40 +268,47 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     query.dispatch(DispatchAction.fetch, meta);
     // Important: State change, then any other
     // function invocation in the following callbacks
-    await resolver.resolve<TData>(() => fetcher(pageParam), onResolve: (data) {
-      final pages = [...(query.state.data?.pages ?? [])];
-      final pageParams = [...(query.state.data?.pageParams ?? [])];
+    await resolver.resolve<TData>(
+      () => fetcher(pageParam),
+      retryCount: options.retryCount,
+      retryDelay: options.retryDelay,
+      onResolve: (data) {
+        final pages = [...(query.state.data?.pages ?? [])];
+        final pageParams = [...(query.state.data?.pageParams ?? [])];
 
-      // `maxPages` option's behaviour is defined here
-      if (pages.length == options.maxPages) {
-        if (meta.direction == FetchDirection.forward) {
-          // Remove the first page
-          pages.removeAt(0);
-          pageParams.removeAt(0);
-        } else {
-          pages.removeLast();
-          pageParams.removeLast();
+        // `maxPages` option's behaviour is defined here
+        if (pages.length == options.maxPages) {
+          if (meta.direction == FetchDirection.forward) {
+            // Remove the first page
+            pages.removeAt(0);
+            pageParams.removeAt(0);
+          } else {
+            pages.removeLast();
+            pageParams.removeLast();
+          }
         }
-      }
-      final newData = query.state.data?.copyWith(
-            pages: meta.direction == FetchDirection.forward
-                ? [...pages, data]
-                : [data, ...pages],
-            pageParams: meta.direction == FetchDirection.forward
-                ? [...pageParams, pageParam]
-                : [pageParam, ...pageParams],
-          ) ??
-          InfiniteQueryData<TData, TPageParam>(
-            pages: [data],
-            pageParams: [pageParam],
-          );
+        final newData = query.state.data?.copyWith(
+              pages: meta.direction == FetchDirection.forward
+                  ? [...pages, data]
+                  : [data, ...pages],
+              pageParams: meta.direction == FetchDirection.forward
+                  ? [...pageParams, pageParam]
+                  : [pageParam, ...pageParams],
+            ) ??
+            InfiniteQueryData<TData, TPageParam>(
+              pages: [data],
+              pageParams: [pageParam],
+            );
 
-      query.dispatch(DispatchAction.success, newData);
-    }, onError: (error) {
-      query.dispatch(DispatchAction.error, error);
-    }, onCancel: () {
-      query.dispatch(DispatchAction.cancelFetch, null);
-    });
+        query.dispatch(DispatchAction.success, newData);
+      },
+      onError: (error) {
+        query.dispatch(DispatchAction.error, error);
+      },
+      onCancel: () {
+        query.dispatch(DispatchAction.cancelFetch, null);
+      },
+    );
   }
 
   /// This is called from the [Query] class whenever the query state changes.

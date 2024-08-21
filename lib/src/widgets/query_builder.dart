@@ -14,8 +14,8 @@ class QueryBuilder<TData, TError> extends HookWidget {
   final Duration? staleDuration;
   final Duration? cacheDuration;
   final Duration? refetchInterval;
-  final int retryCount;
-  final Duration retryDelay;
+  final int? retryCount;
+  final Duration? retryDelay;
 
   const QueryBuilder(
     this.queryKey,
@@ -27,8 +27,8 @@ class QueryBuilder<TData, TError> extends HookWidget {
     this.staleDuration,
     this.cacheDuration,
     this.refetchInterval,
-    this.retryCount = 3,
-    this.retryDelay = const Duration(seconds: 1, milliseconds: 500),
+    this.retryCount,
+    this.retryDelay,
   });
 
   @override

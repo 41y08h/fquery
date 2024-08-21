@@ -144,8 +144,8 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
   Duration? staleDuration,
   Duration? cacheDuration,
   Duration? refetchInterval,
-  int retryCount = 3,
-  Duration retryDelay = const Duration(seconds: 1, milliseconds: 500),
+  int? retryCount,
+  Duration? retryDelay,
 }) {
   final options = useMemoized(
     () => UseInfiniteQueryOptions<TData, TError, TPageParam>(

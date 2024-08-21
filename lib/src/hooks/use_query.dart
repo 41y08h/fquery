@@ -41,8 +41,8 @@ class UseQueryOptions<TData, TError> {
   final Duration? staleDuration;
   final Duration? cacheDuration;
   final Duration? refetchInterval;
-  final int retryCount;
-  final Duration retryDelay;
+  final int? retryCount;
+  final Duration? retryDelay;
 
   UseQueryOptions({
     required this.enabled,
@@ -50,8 +50,8 @@ class UseQueryOptions<TData, TError> {
     this.staleDuration,
     this.cacheDuration,
     this.refetchInterval,
-    this.retryCount = 3,
-    this.retryDelay = const Duration(seconds: 1, milliseconds: 500),
+    this.retryCount,
+    this.retryDelay,
   });
 }
 
@@ -90,8 +90,8 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
   Duration? staleDuration,
   Duration? cacheDuration,
   Duration? refetchInterval,
-  int retryCount = 3,
-  Duration retryDelay = const Duration(seconds: 1, milliseconds: 500),
+  int? retryCount,
+  Duration? retryDelay,
 }) {
   final options = useMemoized(
     () => UseQueryOptions<TData, TError>(
