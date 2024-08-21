@@ -150,30 +150,38 @@ class TodoListTile extends HookWidget {
                     markMutation.mutate(value);
                   },
                 ),
-                MutationBuilder((id) async {
-                  await todosAPI.delete(todo.id);
-                  return id;
-                }, onSuccess: (id, _, ctx) {
-                  client.setQueryData<List<Todo>>(
-                    ['todos'],
-                    (previous) {
-                      if (previous == null) return [];
-                      return previous.where((e) {
-                        return (e.id != id);
-                      }).toList();
-                    },
-                  );
-                }, builder: (context, mutation) {
-                  return CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: mutation.isPending
-                        ? null
-                        : () {
-                            mutation.mutate(todo.id);
+                QueryClientBuilder(
+                  builder: (context, queryClient) {
+                    return MutationBuilder(
+                      (id) async {
+                        await todosAPI.delete(todo.id);
+                        return id;
+                      },
+                      onSuccess: (id, _, ctx) {
+                        queryClient.setQueryData<List<Todo>>(
+                          ['todos'],
+                          (previous) {
+                            if (previous == null) return [];
+                            return previous.where((e) {
+                              return (e.id != id);
+                            }).toList();
                           },
-                    child: const Icon(CupertinoIcons.delete_solid),
-                  );
-                }),
+                        );
+                      },
+                      builder: (context, mutation) {
+                        return CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: mutation.isPending
+                              ? null
+                              : () {
+                                  mutation.mutate(todo.id);
+                                },
+                          child: const Icon(CupertinoIcons.delete_solid),
+                        );
+                      },
+                    );
+                  },
+                ),
               ],
             ),
         ],

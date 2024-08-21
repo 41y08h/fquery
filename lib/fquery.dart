@@ -11,3 +11,4 @@ export 'src/query.dart' show RefetchOnMount, QueryStatus;
 export 'src/widgets/query_builder.dart';
 export 'src/widgets/mutation_builder.dart';
 export 'src/hooks/use_infinite_query.dart';
+export 'src/widgets/query_client_builder.dart';
