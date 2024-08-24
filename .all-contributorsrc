@@ -60,6 +60,16 @@
         "code",
         "ideas"
       ]
+    },
+    {
+      "login": "wadackel",
+      "name": "tsuyoshi wada",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5393238?v=4",
+      "profile": "https://blog.wadackel.me",
+      "contributions": [
+        "bug",
+        "code"
+      ]
     }
   ]
 }

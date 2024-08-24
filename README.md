@@ -473,6 +473,7 @@ Thanks go to these wonderful people:
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/RajvirSingh1313"><img src="https://avatars.githubusercontent.com/u/63385587?v=4?s=100" width="100px;" alt="Rajvir Singh"/><br /><sub><b>Rajvir Singh</b></sub></a><br /><a href="#design-RajvirSingh1313" title="Design">🎨</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/kollinmurphy"><img src="https://avatars.githubusercontent.com/u/65209071?v=4?s=100" width="100px;" alt="Kollin Murphy"/><br /><sub><b>Kollin Murphy</b></sub></a><br /><a href="#doc-kollinmurphy" title="Documentation">📖</a> <a href="#code-kollinmurphy" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/giva9712"><img src="https://avatars.githubusercontent.com/u/40331144?v=4?s=100" width="100px;" alt="Tuvshinbayar Tuvshinzul"/><br /><sub><b>Tuvshinbayar Tuvshinzul</b></sub></a><br /><a href="#bug-giva9712" title="Bug reports">🐛</a> <a href="#code-giva9712" title="Code">💻</a> <a href="#ideas-giva9712" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://blog.wadackel.me"><img src="https://avatars.githubusercontent.com/u/5393238?v=4?s=100" width="100px;" alt="tsuyoshi wada"/><br /><sub><b>tsuyoshi wada</b></sub></a><br /><a href="#bug-wadackel" title="Bug reports">🐛</a> <a href="#code-wadackel" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
