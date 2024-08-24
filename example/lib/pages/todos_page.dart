@@ -83,6 +83,13 @@ class TodosPage extends HookWidget {
               onPressed: todos.refetch,
               child: const Icon(CupertinoIcons.refresh),
             ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                client.removeQueries(['todos']);
+              },
+              child: const Icon(CupertinoIcons.delete),
+            ),
           ],
         ),
       ),
@@ -91,7 +98,7 @@ class TodosPage extends HookWidget {
           const ['todos'],
           todosAPI.getAll,
           refetchOnMount: RefetchOnMount.never,
-          refetchInterval: const Duration(seconds: 10),
+          refetchInterval: null,
           enabled: isEnabled.value,
           builder: (context, todos) {
             if (todos.isLoading) {

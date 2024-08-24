@@ -50,8 +50,9 @@ class QueryClient {
   /// ```
   void setQueryData<TData>(
       QueryKey queryKey, TData Function(TData? previous) updater) {
-    final query = queryCache.get(queryKey);
-    query?.dispatch(DispatchAction.success, updater(query.state.data));
+    final query =
+        queryCache.build<TData, dynamic>(queryKey: queryKey, client: this);
+    query.dispatch(DispatchAction.success, updater(query.state.data));
   }
 
   TData? getQueryData<TData>(QueryKey queryKey) {
@@ -83,17 +84,36 @@ class QueryClient {
   /// ```
   void invalidateQueries(QueryKey key, {bool exact = false}) {
     queryCache.queries.forEach((queryKey, query) {
+      void action() {
+        query.dispatch(DispatchAction.invalidate, null);
+      }
+
       if (exact) {
-        if (queryKey == key.lock) {
-          query.dispatch(DispatchAction.invalidate, null);
-        }
+        if (queryKey == key.lock) action();
       } else {
         final isPartialMatch = queryKey.length >= key.length &&
             queryKey.sublist(0, key.length) == key.lock;
 
-        if (isPartialMatch) {
-          query.dispatch(DispatchAction.invalidate, null);
-        }
+        if (isPartialMatch) action();
+      }
+    });
+  }
+
+  void removeQueries(QueryKey key, {bool exact = false}) {
+    queryCache.queries.forEach((queryKey, query) {
+      void action() {
+        Future.delayed(Duration.zero, () {
+          queryCache.remove(query);
+        });
+      }
+
+      if (exact) {
+        if (queryKey == key.lock) action();
+      } else {
+        final isPartialMatch = queryKey.length >= key.length &&
+            queryKey.sublist(0, key.length) == key.lock;
+
+        if (isPartialMatch) action();
       }
     });
   }

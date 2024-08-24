@@ -121,7 +121,14 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
       client: client,
       options: options,
     ),
-    [queryKey.lock],
+    // The first value is to make sure that the observer
+    // is rebuilt when query key changes.
+    //
+    // The second value is to make sure that the observer
+    // is rebuilt when query itself changes in the cache, typically
+    // when `QueryClient.removeQueries` is called, followed by
+    // `QueryClient.setQueryData` (creating a new query in the cache)
+    [queryKey.lock, client.queryCache.queries[queryKey.lock]?.hashCode],
   );
 
   // This subscribes to the observer
