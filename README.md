@@ -14,22 +14,11 @@ With this powerful tool at your disposal, managing server state (REST API, Graph
 
 ## Trusted & Used by
 
-### UC San Diego
-
-![UC San Diego](https://github.com/41y08h/fquery/blob/main/media/ucsd-banner.png?raw=true)
-
-The University of California, San Diego has shifted to [fquery](https://github.com/41y08h/fquery/), _moving away from traditional state management solutions like provider, bloc, etc,_ as the backbone of their [mobile application](https://mobile.ucsd.edu/), which has over 30,000 users and serves as the app used by the generations of students.
-With fquery's efficient and easy-to-use async state management, the developers are now enjoying the comfort of seamless state management by refactoring spaghetti blocks of codes, even files with 200 lines to just 20 lines. They also noticed a significant reduction of time in the hot reload.
-
-All of this is only to have more time, and an easy-to-manage structure to develop the features that matter the most. They are confident that the codebase will continue to be manageable, and provide the team with a better structure.
-
-### Stargazers and others
-
 ![GitHub Repo stars](https://img.shields.io/github/stars/41y08h/fquery?style=social)
 
 The project's growth has almost been completely organic, it has grown popular in the developer community and is growing by the day, consider starring it if you've found it useful.
 
-As a developer, you too can leverage the power of this tool to create a high-quality mobile application that provides an exceptional user experience. [fquery](https://github.com/41y08h/fquery/) is a reliable and efficient solution that has already been proven successful in UC San Diego's app. So, why not choose it for your next project and take advantage of its powerful features to deliver a seamless experience to your users?
+As a developer, you too can leverage the power of this tool to create a high-quality mobile application that provides an exceptional user experience. So, why not choose it for your next project and take advantage of its powerful features to deliver a seamless experience to your users?
 
 ## 🌌 Features
 
@@ -354,6 +343,30 @@ void main() {
     QueryClientProvider(
       queryClient: queryClient,
       child: CupertinoApp(
+```
+
+#### `QueryClient.removeQueries`
+
+This method is used to remove any query from the cache. If the query's data is currently being rendered on the screen then it will still show and the query will also be removed from the cache.
+
+### `QueryClientBuilder` widget
+
+There's also a builder widget where you can get access to the query client.
+
+```dart
+QueryClientBuilder(
+  builder: (context, queryClient) {
+    return MutationBuilder(
+      (id) async {
+        await todosAPI.delete(todo.id);
+        return id;
+      },
+      onSuccess: (id, _, ctx) {
+        queryClient.setQueryData<List<Todo>>(
+          ['todos'],
+          (previous) {
+            if (previous == null) return [];
+            return previous.where((e) {
 ```
 
 ## Mutations

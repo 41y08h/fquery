@@ -63,3 +63,12 @@
 
 - Bug fixes
 - Expose `isInvalidated` and `isRefetchEror` in result of `useQuery` and `useInfiniteQuery`
+
+## 1.5.0-beta.1
+
+- Bug fix: retry count and retry delay parameters not working
+- Bug fix: default values not working for retry count and retry delay
+- New feature: `QueryClientBuilder` widget
+- New feature: `QueryClient.removeQueries` method
+- Bug fix: `QueryClient.setQueryData` to build new query if it doesn't exist
+- Bug fixes: general
