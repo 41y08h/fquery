@@ -9,8 +9,12 @@ class QueryCache extends ChangeNotifier {
   final QueriesMap _queries = {};
   QueriesMap get queries => _queries;
 
-  Query<TData, TError>? get<TData, TError>(QueryKey queryKey) {
-    return _queries[queryKey.lock] as Query<TData, TError>?;
+  Query<TData, TError> get<TData, TError>(QueryKey queryKey) {
+    final query = _queries[queryKey.lock];
+    if (query == null) {
+      throw ArgumentError("Query with given key doesn't exist.");
+    }
+    return query as Query<TData, TError>;
   }
 
   void add(QueryKey queryKey, Query query) {
@@ -30,9 +34,14 @@ class QueryCache extends ChangeNotifier {
     required QueryKey queryKey,
     required QueryClient client,
   }) {
-    var query =
-        get<TData, TError>(queryKey) ?? Query(client: client, key: queryKey);
-    add(queryKey, query);
+    late final Query<TData, TError> query;
+    try {
+      query = get<TData, TError>(queryKey);
+      add(queryKey, query);
+    } catch (e) {
+      query = Query(client: client, key: queryKey);
+      add(queryKey, query);
+    }
     return query;
   }
 

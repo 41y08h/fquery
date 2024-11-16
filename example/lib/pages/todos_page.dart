@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'dart:math';
-import 'package:basic/main.dart';
 import 'package:basic/widgets/todo_list_tile.dart';
 import 'package:basic/models/todos.dart';
 import 'package:flutter/cupertino.dart';
@@ -26,11 +25,10 @@ class TodosPage extends HookWidget {
     final todoInputController = useTextEditingController();
     final addTodoMutation = useMutation<Todo, Exception, String, List<Todo>>(
         todosAPI.add, onMutate: (text) async {
-      final previousTodos =
-          queryClient.getQueryData<List<Todo>>(['todos']) ?? [];
+      final previousTodos = client.getQueryData<List<Todo>>(['todos']) ?? [];
 
       // Optimistically update the todo list
-      queryClient.setQueryData<List<Todo>>(['todos'], (previous) {
+      client.setQueryData<List<Todo>>(['todos'], (previous) {
         final id = Random().nextInt(pow(10, 6).toInt());
         final newTodo = Todo(id: id, text: text);
         return [...(previous ?? []), newTodo];
@@ -40,7 +38,7 @@ class TodosPage extends HookWidget {
       return previousTodos;
     }, onError: (err, text, previousTodos) {
       // On failure, revert back to original data
-      queryClient.setQueryData<List<Todo>>(
+      client.setQueryData<List<Todo>>(
         ['todos'],
         (_) => previousTodos as List<Todo>,
       );

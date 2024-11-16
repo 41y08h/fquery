@@ -56,8 +56,12 @@ class QueryClient {
   }
 
   TData? getQueryData<TData>(QueryKey queryKey) {
-    final query = queryCache.get<TData, dynamic>(queryKey);
-    return query?.state.data;
+    try {
+      final query = queryCache.get<TData, dynamic>(queryKey);
+      return query.state.data;
+    } catch (e) {
+      return null as TData?;
+    }
   }
 
   /// Marks the query as stale.
