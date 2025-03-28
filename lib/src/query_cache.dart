@@ -46,7 +46,7 @@ class QueryCache extends ChangeNotifier {
   }
 
   void onQueryUpdated() {
-    Future.delayed(Duration.zero, () {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });
   }

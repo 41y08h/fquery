@@ -1,9 +1,22 @@
 import 'dart:async';
 
+Timer makePeriodicTimer(
+  Duration duration,
+  void Function(Timer timer) callback, {
+  bool fireNow = false,
+}) {
+  var timer = Timer.periodic(duration, callback);
+  if (fireNow) {
+    callback(timer);
+  }
+  return timer;
+}
+
 /// This is used to retry a future several times before giving up.
 class RetryResolver {
   bool isRunning = false;
   void Function()? onCancel;
+  Timer? retryTimer;
   RetryResolver();
 
   Future<void> resolve<T>(
@@ -18,33 +31,33 @@ class RetryResolver {
     if (isRunning) return;
     isRunning = true;
 
-    final maxAttempts = retryCount + 1;
-    var attempts = 0;
-    while (attempts++ <= maxAttempts) {
-      if (!isRunning) return;
-      final isLastAttempt = attempts == maxAttempts;
+    // `fireNow` is set to true to call the
+    // callback immediately for the first call
+    // and not wait for the first tick of the
+    // timer and we retry on each tick
+    retryTimer = makePeriodicTimer(retryDelay, fireNow: true, (timer) async {
+      if (!isRunning) return timer.cancel();
+      if (timer.tick == retryCount) {
+        timer.cancel();
+      }
       try {
         final value = await fn();
-        if (!isRunning) return;
+        if (!isRunning) return timer.cancel();
         onResolve(value);
-        break;
       } catch (e) {
-        if (isLastAttempt) {
-          onError(e);
-          break;
-        }
-        await Future.delayed(retryDelay);
+        onError(e);
       }
-    }
-    reset();
+    });
   }
 
   void cancel() {
     isRunning = false;
     onCancel?.call();
+    retryTimer?.cancel();
   }
 
   void reset() {
     isRunning = false;
+    retryTimer?.cancel();
   }
 }
