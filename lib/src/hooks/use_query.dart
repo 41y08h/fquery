@@ -114,22 +114,37 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
     ],
   );
   final client = useQueryClient();
-  final observer = useMemoized<Observer<TData, TError>>(
-    () => Observer<TData, TError>(
+
+  final observerRef = useRef<Observer<TData, TError>?>(null);
+  useEffect(() {
+    observerRef.value = Observer(
       queryKey,
       fetcher,
       client: client,
       options: options,
-    ),
-    // The first value is to make sure that the observer
-    // is rebuilt when query key changes.
-    //
-    // The second value is to make sure that the observer
-    // is rebuilt when query itself changes in the cache, typically
-    // when `QueryClient.removeQueries` is called, followed by
-    // `QueryClient.setQueryData` (creating a new query in the cache)
-    [queryKey.lock, client.queryCache.queries[queryKey.lock]?.hashCode],
+    );
+    return;
+  }, [queryKey.lock]);
+
+  // Rebuild observer if the query is changed somehow,
+  // typically when the query is removed from the cache.
+  final query = useListenableSelector(
+    client.queryCache,
+    () => client.queryCache.queries[queryKey.lock],
   );
+  useEffect(() {
+    if (query == null) {
+      observerRef.value = Observer(
+        queryKey,
+        fetcher,
+        client: client,
+        options: options,
+      );
+    }
+    return;
+  }, [query]);
+
+  final observer = observerRef.value as Observer<TData, TError>;
 
   // This subscribes to the observer
   // and rebuilds the widgets on updates.
@@ -139,7 +154,7 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
     WidgetsBinding.instance.addPostFrameCallback((_) {
       observer.updateOptions(options);
     });
-    return null;
+    return;
   }, [observer, options]);
 
   useEffect(() {
