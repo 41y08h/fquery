@@ -18,10 +18,11 @@ class RetryResolver {
     if (isRunning) return;
     isRunning = true;
 
+    final maxAttempts = retryCount + 1;
     var attempts = 0;
-    while (attempts++ != retryCount) {
+    while (attempts++ <= maxAttempts) {
       if (!isRunning) return;
-      final isLastAttempt = attempts == retryCount;
+      final isLastAttempt = attempts == maxAttempts;
       try {
         final value = await fn();
         if (!isRunning) return;
