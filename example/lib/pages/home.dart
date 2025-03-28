@@ -20,7 +20,7 @@ class Home extends HookWidget {
   Widget build(BuildContext context) {
     // Fetch a query here so that
     // we can see it refetching in the background on posts page
-    useQuery<List<Post>, Error>(
+    useQuery<List<Post>, DioError>(
       ['posts'],
       getPosts,
       refetchInterval: const Duration(seconds: 5),

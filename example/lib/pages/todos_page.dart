@@ -25,6 +25,8 @@ class TodosPage extends HookWidget {
     final todoInputController = useTextEditingController();
     final addTodoMutation = useMutation<Todo, Exception, String, List<Todo>>(
         todosAPI.add, onMutate: (text) async {
+      FocusManager.instance.primaryFocus?.unfocus();
+
       final previousTodos = client.getQueryData<List<Todo>>(['todos']) ?? [];
 
       // Optimistically update the todo list
