@@ -9,6 +9,7 @@ import 'package:basic/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  // TODO: Mock the request for the API call under the query key `['posts']` (see [home.dart])
   testWidgets('Todos page is rendered', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const App());
