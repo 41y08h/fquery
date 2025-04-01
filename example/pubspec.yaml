@@ -11,7 +11,7 @@ dependencies:
   fquery:
     path: ../
   cupertino_icons: ^1.0.5
-  flutter_hooks: ^0.20.3
+  flutter_hooks: ^0.21.2
   dio: ^4.0.6
 
 dev_dependencies:
