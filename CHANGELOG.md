@@ -72,3 +72,9 @@
 - New feature: `QueryClient.removeQueries` method
 - Bug fix: `QueryClient.setQueryData` to build new query if it doesn't exist
 - Bug fixes: general
+
+## 1.5.2-beta.1
+
+- Bug fix: Pending `Timer`s which caused errors in tests
+- Bug fix: Query function was being called twice
+- Bug fix: Retry count: 0 not working
