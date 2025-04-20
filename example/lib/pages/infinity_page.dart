@@ -10,7 +10,7 @@ class InfinityPage extends HookWidget {
   Widget build(BuildContext context) {
     final scrollController = useScrollController();
     final infinityAPI = Infinity.getInstance();
-    final items = useInfiniteQuery<PageResult, Error, int>(
+    final itemsQuery = useInfiniteQuery<PageResult, Error, int>(
       ['infinity'],
       (page) => infinityAPI.get(page),
       initialPageParam: 1,
@@ -23,7 +23,7 @@ class InfinityPage extends HookWidget {
       scrollController.addListener(() {
         if (scrollController.position.pixels ==
             scrollController.position.maxScrollExtent) {
-          items.fetchNextPage();
+          itemsQuery.fetchNextPage();
         }
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -44,8 +44,14 @@ class InfinityPage extends HookWidget {
         middle: Text("Infinity"),
       ),
       child: SafeArea(
-        child: Builder(
-          builder: (context) {
+        child: InfiniteQueryBuilder<PageResult, Error, int>(
+          const ['infinity'],
+          (page) => infinityAPI.get(page),
+          initialPageParam: 1,
+          getNextPageParam: ((lastPage, allPages, lastPageParam, allPageParam) {
+            return lastPage.hasMore ? lastPage.page + 1 : null;
+          }),
+          builder: (context, items) {
             if (items.isLoading) {
               return const Center(child: CupertinoActivityIndicator());
             }
