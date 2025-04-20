@@ -1,6 +1,5 @@
 import 'package:fquery/src/query_cache.dart';
 import 'query.dart';
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 class DefaultQueryOptions {
   final RefetchOnMount refetchOnMount;
