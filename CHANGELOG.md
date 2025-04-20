@@ -78,3 +78,7 @@
 - Bug fix: Pending `Timer`s which caused errors in tests
 - Bug fix: Query function was being called twice
 - Bug fix: Retry count: 0 not working
+
+## 1.5.3-beta.1
+
+- New feature: `InfiniteQueryBuilder` widget, can be used without extending the widget with `HookWidget`

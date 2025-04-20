@@ -1,6 +1,6 @@
 name: fquery
 description: fquery is a powerful async state management solution for Flutter. It caches, updates, and fully manages asynchronous data in your Flutter apps.
-version: 1.5.2-beta.1
+version: 1.5.3-beta.1
 repository: https://github.com/41y08h/fquery
 
 environment:

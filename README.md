@@ -243,6 +243,29 @@ final items = useInfiniteQuery<PageResult, Error, int>(
 );
 ```
 
+### Infinite query without `flutter_hooks`
+
+You can have infinite queries without extending your widget with `HookWidget`. Just use the `InfiniteQueryBuilder` widget and you're good to go.
+
+The `InfiniteQueryBuilder` takes 5 required arguments, 2 positional and 3 named. The first positional argument is the query key, and the second one is query function. Named arguments are `initialPageParam`, `getNextPageParam`, and a `builder`.
+
+```dart
+InfiniteQueryBuilder<PageResult, Error, int>(
+  const ['infinity'],
+  (page) => infinityAPI.get(page),
+  initialPageParam: 1,
+  getNextPageParam: ((lastPage, allPages, lastPageParam, allPageParam) {
+    return lastPage.hasMore ? lastPage.page + 1 : null;
+  }),
+  builder: (context, items) {
+    if (items.isLoading) {
+      return const Center(child: CupertinoActivityIndicator());
+    }
+    if (items.isError) return Text(items.error.toString());
+
+    ...
+```
+
 ### Parallel queries
 
 Parallel queries are queries that are executed in parallel.
