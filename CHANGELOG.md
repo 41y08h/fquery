@@ -82,3 +82,7 @@
 ## 1.5.3-beta.1
 
 - New feature: `InfiniteQueryBuilder` widget, can be used without extending the widget with `HookWidget`
+
+## 1.5.4-beta.1
+
+- Bug fix: `QueryKey` didn't use deep equality. Note: Query keys must be serializable.
