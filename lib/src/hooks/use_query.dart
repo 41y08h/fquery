@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
 import 'package:fquery/src/query.dart';
+import 'package:fquery/src/query_key.dart';
 
 class UseQueryResult<TData, TError> {
   final TData? data;
@@ -81,7 +82,7 @@ class UseQueryOptions<TData, TError> {
 /// - `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually.
 
 UseQueryResult<TData, TError> useQuery<TData, TError>(
-  QueryKeyParameter queryKey,
+  RawQueryKey queryKey,
   QueryFn<TData> fetcher, {
   // These options must match with the `UseQueryOptions`
   bool enabled = true,

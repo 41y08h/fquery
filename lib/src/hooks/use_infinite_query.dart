@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/infinite_query_observer.dart';
 import 'package:fquery/src/query.dart';
+import 'package:fquery/src/query_key.dart';
 
 class InfiniteQueryData<TPage, TPageParam> {
   List<TPage> pages;
@@ -122,7 +123,7 @@ class UseInfiniteQueryResult<TData, TError, TPageParam> {
 /// ```
 UseInfiniteQueryResult<TData, TError, TPageParam>
     useInfiniteQuery<TData, TError, TPageParam>(
-  QueryKeyParameter queryKey,
+  RawQueryKey queryKey,
   InfiniteQueryFn<TData, TPageParam> queryFn, {
   required TPageParam initialPageParam,
   required TPageParam? Function(

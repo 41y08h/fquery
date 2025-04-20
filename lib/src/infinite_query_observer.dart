@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/query.dart';
+import 'package:fquery/src/query_key.dart';
 import 'package:fquery/src/retry_resolver.dart';
 import 'package:fquery/src/query_listener.dart';
 
@@ -43,7 +44,7 @@ typedef InfiniteQueryFn<TData, TPageParam> = Future<TData> Function(TPageParam);
 
 class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
     with QueryListener {
-  final QueryKeyParameter queryKey;
+  final RawQueryKey queryKey;
   final QueryClient client;
   final InfiniteQueryFn<TData, TPageParam> fetcher;
   late final Query<InfiniteQueryData<TData, TPageParam>, TError> query;
@@ -62,7 +63,7 @@ class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
   }) {
     query =
         client.queryCache.build<InfiniteQueryData<TData, TPageParam>, TError>(
-      queryKey: queryKey,
+      queryKey: QueryKey(queryKey),
       client: client,
     );
     _setOptions(options);

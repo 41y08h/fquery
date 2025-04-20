@@ -1,42 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
+import 'package:fquery/src/query_key.dart';
 import 'package:fquery/src/query_listener.dart';
 import 'package:fquery/src/query_state.dart';
 import 'package:fquery/src/removable.dart';
-
-import 'dart:convert';
-
-/// A serializable, deeply comparable query key.
-///
-/// Internally uses `jsonEncode` for equality and hashCode,
-/// making it perfect for use as a cache key or map key.
-class QueryKey {
-  /// The original, user-defined query key.
-  final QueryKeyParameter raw;
-
-  /// Creates a query key from a list of values.
-  QueryKey(QueryKeyParameter key) : raw = key;
-
-  /// The stringified version of the key, used for hashing and equality.
-  late final String _serialized = jsonEncode(raw);
-
-  /// Returns the serialized representation.
-  String get serialized => _serialized;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is QueryKey && _serialized == other._serialized;
-
-  @override
-  int get hashCode => _serialized.hashCode;
-
-  @override
-  String toString() => 'QueryKey($serialized)';
-}
-
-typedef QueryKeyParameter = List<Object>;
 
 enum DispatchAction {
   fetch,

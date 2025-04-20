@@ -7,7 +7,6 @@ environment:
   sdk: ">=2.17.5 <4.0.0"
 
 dependencies:
-  fast_immutable_collections: ^11.0.3
   collection: ^1.19.1
   flutter:
     sdk: flutter

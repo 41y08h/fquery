@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
-import 'package:fquery/src/query.dart';
+import 'package:fquery/src/query_key.dart';
 
 typedef QueriesOptions<TData, TError> = UseQueriesOptions<TData, TError>;
 

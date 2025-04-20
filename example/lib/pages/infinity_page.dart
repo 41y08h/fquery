@@ -12,9 +12,9 @@ class InfinityPage extends HookWidget {
     final infinityAPI = Infinity.getInstance();
     final itemsQuery = useInfiniteQuery<PageResult, Error, int>(
       [
-        'posts',
+        'infinity',
         {
-          'search': 'trees',
+          'type': 'scroll',
         },
       ],
       (page) => infinityAPI.get(page),
@@ -50,10 +50,10 @@ class InfinityPage extends HookWidget {
       ),
       child: SafeArea(
         child: InfiniteQueryBuilder<PageResult, Error, int>(
-          [
-            'posts',
+          const [
+            'infinity',
             {
-              'search': 'trees',
+              'type': 'scroll',
             },
           ],
           (page) => infinityAPI.get(page),

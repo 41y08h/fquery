@@ -2,11 +2,11 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
-import 'package:fquery/src/query.dart';
+import 'package:fquery/src/query_key.dart';
 
 class QueryBuilder<TData, TError> extends HookWidget {
   final Widget Function(BuildContext, UseQueryResult<TData, TError>) builder;
-  final QueryKeyParameter queryKey;
+  final RawQueryKey queryKey;
   final QueryFn<TData> queryFn;
   final bool enabled;
 

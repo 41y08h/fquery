@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:fquery/src/hooks/use_query.dart';
+import 'package:fquery/src/query_key.dart';
 import 'package:fquery/src/query_listener.dart';
 import 'query.dart';
 import 'query_client.dart';
@@ -29,7 +30,7 @@ class Observer<TData, TError> extends ChangeNotifier with QueryListener {
     required UseQueryOptions<TData, TError> options,
   }) {
     query = client.queryCache.build<TData, TError>(
-      queryKey: queryKey.raw,
+      queryKey: queryKey,
       client: client,
     );
     _setOptions(options);

@@ -1,4 +1,5 @@
 import 'package:fquery/src/query_cache.dart';
+import 'package:fquery/src/query_key.dart';
 import 'query.dart';
 
 class DefaultQueryOptions {
@@ -48,15 +49,15 @@ class QueryClient {
   /// })
   /// ```
   void setQueryData<TData>(
-      QueryKeyParameter queryKey, TData Function(TData? previous) updater) {
-    final query =
-        queryCache.build<TData, dynamic>(queryKey: queryKey, client: this);
+      RawQueryKey queryKey, TData Function(TData? previous) updater) {
+    final query = queryCache.build<TData, dynamic>(
+        queryKey: QueryKey(queryKey), client: this);
     query.dispatch(DispatchAction.success, updater(query.state.data));
   }
 
-  TData? getQueryData<TData>(QueryKeyParameter queryKey) {
+  TData? getQueryData<TData>(RawQueryKey queryKey) {
     try {
-      final query = queryCache.get<TData, dynamic>(queryKey);
+      final query = queryCache.get<TData, dynamic>(QueryKey(queryKey));
       return query.state.data;
     } catch (e) {
       return null as TData?;
@@ -85,7 +86,7 @@ class QueryClient {
   /// // Only this will invalidate
   /// final posts = useQuery(['posts'], getPosts);
   /// ```
-  void invalidateQueries(QueryKeyParameter key, {bool exact = false}) {
+  void invalidateQueries(RawQueryKey key, {bool exact = false}) {
     queryCache.queries.forEach((queryKey, query) {
       void action() {
         query.dispatch(DispatchAction.invalidate, null);
@@ -102,7 +103,7 @@ class QueryClient {
     });
   }
 
-  void removeQueries(QueryKeyParameter key, {bool exact = false}) {
+  void removeQueries(RawQueryKey key, {bool exact = false}) {
     queryCache.queries.forEach((queryKey, query) {
       void action() {
         Future.delayed(Duration.zero, () {

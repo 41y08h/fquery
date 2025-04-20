@@ -1,14 +1,13 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/src/hooks/use_query.dart';
 import 'package:fquery/src/hooks/use_query_client.dart';
 import 'package:fquery/src/observer.dart';
 import 'package:fquery/src/queries_observer.dart';
-import 'package:fquery/src/query.dart';
+import 'package:fquery/src/query_key.dart';
 
 class UseQueriesOptions<TData, TError> extends UseQueryOptions<TData, TError> {
-  final QueryKeyParameter queryKey;
+  final RawQueryKey queryKey;
   final QueryFn<TData> fetcher;
 
   UseQueriesOptions({
@@ -39,7 +38,7 @@ List<UseQueryResult<TData, TError>> useQueries<TData, TError>(
   useEffect(() {
     observer.setOptions(options);
     return null;
-  }, [options.lock]);
+  }, options);
 
   useEffect(() {
     return () {
