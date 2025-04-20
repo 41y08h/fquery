@@ -6,7 +6,7 @@ import 'package:fquery/src/query.dart';
 
 class QueryBuilder<TData, TError> extends HookWidget {
   final Widget Function(BuildContext, UseQueryResult<TData, TError>) builder;
-  final QueryKey queryKey;
+  final QueryKeyParameter queryKey;
   final QueryFn<TData> queryFn;
   final bool enabled;
 

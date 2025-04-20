@@ -8,7 +8,7 @@ import 'package:fquery/src/queries_observer.dart';
 import 'package:fquery/src/query.dart';
 
 class UseQueriesOptions<TData, TError> extends UseQueryOptions<TData, TError> {
-  final QueryKey queryKey;
+  final QueryKeyParameter queryKey;
   final QueryFn<TData> fetcher;
 
   UseQueriesOptions({

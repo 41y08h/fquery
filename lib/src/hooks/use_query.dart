@@ -82,7 +82,7 @@ class UseQueryOptions<TData, TError> {
 /// - `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually.
 
 UseQueryResult<TData, TError> useQuery<TData, TError>(
-  QueryKey queryKey,
+  QueryKeyParameter queryKey,
   QueryFn<TData> fetcher, {
   // These options must match with the `UseQueryOptions`
   bool enabled = true,
@@ -118,24 +118,24 @@ UseQueryResult<TData, TError> useQuery<TData, TError>(
   final observerRef = useRef<Observer<TData, TError>?>(null);
   useEffect(() {
     observerRef.value = Observer(
-      queryKey,
+      QueryKey(queryKey),
       fetcher,
       client: client,
       options: options,
     );
     return;
-  }, [queryKey.lock]);
+  }, [QueryKey(queryKey)]);
 
   // Rebuild observer if the query is changed somehow,
   // typically when the query is removed from the cache.
   final query = useListenableSelector(
     client.queryCache,
-    () => client.queryCache.queries[queryKey.lock],
+    () => client.queryCache.queries[QueryKey(queryKey)],
   );
   useEffect(() {
     if (query == null) {
       observerRef.value = Observer(
-        queryKey,
+        QueryKey(queryKey),
         fetcher,
         client: client,
         options: options,

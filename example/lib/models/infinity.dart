@@ -28,6 +28,7 @@ class Infinity {
   }
 
   Future<PageResult> get(int page) async {
+    print('get');
     const itemsPerPage = 20;
     await MockServer.delay();
     final content =

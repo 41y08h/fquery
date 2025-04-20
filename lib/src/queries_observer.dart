@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
+import 'package:fquery/src/query.dart';
 
 typedef QueriesOptions<TData, TError> = UseQueriesOptions<TData, TError>;
 
@@ -36,10 +37,10 @@ class QueriesObserver<TData, TError> extends ChangeNotifier {
     final newObservers = options.map(
       (option) {
         final observer = previousObservers.firstWhereOrNull(
-              (observer) => observer.queryKey.lock == option.queryKey.lock,
+              (observer) => observer.queryKey == QueryKey(option.queryKey),
             ) ??
             Observer<TData, TError>(
-              option.queryKey,
+              QueryKey(option.queryKey),
               option.fetcher,
               client: client,
               options: UseQueryOptions(

@@ -7,7 +7,7 @@ import 'package:fquery/src/query.dart';
 class InfiniteQueryBuilder<TData, TError, TPageParam> extends HookWidget {
   final Widget Function(
       BuildContext, UseInfiniteQueryResult<TData, TError, TPageParam>) builder;
-  final QueryKey queryKey;
+  final QueryKeyParameter queryKey;
   final InfiniteQueryFn<TData, TPageParam> queryFn;
   final TPageParam initialPageParam;
 

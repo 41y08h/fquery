@@ -123,7 +123,7 @@ class UseInfiniteQueryResult<TData, TError, TPageParam> {
 /// ```
 UseInfiniteQueryResult<TData, TError, TPageParam>
     useInfiniteQuery<TData, TError, TPageParam>(
-  QueryKey queryKey,
+  QueryKeyParameter queryKey,
   InfiniteQueryFn<TData, TPageParam> queryFn, {
   required TPageParam initialPageParam,
   required TPageParam? Function(
@@ -183,7 +183,7 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
       client: client,
       options: options,
     ),
-    [queryKey.lock],
+    [QueryKey(queryKey)],
   );
 
   // This subscribes to the observer

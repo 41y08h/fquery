@@ -29,7 +29,7 @@ class Observer<TData, TError> extends ChangeNotifier with QueryListener {
     required UseQueryOptions<TData, TError> options,
   }) {
     query = client.queryCache.build<TData, TError>(
-      queryKey: queryKey,
+      queryKey: queryKey.raw,
       client: client,
     );
     _setOptions(options);

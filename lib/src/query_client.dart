@@ -49,13 +49,13 @@ class QueryClient {
   /// })
   /// ```
   void setQueryData<TData>(
-      QueryKey queryKey, TData Function(TData? previous) updater) {
+      QueryKeyParameter queryKey, TData Function(TData? previous) updater) {
     final query =
         queryCache.build<TData, dynamic>(queryKey: queryKey, client: this);
     query.dispatch(DispatchAction.success, updater(query.state.data));
   }
 
-  TData? getQueryData<TData>(QueryKey queryKey) {
+  TData? getQueryData<TData>(QueryKeyParameter queryKey) {
     try {
       final query = queryCache.get<TData, dynamic>(queryKey);
       return query.state.data;
@@ -86,24 +86,24 @@ class QueryClient {
   /// // Only this will invalidate
   /// final posts = useQuery(['posts'], getPosts);
   /// ```
-  void invalidateQueries(QueryKey key, {bool exact = false}) {
+  void invalidateQueries(QueryKeyParameter key, {bool exact = false}) {
     queryCache.queries.forEach((queryKey, query) {
       void action() {
         query.dispatch(DispatchAction.invalidate, null);
       }
 
       if (exact) {
-        if (queryKey == key.lock) action();
+        if (queryKey.serialized == QueryKey(key).serialized) action();
       } else {
-        final isPartialMatch = queryKey.length >= key.length &&
-            queryKey.sublist(0, key.length) == key.lock;
+        final isPartialMatch = queryKey.raw.length >= key.length &&
+            QueryKey(queryKey.raw.sublist(0, key.length)) == QueryKey(key);
 
         if (isPartialMatch) action();
       }
     });
   }
 
-  void removeQueries(QueryKey key, {bool exact = false}) {
+  void removeQueries(QueryKeyParameter key, {bool exact = false}) {
     queryCache.queries.forEach((queryKey, query) {
       void action() {
         Future.delayed(Duration.zero, () {
@@ -112,10 +112,10 @@ class QueryClient {
       }
 
       if (exact) {
-        if (queryKey == key.lock) action();
+        if (queryKey.serialized == QueryKey(key).serialized) action();
       } else {
-        final isPartialMatch = queryKey.length >= key.length &&
-            queryKey.sublist(0, key.length) == key.lock;
+        final isPartialMatch = queryKey.raw.length >= key.length &&
+            QueryKey(queryKey.raw.sublist(0, key.length)) == QueryKey(key);
 
         if (isPartialMatch) action();
       }
