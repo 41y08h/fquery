@@ -512,6 +512,9 @@ Thanks go to these wonderful people:
       <td align="center" valign="top" width="14.28%"><a href="https://blog.wadackel.me"><img src="https://avatars.githubusercontent.com/u/5393238?v=4?s=100" width="100px;" alt="tsuyoshi wada"/><br /><sub><b>tsuyoshi wada</b></sub></a><br /><a href="#bug-wadackel" title="Bug reports">🐛</a> <a href="#code-wadackel" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/du-nt"><img src="https://avatars.githubusercontent.com/u/61105819?v=4?s=100" width="100px;" alt="du-nt"/><br /><sub><b>du-nt</b></sub></a><br /><a href="#ideas-du-nt" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://clynamic.net"><img src="https://avatars.githubusercontent.com/u/11785085?v=4?s=100" width="100px;" alt="clragon"/><br /><sub><b>clragon</b></sub></a><br /><a href="#bug-clragon" title="Bug reports">🐛</a></td>
+    </tr>
   </tbody>
 </table>
 
