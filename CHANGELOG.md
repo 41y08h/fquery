@@ -86,3 +86,7 @@
 ## 1.5.4-beta.1
 
 - Bug fix: `QueryKey` didn't use deep equality. Note: Query keys must be serializable.
+
+## 1.5.4-beta.2
+
+- Remove unused import in code
