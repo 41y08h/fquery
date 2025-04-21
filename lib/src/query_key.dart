@@ -1,23 +1,26 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'dart:convert';
+import 'package:collection/collection.dart';
 
-// TODO: Add `public_member_api_docs` to `rules` in `linter` of analysis_options.yaml:
+/// TODO: Add `public_member_api_docs` to `rules` in `linter` of analysis_options.yaml
 
-typedef RawQueryKey = List<Object>;
+typedef RawQueryKey = List<Object?>;
 
 /// A serializable, deeply comparable query key.
 ///
-/// Internally uses `jsonEncode` for equality and hashCode,
-/// making it perfect for use as a cache key or map key.
+/// Uses `DeepCollectionEquality` for equality and hashing,
+/// and `jsonEncode` only for debugging/serialization purposes.
 class QueryKey {
   /// The original, user-defined query key.
   final RawQueryKey raw;
 
   /// Creates a query key from a list of values.
-  QueryKey(RawQueryKey key) : raw = key;
+  QueryKey(this.raw);
 
-  /// The stringified version of the key, used for hashing and equality.
+  static final _equality = DeepCollectionEquality();
+
+  /// The stringified version of the key, for logging/debugging.
   late final String _serialized = jsonEncode(raw);
 
   /// Returns the serialized representation.
@@ -26,10 +29,10 @@ class QueryKey {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is QueryKey && _serialized == other._serialized;
+      other is QueryKey && _equality.equals(raw, other.raw);
 
   @override
-  int get hashCode => _serialized.hashCode;
+  int get hashCode => _equality.hash(raw);
 
   @override
   String toString() => 'QueryKey($serialized)';
