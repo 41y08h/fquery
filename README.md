@@ -6,6 +6,8 @@ Introducing [fquery](https://github.com/41y08h/fquery) - an easy-to-use, yet eff
 
 With this powerful tool at your disposal, managing server state (REST API, GraphQL, etc), local databases like SQLite, or anything async has never been easier. Just provide a `Future` and watch the magic unfold.
 
+## *We're actively seeking passionate contributors for this project. You can contact on [discord](https://discord.com/users/__piyush__)*
+
 ### Community
 
 <a href="https://discord.gg/udhkduc9sQ" target="_blank" >
