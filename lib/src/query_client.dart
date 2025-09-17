@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:fquery/src/query_cache.dart';
+import 'package:fquery/src/query_client_provider.dart';
 import 'package:fquery/src/query_key.dart';
 import 'query.dart';
 
@@ -29,6 +31,13 @@ class QueryClient {
 
   QueryClient({DefaultQueryOptions? defaultQueryOptions}) {
     this.defaultQueryOptions = defaultQueryOptions ?? DefaultQueryOptions();
+  }
+
+  static QueryClientProvider of(BuildContext context) {
+    final QueryClientProvider? result =
+        context.dependOnInheritedWidgetOfExactType<QueryClientProvider>();
+    assert(result != null, 'QueryClientProvider not found');
+    return result!;
   }
 
   /// Sets the query cache idendifiable by the given query key.
