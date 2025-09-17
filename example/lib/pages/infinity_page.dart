@@ -10,7 +10,7 @@ class InfinityPage extends HookWidget {
   Widget build(BuildContext context) {
     final scrollController = useScrollController();
     final infinityAPI = Infinity.getInstance();
-    final itemsQuery = useInfiniteQuery<PageResult, Error, int>(
+    final itemsQuery = useInfiniteQuery<PageResult, Exception, int>(
       [
         'infinity',
         {
@@ -49,7 +49,7 @@ class InfinityPage extends HookWidget {
         middle: Text("Infinity"),
       ),
       child: SafeArea(
-        child: InfiniteQueryBuilder<PageResult, Error, int>(
+        child: InfiniteQueryBuilder<PageResult, Exception, int>(
           const [
             'infinity',
             {

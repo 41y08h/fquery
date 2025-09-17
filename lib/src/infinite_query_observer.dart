@@ -42,8 +42,8 @@ class InfiniteQueryOptions<TData, TError, TPageParam>
 
 typedef InfiniteQueryFn<TData, TPageParam> = Future<TData> Function(TPageParam);
 
-class InfiniteQueryObserver<TData, TError, TPageParam> extends ChangeNotifier
-    with QueryListener {
+class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
+    extends ChangeNotifier with QueryListener {
   final RawQueryKey queryKey;
   final QueryClient client;
   final InfiniteQueryFn<TData, TPageParam> fetcher;

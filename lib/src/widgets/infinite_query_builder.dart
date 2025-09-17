@@ -4,7 +4,8 @@ import 'package:fquery/fquery.dart';
 import 'package:fquery/src/infinite_query_observer.dart';
 import 'package:fquery/src/query_key.dart';
 
-class InfiniteQueryBuilder<TData, TError, TPageParam> extends HookWidget {
+class InfiniteQueryBuilder<TData, TError extends Exception, TPageParam>
+    extends HookWidget {
   final Widget Function(
       BuildContext, UseInfiniteQueryResult<TData, TError, TPageParam>) builder;
   final RawQueryKey queryKey;

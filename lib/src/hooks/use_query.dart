@@ -80,7 +80,7 @@ class UseQueryOptions<TData, TError> {
 ///   - `RefetchOnMount.never` - will never refetch.
 /// - `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually.
 
-UseQueryResult<TData, TError> useQuery<TData, TError>(
+UseQueryResult<TData, TError> useQuery<TData, TError extends Exception>(
   RawQueryKey queryKey,
   QueryFn<TData> fetcher, {
   // These options must match with the `UseQueryOptions`

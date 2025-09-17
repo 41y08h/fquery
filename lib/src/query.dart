@@ -65,7 +65,7 @@ class FetchMeta {
   }
 }
 
-class Query<TData, TError> with Removable {
+class Query<TData, TError extends Exception> with Removable {
   final QueryClient client;
   final QueryKey key;
 

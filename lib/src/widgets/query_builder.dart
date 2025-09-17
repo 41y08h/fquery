@@ -4,7 +4,7 @@ import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
 import 'package:fquery/src/query_key.dart';
 
-class QueryBuilder<TData, TError> extends HookWidget {
+class QueryBuilder<TData, TError extends Exception> extends HookWidget {
   final Widget Function(BuildContext, UseQueryResult<TData, TError>) builder;
   final RawQueryKey queryKey;
   final QueryFn<TData> queryFn;

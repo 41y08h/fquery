@@ -122,7 +122,7 @@ class UseInfiniteQueryResult<TData, TError, TPageParam> {
 /// );
 /// ```
 UseInfiniteQueryResult<TData, TError, TPageParam>
-    useInfiniteQuery<TData, TError, TPageParam>(
+    useInfiniteQuery<TData, TError extends Exception, TPageParam>(
   RawQueryKey queryKey,
   InfiniteQueryFn<TData, TPageParam> queryFn, {
   required TPageParam initialPageParam,

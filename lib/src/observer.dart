@@ -13,7 +13,8 @@ typedef QueryFn<TData> = Future<TData> Function();
 /// It is responsible for fetching the query and updating the cache.
 /// There can be multiple observers for the same query and hence
 /// sharing the same piece of data throughout the whole application.
-class Observer<TData, TError> extends ChangeNotifier with QueryListener {
+class Observer<TData, TError extends Exception> extends ChangeNotifier
+    with QueryListener {
   final QueryKey queryKey;
   final QueryClient client;
   final QueryFn<TData> fetcher;

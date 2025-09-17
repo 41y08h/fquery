@@ -48,18 +48,18 @@ class QueryClient {
   ///   }).toList() ?? <Post>[]
   /// })
   /// ```
-  void setQueryData<TData>(
+  void setQueryData<TData, TError extends Exception>(
       RawQueryKey queryKey, TData Function(TData? previous) updater) {
-    final query = queryCache.build<TData, dynamic>(
+    final query = queryCache.build<TData, TError>(
         queryKey: QueryKey(queryKey), client: this);
     query.dispatch(DispatchAction.success, updater(query.state.data));
   }
 
-  TData? getQueryData<TData>(RawQueryKey queryKey) {
+  TData? getQueryData<TData, TError extends Exception>(RawQueryKey queryKey) {
     try {
-      final query = queryCache.get<TData, dynamic>(QueryKey(queryKey));
+      final query = queryCache.get<TData, TError>(QueryKey(queryKey));
       return query.state.data;
-    } catch (e) {
+    } on QueryNotFoundException {
       return null as TData?;
     }
   }
@@ -86,10 +86,13 @@ class QueryClient {
   /// // Only this will invalidate
   /// final posts = useQuery(['posts'], getPosts);
   /// ```
-  void invalidateQueries(RawQueryKey key, {bool exact = false}) {
+  void invalidateQueries<TData, TError extends Exception>(RawQueryKey key,
+      {bool exact = false}) {
     queryCache.queries.forEach((queryKey, query) {
       void action() {
-        query.dispatch(DispatchAction.invalidate, null);
+        if (query is Query<TData, TError>) {
+          query.dispatch(DispatchAction.invalidate, null);
+        }
       }
 
       if (exact) {
@@ -103,12 +106,15 @@ class QueryClient {
     });
   }
 
-  void removeQueries(RawQueryKey key, {bool exact = false}) {
+  void removeQueries<TData, TError extends Exception>(RawQueryKey key,
+      {bool exact = false}) {
     queryCache.queries.forEach((queryKey, query) {
       void action() {
-        Future.delayed(Duration.zero, () {
-          queryCache.remove(query);
-        });
+        if (query is Query<TData, TError>) {
+          Future.delayed(Duration.zero, () {
+            queryCache.remove<TData, TError>(query);
+          });
+        }
       }
 
       if (exact) {

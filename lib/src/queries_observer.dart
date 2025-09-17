@@ -15,7 +15,7 @@ List<T> difference<T>(List<T> array1, List<T> array2) {
 typedef QueriesObserverOptions<TData, TError>
     = List<QueriesOptions<TData, TError>>;
 
-class QueriesObserver<TData, TError> extends ChangeNotifier {
+class QueriesObserver<TData, TError extends Exception> extends ChangeNotifier {
   final QueryClient client;
   List<Observer<TData, TError>> observers = [];
 
