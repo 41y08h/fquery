@@ -2,7 +2,6 @@ import 'package:basic/models/infinity.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
-import 'dart:math';
 
 class InfinityPage extends HookWidget {
   const InfinityPage({super.key});
@@ -51,7 +50,7 @@ class InfinityPage extends HookWidget {
       navigationBar: CupertinoNavigationBar(
         middle: const Text("Infinity"),
         trailing: itemsQuery.isFetching
-            ? CupertinoActivityIndicator()
+            ? const CupertinoActivityIndicator()
             : CupertinoButton(
                 padding: EdgeInsets.zero,
                 onPressed: itemsQuery.refetch,

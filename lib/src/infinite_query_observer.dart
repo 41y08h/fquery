@@ -8,23 +8,32 @@ import 'package:fquery/src/query_key.dart';
 import 'package:fquery/src/retry_resolver.dart';
 import 'package:fquery/src/query_listener.dart';
 
+/// The result of an infinite query, including the pages, page parameters, error, status flags, and functions to fetch more pages.
 class InfiniteQueryOptions<TData, TError, TPageParam>
     extends QueryOptions<TData, TError> {
+  /// The initial page parameter to start fetching from.
   final TPageParam initialPageParam;
+
+  /// Function to get the next page parameter based on the last page, all pages, last page parameter, and all page parameters.
   final TPageParam? Function(
     TData,
     List<TData>,
     TPageParam,
     List<TPageParam>,
   ) getNextPageParam;
+
+  /// Optional function to get the previous page parameter based on the first page, all pages, first page parameter, and all page parameters.
   final TPageParam? Function(
     TData,
     List<TData>,
     TPageParam,
     List<TPageParam>,
   )? getPreviousPageParam;
+
+  /// The maximum number of pages to keep in the cache. If the number of pages exceeds this limit, the oldest page will be removed.
   int? maxPages;
 
+  /// Creates a new instance of [InfiniteQueryOptions].
   InfiniteQueryOptions({
     required this.initialPageParam,
     required this.getNextPageParam,
@@ -40,21 +49,37 @@ class InfiniteQueryOptions<TData, TError, TPageParam>
   });
 }
 
+/// The function used to fetch a page of data in an infinite query.
 typedef InfiniteQueryFn<TData, TPageParam> = Future<TData> Function(TPageParam);
 
+/// Observer for infinite queries.
 class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     extends ChangeNotifier with QueryListener {
+  /// The query key associated with this observer.
   final RawQueryKey queryKey;
+
+  /// The query client used to manage queries.
   final QueryClient client;
+
+  /// The function used to fetch a page of data.
   final InfiniteQueryFn<TData, TPageParam> fetcher;
+
+  /// The query instance managed by this observer.
   late final Query<InfiniteQueryData<TData, TPageParam>, TError> query;
 
+  /// The options used to configure this observer.
   late InfiniteQueryOptions<TData, TError, TPageParam> options;
 
+  /// Resolver to handle retries for fetching data.
   final resolver = RetryResolver();
+
+  /// List of resolvers for refetching each page.
   var refetchResolvers = <RetryResolver>[];
+
+  /// Timer for scheduling refetches.
   Timer? refetchTimer;
 
+  /// Creates a new instance of [InfiniteQueryObserver].
   InfiniteQueryObserver(
     this.queryKey,
     this.fetcher, {
@@ -70,8 +95,8 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     query.setCacheDuration(this.options.cacheDuration);
   }
 
-  // This is called from the [useInfiniteQuery] hook
-  // whenever the first widget build is done
+  /// This is called from the [useInfiniteQuery] hook
+  /// whenever the first widget build is done
   void initialize() {
     // Subcribe to any query state changes
     query.subscribe(this);
@@ -166,6 +191,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     }
   }
 
+  /// Fetches the next page using the [getNextPageParam] function.
   void fetchNextPage() {
     final data = query.state.data;
     if (data == null) return;
@@ -189,6 +215,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     );
   }
 
+  /// Fetches the previous page using the [getPreviousPageParam] function.
   void fetchPreviousPage() {
     final data = query.state.data;
     if (data == null) return;

@@ -4,14 +4,27 @@ import 'package:fquery/src/query_client_provider.dart';
 import 'package:fquery/src/query_key.dart';
 import 'query.dart';
 
+/// Default options for all queries.
 class DefaultQueryOptions {
+  /// The behavior of the query when the widget is first built and the data is already available.
   final RefetchOnMount refetchOnMount;
+
+  /// The duration until the data becomes stale.
   final Duration staleDuration;
+
+  /// The duration until the data is removed from the cache.
   final Duration cacheDuration;
+
+  /// The interval at which the query will be refetched.
   final Duration? refetchInterval;
+
+  /// The number of retry attempts if the query fails.
   final int retryCount;
+
+  /// The delay between retry attempts if the query fails.
   final Duration retryDelay;
 
+  /// Creates a new [DefaultQueryOptions] instance.
   DefaultQueryOptions({
     this.refetchOnMount = RefetchOnMount.stale,
     this.staleDuration = Duration.zero,
@@ -26,13 +39,18 @@ class DefaultQueryOptions {
 /// Can also be used to configure queries on a global basis
 /// using [DefaultQueryOptions].
 class QueryClient {
+  /// The query cache used to store and manage queries.
   final QueryCache queryCache = QueryCache();
+
+  /// Default options for all queries.
   late DefaultQueryOptions defaultQueryOptions;
 
+  /// Creates a new [QueryClient] instance.
   QueryClient({DefaultQueryOptions? defaultQueryOptions}) {
     this.defaultQueryOptions = defaultQueryOptions ?? DefaultQueryOptions();
   }
 
+  /// Retrieves the nearest [QueryClientProvider] up the widget tree.
   static QueryClientProvider of(BuildContext context) {
     final QueryClientProvider? result =
         context.dependOnInheritedWidgetOfExactType<QueryClientProvider>();
@@ -64,6 +82,7 @@ class QueryClient {
     query.dispatch(DispatchAction.success, updater(query.state.data));
   }
 
+  /// Retrieves the query data for the given query key.
   TData? getQueryData<TData, TError extends Exception>(RawQueryKey queryKey) {
     try {
       final query = queryCache.get<TData, TError>(QueryKey(queryKey));
@@ -115,6 +134,7 @@ class QueryClient {
     });
   }
 
+  /// Removes queries from the cache.
   void removeQueries<TData, TError extends Exception>(RawQueryKey key,
       {bool exact = false}) {
     queryCache.queries.forEach((queryKey, query) {
@@ -137,6 +157,7 @@ class QueryClient {
     });
   }
 
+  /// Returns the number of queries that are currently fetching.
   int isFetching() {
     return queryCache.queries.entries
         .where((queryMap) => queryMap.value.state.isFetching)

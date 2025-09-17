@@ -2,10 +2,16 @@ import 'dart:async';
 
 /// This is used to retry a future several times before giving up.
 class RetryResolver {
+  /// Indicates if the resolver is currently running.
   bool isRunning = false;
+
+  /// Called when the resolver is cancelled.
   void Function()? onCancel;
+
+  /// Creates a new instance of [RetryResolver].
   RetryResolver();
 
+  /// Resolves the given function with retries.
   Future<void> resolve<T>(
     FutureOr<T> Function() fn, {
     required int retryCount,
@@ -39,11 +45,13 @@ class RetryResolver {
     reset();
   }
 
+  /// Cancels the current resolution process.
   void cancel() {
     isRunning = false;
     onCancel?.call();
   }
 
+  /// Resets the resolver state.
   void reset() {
     isRunning = false;
   }
