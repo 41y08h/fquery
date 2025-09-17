@@ -2,6 +2,7 @@ import 'package:basic/models/infinity.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
+import 'dart:math';
 
 class InfinityPage extends HookWidget {
   const InfinityPage({super.key});
@@ -17,7 +18,9 @@ class InfinityPage extends HookWidget {
           'type': 'scroll',
         },
       ],
-      (page) => infinityAPI.get(page),
+      (page) {
+        return infinityAPI.get(page);
+      },
       initialPageParam: 1,
       getNextPageParam: ((lastPage, allPages, lastPageParam, allPageParam) {
         return lastPage.hasMore ? lastPage.page + 1 : null;
@@ -45,8 +48,15 @@ class InfinityPage extends HookWidget {
     }, []);
 
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text("Infinity"),
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text("Infinity"),
+        trailing: itemsQuery.isFetching
+            ? CupertinoActivityIndicator()
+            : CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: itemsQuery.refetch,
+                child: const Icon(CupertinoIcons.refresh),
+              ),
       ),
       child: SafeArea(
         child: InfiniteQueryBuilder<PageResult, Exception, int>(
@@ -56,7 +66,9 @@ class InfinityPage extends HookWidget {
               'type': 'scroll',
             },
           ],
-          (page) => infinityAPI.get(page),
+          (page) {
+            return infinityAPI.get(page);
+          },
           initialPageParam: 1,
           getNextPageParam: ((lastPage, allPages, lastPageParam, allPageParam) {
             return lastPage.hasMore ? lastPage.page + 1 : null;
