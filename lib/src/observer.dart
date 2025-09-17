@@ -7,22 +7,37 @@ import 'query.dart';
 import 'query_client.dart';
 import 'retry_resolver.dart';
 
+/// A function that fetches data for a query.
 typedef QueryFn<TData> = Future<TData> Function();
 
 /// An observer is a class which subscribes to a query and updates its state when the query changes.
 /// It is responsible for fetching the query and updating the cache.
 /// There can be multiple observers for the same query and hence
 /// sharing the same piece of data throughout the whole application.
-class Observer<TData, TError> extends ChangeNotifier with QueryListener {
+class Observer<TData, TError extends Exception> extends ChangeNotifier
+    with QueryListener {
+  /// The query key used to identify the query.
   final QueryKey queryKey;
+
+  /// The query client used to manage the query.
   final QueryClient client;
+
+  /// The function that fetches the data for the query.
   final QueryFn<TData> fetcher;
+
+  /// The query instance managed by this observer.
   late final Query<TData, TError> query;
 
+  /// The options used to configure the query.
   late QueryOptions<TData, TError> options;
+
+  /// The retry resolver used to handle retries.
   final resolver = RetryResolver();
+
+  /// The timer used to schedule refetches.
   Timer? refetchTimer;
 
+  /// Creates a new [Observer] instance.
   Observer(
     this.queryKey,
     this.fetcher, {
@@ -37,8 +52,8 @@ class Observer<TData, TError> extends ChangeNotifier with QueryListener {
     query.setCacheDuration(this.options.cacheDuration);
   }
 
-  // This is called from the [useQuery] hook
-  // whenever the first widget build is done
+  /// This is called from the [useQuery] hook
+  /// whenever the first widget build is done
   void initialize() {
     // Subcribe to any query state changes
     query.subscribe(this);

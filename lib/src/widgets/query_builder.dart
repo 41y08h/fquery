@@ -4,19 +4,39 @@ import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
 import 'package:fquery/src/query_key.dart';
 
-class QueryBuilder<TData, TError> extends HookWidget {
+/// A Builder widget which uses [useQuery] internally
+class QueryBuilder<TData, TError extends Exception> extends HookWidget {
+  /// The builder function which recevies the [UseQueryResult] along with the [BuildContext]
   final Widget Function(BuildContext, UseQueryResult<TData, TError>) builder;
+
+  /// The query key used to identify the query.
   final RawQueryKey queryKey;
+
+  /// The function that fetches the data for the query.
   final QueryFn<TData> queryFn;
+
+  /// Whether the query is enabled or not
   final bool enabled;
 
+  /// Refetch behavior when the widget is mounted
   final RefetchOnMount? refetchOnMount;
+
+  /// The duration until the data becomes stale.
   final Duration? staleDuration;
+
+  /// The duration until the data is removed from the cache.
   final Duration? cacheDuration;
+
+  /// The interval at which the query will be refetched.
   final Duration? refetchInterval;
+
+  /// The number of retry attempts if the query fails.
   final int? retryCount;
+
+  /// The delay between retry attempts if the query fails.
   final Duration? retryDelay;
 
+  /// Creates a new [QueryBuilder] instance.
   const QueryBuilder(
     this.queryKey,
     this.queryFn, {

@@ -23,7 +23,7 @@ class UseQueriesOptions<TData, TError> extends UseQueryOptions<TData, TError> {
   });
 }
 
-List<UseQueryResult<TData, TError>> useQueries<TData, TError>(
+List<UseQueryResult<TData, TError>> useQueries<TData, TError extends Exception>(
   List<UseQueriesOptions<TData, TError>> options,
 ) {
   final client = useQueryClient();

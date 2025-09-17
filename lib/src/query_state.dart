@@ -5,13 +5,21 @@ import 'package:flutter/foundation.dart';
 part 'query_state.freezed.dart';
 
 @freezed
+
+/// State of a query.
 class QueryState<TData, TError> with _$QueryState<TData, TError> {
   const QueryState._();
 
+  /// Tells if is fetching for the first time.
   bool get isLoading => status == QueryStatus.loading;
+
+  /// Tells if the query was successful.
   bool get isSuccess => status == QueryStatus.success;
+
+  /// Tells if the query is in error state.
   bool get isError => status == QueryStatus.error;
 
+  /// Creates a new instance of [QueryState].
   const factory QueryState({
     TData? data,
     TError? error,

@@ -90,3 +90,9 @@
 ## 1.5.4-beta.2
 
 - Remove unused import in code
+
+## 2.0.0
+
+- API docs
+- Fix bugs
+- Refetch method for infinite queries

@@ -1,15 +1,30 @@
+import 'package:flutter/widgets.dart';
 import 'package:fquery/src/query_cache.dart';
+import 'package:fquery/src/query_client_provider.dart';
 import 'package:fquery/src/query_key.dart';
 import 'query.dart';
 
+/// Default options for all queries.
 class DefaultQueryOptions {
+  /// The behavior of the query when the widget is first built and the data is already available.
   final RefetchOnMount refetchOnMount;
+
+  /// The duration until the data becomes stale.
   final Duration staleDuration;
+
+  /// The duration until the data is removed from the cache.
   final Duration cacheDuration;
+
+  /// The interval at which the query will be refetched.
   final Duration? refetchInterval;
+
+  /// The number of retry attempts if the query fails.
   final int retryCount;
+
+  /// The delay between retry attempts if the query fails.
   final Duration retryDelay;
 
+  /// Creates a new [DefaultQueryOptions] instance.
   DefaultQueryOptions({
     this.refetchOnMount = RefetchOnMount.stale,
     this.staleDuration = Duration.zero,
@@ -24,11 +39,23 @@ class DefaultQueryOptions {
 /// Can also be used to configure queries on a global basis
 /// using [DefaultQueryOptions].
 class QueryClient {
+  /// The query cache used to store and manage queries.
   final QueryCache queryCache = QueryCache();
+
+  /// Default options for all queries.
   late DefaultQueryOptions defaultQueryOptions;
 
+  /// Creates a new [QueryClient] instance.
   QueryClient({DefaultQueryOptions? defaultQueryOptions}) {
     this.defaultQueryOptions = defaultQueryOptions ?? DefaultQueryOptions();
+  }
+
+  /// Retrieves the nearest [QueryClientProvider] up the widget tree.
+  static QueryClientProvider of(BuildContext context) {
+    final QueryClientProvider? result =
+        context.dependOnInheritedWidgetOfExactType<QueryClientProvider>();
+    assert(result != null, 'QueryClientProvider not found');
+    return result!;
   }
 
   /// Sets the query cache idendifiable by the given query key.
@@ -48,18 +75,19 @@ class QueryClient {
   ///   }).toList() ?? <Post>[]
   /// })
   /// ```
-  void setQueryData<TData>(
+  void setQueryData<TData, TError extends Exception>(
       RawQueryKey queryKey, TData Function(TData? previous) updater) {
-    final query = queryCache.build<TData, dynamic>(
+    final query = queryCache.build<TData, TError>(
         queryKey: QueryKey(queryKey), client: this);
     query.dispatch(DispatchAction.success, updater(query.state.data));
   }
 
-  TData? getQueryData<TData>(RawQueryKey queryKey) {
+  /// Retrieves the query data for the given query key.
+  TData? getQueryData<TData, TError extends Exception>(RawQueryKey queryKey) {
     try {
-      final query = queryCache.get<TData, dynamic>(QueryKey(queryKey));
+      final query = queryCache.get<TData, TError>(QueryKey(queryKey));
       return query.state.data;
-    } catch (e) {
+    } on QueryNotFoundException {
       return null as TData?;
     }
   }
@@ -86,10 +114,13 @@ class QueryClient {
   /// // Only this will invalidate
   /// final posts = useQuery(['posts'], getPosts);
   /// ```
-  void invalidateQueries(RawQueryKey key, {bool exact = false}) {
+  void invalidateQueries<TData, TError extends Exception>(RawQueryKey key,
+      {bool exact = false}) {
     queryCache.queries.forEach((queryKey, query) {
       void action() {
-        query.dispatch(DispatchAction.invalidate, null);
+        if (query is Query<TData, TError>) {
+          query.dispatch(DispatchAction.invalidate, null);
+        }
       }
 
       if (exact) {
@@ -103,12 +134,16 @@ class QueryClient {
     });
   }
 
-  void removeQueries(RawQueryKey key, {bool exact = false}) {
+  /// Removes queries from the cache.
+  void removeQueries<TData, TError extends Exception>(RawQueryKey key,
+      {bool exact = false}) {
     queryCache.queries.forEach((queryKey, query) {
       void action() {
-        Future.delayed(Duration.zero, () {
-          queryCache.remove(query);
-        });
+        if (query is Query<TData, TError>) {
+          Future.delayed(Duration.zero, () {
+            queryCache.remove<TData, TError>(query);
+          });
+        }
       }
 
       if (exact) {
@@ -122,6 +157,7 @@ class QueryClient {
     });
   }
 
+  /// Returns the number of queries that are currently fetching.
   int isFetching() {
     return queryCache.queries.entries
         .where((queryMap) => queryMap.value.state.isFetching)

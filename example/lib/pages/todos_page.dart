@@ -27,10 +27,11 @@ class TodosPage extends HookWidget {
         todosAPI.add, onMutate: (text) async {
       FocusManager.instance.primaryFocus?.unfocus();
 
-      final previousTodos = client.getQueryData<List<Todo>>(['todos']) ?? [];
+      final previousTodos =
+          client.getQueryData<List<Todo>, Exception>(['todos']) ?? [];
 
       // Optimistically update the todo list
-      client.setQueryData<List<Todo>>(['todos'], (previous) {
+      client.setQueryData<List<Todo>, Exception>(['todos'], (previous) {
         final id = Random().nextInt(pow(10, 6).toInt());
         final newTodo = Todo(id: id, text: text);
         return [...(previous ?? []), newTodo];
@@ -40,7 +41,7 @@ class TodosPage extends HookWidget {
       return previousTodos;
     }, onError: (err, text, previousTodos) {
       // On failure, revert back to original data
-      client.setQueryData<List<Todo>>(
+      client.setQueryData<List<Todo>, Exception>(
         ['todos'],
         (_) => previousTodos as List<Todo>,
       );
@@ -94,7 +95,7 @@ class TodosPage extends HookWidget {
         ),
       ),
       child: SafeArea(
-        child: QueryBuilder<List<Todo>, dynamic>(
+        child: QueryBuilder<List<Todo>, Exception>(
           const ['todos'],
           todosAPI.getAll,
           refetchOnMount: RefetchOnMount.never,

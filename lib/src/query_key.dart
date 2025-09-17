@@ -3,8 +3,6 @@
 import 'dart:convert';
 import 'package:collection/collection.dart';
 
-/// TODO: Add `public_member_api_docs` to `rules` in `linter` of analysis_options.yaml
-
 typedef RawQueryKey = List<Object?>;
 
 /// A serializable, deeply comparable query key.

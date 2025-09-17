@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:fquery/fquery.dart';
 
+/// A mixin that provides functionality for removable objects with cache duration and garbage collection.
 mixin Removable {
   Duration? _cacheDuration;
   Timer? _garbageCollectionTimer;
@@ -23,12 +24,14 @@ mixin Removable {
   //  Defined by the child class
   void onGarbageCollection() {}
 
+  /// Schedules the garbage collection timer
   void scheduleGarbageCollection() {
     _garbageCollectionTimer?.cancel();
     final duration = _cacheDuration ?? DefaultQueryOptions().cacheDuration;
     _garbageCollectionTimer = Timer(duration, onGarbageCollection);
   }
 
+  /// Cancels the garbage collection timer
   void cancelGarbageCollection() {
     _garbageCollectionTimer?.cancel();
     _garbageCollectionTimer = null;

@@ -5,11 +5,19 @@ import 'package:fquery/src/mutation.dart';
 /// A [MutationObserver] is a class which holds a [Mutation] and handles its execution.
 class MutationObserver<TData, TError, TVariables, TContext>
     extends ChangeNotifier {
+  /// The query client used to manage the mutation.
   final QueryClient client;
+
+  /// The options used to configure the mutation.
   late UseMutationOptions<TData, TError, TVariables, TContext> options;
+
+  /// The mutation instance managed by this observer.
   late Mutation<TData, TError, TVariables, TContext> mutation;
+
+  /// The variables used in the last mutation.
   TVariables? vars;
 
+  /// Creates a new [MutationObserver] instance.
   MutationObserver({
     required this.client,
     required UseMutationOptions<TData, TError, TVariables, TContext> options,

@@ -26,7 +26,7 @@ class TodoListTile extends HookWidget {
     }, onSuccess: (updatedTodo, newText, ctx) {
       isEditingMode.value = !isEditingMode.value;
 
-      client.setQueryData<List<Todo>>(
+      client.setQueryData<List<Todo>, Exception>(
         ['todos'],
         (previous) {
           if (previous == null) return [];
@@ -41,7 +41,7 @@ class TodoListTile extends HookWidget {
     final markMutation = useMutation<Todo, Exception, bool, void>((mark) {
       return todosAPI.mark(todo.id, mark);
     }, onSuccess: (updatedTodo, mark, ctx) {
-      client.setQueryData<List<Todo>>(
+      client.setQueryData<List<Todo>, Exception>(
         ['todos'],
         (previous) {
           if (previous == null) return [];
@@ -158,7 +158,7 @@ class TodoListTile extends HookWidget {
                         return id;
                       },
                       onSuccess: (id, _, ctx) {
-                        queryClient.setQueryData<List<Todo>>(
+                        queryClient.setQueryData<List<Todo>, Exception>(
                           ['todos'],
                           (previous) {
                             if (previous == null) return [];

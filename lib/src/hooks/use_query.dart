@@ -4,20 +4,45 @@ import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
 import 'package:fquery/src/query_key.dart';
 
+/// The result of a query, including the data, error, status flags, and a refetch function.
 class UseQueryResult<TData, TError> {
+  /// The latest data returned by the query, or null if the query has not been successful yet.
   final TData? data;
+
+  /// The time the data was last updated.
   final DateTime? dataUpdatedAt;
+
+  /// The latest error returned by the query, or null if the query has not resulted in an error.
   final TError? error;
+
+  /// The time the error was last updated.
   final DateTime? errorUpdatedAt;
+
+  /// Tells if the query resulted in an error.
   final bool isError;
+
+  /// Tells if the query is currently loading for the first time (no data yet).
   final bool isLoading;
+
+  /// Tells if the query is currently fetching, including background refetches.
   final bool isFetching;
+
+  /// Tells if the query was successful.
   final bool isSuccess;
+
+  /// The current status of the query.
   final QueryStatus status;
+
+  /// The function to manually refetch the query.
   final Future<void> Function() refetch;
+
+  /// Tells if the query has been invalidated and needs to be refetched.
   final bool isInvalidated;
+
+  /// Tells if the last fetch resulted in an error.
   final bool isRefetchError;
 
+  /// Creates a new [UseQueryResult] instance.
   UseQueryResult({
     required this.data,
     required this.dataUpdatedAt,
@@ -34,15 +59,30 @@ class UseQueryResult<TData, TError> {
   });
 }
 
+/// Options for configuring a query.
 class UseQueryOptions<TData, TError> {
+  /// Whether the query is enabled and should automatically fetch data.
   final bool enabled;
+
+  /// The behavior of the query when the widget is first built and the data is already available.
   final RefetchOnMount? refetchOnMount;
+
+  /// The duration until the data becomes stale.
   final Duration? staleDuration;
+
+  /// The duration unused/inactive cache data remains in memory.
   final Duration? cacheDuration;
+
+  /// The time interval in which the query will refetch the data.
   final Duration? refetchInterval;
+
+  /// The number of retry attempts if the query fails.
   final int? retryCount;
+
+  /// The delay between retry attempts if the query fails.
   final Duration? retryDelay;
 
+  /// Creates a new [UseQueryOptions] instance.
   UseQueryOptions({
     required this.enabled,
     this.refetchOnMount,
@@ -80,7 +120,7 @@ class UseQueryOptions<TData, TError> {
 ///   - `RefetchOnMount.never` - will never refetch.
 /// - `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually.
 
-UseQueryResult<TData, TError> useQuery<TData, TError>(
+UseQueryResult<TData, TError> useQuery<TData, TError extends Exception>(
   RawQueryKey queryKey,
   QueryFn<TData> fetcher, {
   // These options must match with the `UseQueryOptions`
