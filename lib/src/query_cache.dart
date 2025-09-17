@@ -51,7 +51,7 @@ class QueryCache extends ChangeNotifier {
     try {
       query = get<TData, TError>(queryKey);
       add(queryKey, query);
-    } catch (e) {
+    } on QueryNotFoundException {
       query = Query(client: client, key: queryKey);
       add(queryKey, query);
     }
