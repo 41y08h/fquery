@@ -4,11 +4,11 @@ import 'package:fquery/fquery.dart';
 /// Hook to get the number of active fetches across all queries.
 int useIsFetching() {
   final client = useQueryClient();
-  final result = useListenableSelector(
+  final count = useListenableSelector(
       client.queryCache,
       () => client.queryCache.queries.entries
           .where((queryMap) => queryMap.value.state.isFetching)
           .length);
 
-  return result;
+  return count;
 }

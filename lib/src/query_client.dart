@@ -51,11 +51,11 @@ class QueryClient {
   }
 
   /// Retrieves the nearest [QueryClientProvider] up the widget tree.
-  static QueryClientProvider of(BuildContext context) {
+  static QueryClient of(BuildContext context) {
     final QueryClientProvider? result =
         context.dependOnInheritedWidgetOfExactType<QueryClientProvider>();
     assert(result != null, 'QueryClientProvider not found');
-    return result!;
+    return result!.queryClient;
   }
 
   /// Sets the query cache idendifiable by the given query key.

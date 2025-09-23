@@ -30,102 +30,91 @@ class _PostsPageState extends State<PostsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return QueryClientBuilder(
-      builder: (context, client) {
-        return ListenableBuilder(
-          listenable: client.queryCache,
-          builder: (context, _) {
-            return QueriesBuilder<Post, Exception>(
-              List<UseQueriesOptions<Post, Exception>>.generate(
-                text,
-                (i) => UseQueriesOptions(
-                  queryKey: ['posts', i + 1],
-                  fetcher: () => getPost(i + 1),
-                  refetchOnMount: RefetchOnMount.never,
+    return QueriesBuilder<Post, Exception>(
+      List<UseQueriesOptions<Post, Exception>>.generate(
+        text,
+        (i) => UseQueriesOptions(
+          queryKey: ['posts', i + 1],
+          fetcher: () => getPost(i + 1),
+          refetchOnMount: RefetchOnMount.never,
+        ),
+      ),
+      builder: (context, posts) {
+        return CupertinoPageScaffold(
+          navigationBar: CupertinoNavigationBar(
+            leading: Row(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(
+                    CupertinoIcons.chevron_back,
+                    size: 25,
+                  ),
                 ),
+                const Text(
+                  'Posts ',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                )
+              ],
+            ),
+            trailing: IsFetchingBuilder(builder: (context, count) {
+              return Text("currently fetching $count queries");
+            }),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+              child: Column(
+                children: [
+                  CupertinoTextField(
+                    controller: postsCountInputController,
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      final intValue = int.tryParse(value);
+                      setState(() {
+                        if (intValue != null) {
+                          text = intValue;
+                        } else {
+                          text =
+                              1; // Fallback to a default value if parsing fails
+                        }
+                      });
+                    },
+                  ),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: posts.length,
+                      itemBuilder: (context, i) {
+                        final e = posts[i];
+                        return Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey, width: 0.5),
+                          ),
+                          child: CupertinoListTile(
+                            trailing:
+                                e.isFetching ? const Text("fetching...") : null,
+                            title: e.isLoading
+                                ? const Text("loading...")
+                                : Container(
+                                    child: e.isSuccess
+                                        ? Text(e.data!.title)
+                                        : Text("Error: ${e.error.toString()}"),
+                                  ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-              builder: (context, posts) {
-                return CupertinoPageScaffold(
-                  navigationBar: CupertinoNavigationBar(
-                    leading: Row(
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          icon: const Icon(
-                            CupertinoIcons.chevron_back,
-                            size: 25,
-                          ),
-                        ),
-                        const Text(
-                          'Posts ',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        )
-                      ],
-                    ),
-                    trailing:
-                        Text("currently fetching ${client.isFetching} queries"),
-                  ),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8.0, horizontal: 12.0),
-                      child: Column(
-                        children: [
-                          CupertinoTextField(
-                            controller: postsCountInputController,
-                            keyboardType: TextInputType.number,
-                            onChanged: (value) {
-                              final intValue = int.tryParse(value);
-                              setState(() {
-                                if (intValue != null) {
-                                  text = intValue;
-                                } else {
-                                  text =
-                                      1; // Fallback to a default value if parsing fails
-                                }
-                              });
-                            },
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: posts.length,
-                              itemBuilder: (context, i) {
-                                final e = posts[i];
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: Colors.grey, width: 0.5),
-                                  ),
-                                  child: CupertinoListTile(
-                                    trailing: e.isFetching
-                                        ? const Text("fetching...")
-                                        : null,
-                                    title: e.isLoading
-                                        ? const Text("loading...")
-                                        : Container(
-                                            child: e.isSuccess
-                                                ? Text(e.data!.title)
-                                                : Text(
-                                                    "Error: ${e.error.toString()}"),
-                                          ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          },
+            ),
+          ),
         );
       },
     );

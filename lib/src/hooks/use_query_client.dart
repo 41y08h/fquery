@@ -6,5 +6,5 @@ import 'package:fquery/src/query_client_provider.dart';
 /// from the nearest [QueryClientProvider] ancestor.
 QueryClient useQueryClient() {
   final context = useContext();
-  return QueryClient.of(context).queryClient;
+  return QueryClient.of(context);
 }
