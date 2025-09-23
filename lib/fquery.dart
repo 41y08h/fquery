@@ -14,4 +14,4 @@ export 'src/hooks/use_infinite_query.dart';
 export 'src/widgets/query_client_builder.dart';
 export 'src/widgets/infinite_query_builder.dart';
 export 'src/widgets/queries_builder.dart';
-export 'src/widgets/is_fetching_builder.dart'
+export 'src/widgets/is_fetching_builder.dart';
