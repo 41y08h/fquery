@@ -180,7 +180,7 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
   final client = useQueryClient();
   final observer = useMemoized(
     () => InfiniteQueryObserver<TData, TError, TPageParam>(
-      queryKey,
+      QueryKey(queryKey),
       queryFn,
       client: client,
       options: options,

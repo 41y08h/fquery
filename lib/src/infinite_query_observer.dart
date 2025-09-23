@@ -56,7 +56,7 @@ typedef InfiniteQueryFn<TData, TPageParam> = Future<TData> Function(TPageParam);
 class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     extends ChangeNotifier with QueryListener {
   /// The query key associated with this observer.
-  final RawQueryKey queryKey;
+  final QueryKey queryKey;
 
   /// The query client used to manage queries.
   final QueryClient client;
@@ -88,7 +88,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   }) {
     query =
         client.queryCache.build<InfiniteQueryData<TData, TPageParam>, TError>(
-      queryKey: QueryKey(queryKey),
+      queryKey: queryKey,
       client: client,
     );
     _setOptions(options);
