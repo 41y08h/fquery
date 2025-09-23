@@ -116,20 +116,30 @@ class QueryClient {
   /// ```
   void invalidateQueries<TData, TError extends Exception>(RawQueryKey key,
       {bool exact = false}) {
+    // No concurrent modification error is probable
+    // because we are not removing from the map
+    // but just consistency with `removeQueries`
     queryCache.queries.forEach((queryKey, query) {
-      void action() {
-        if (query is Query<TData, TError>) {
-          query.dispatch(DispatchAction.invalidate, null);
+      final toInvalidate = <Query<TData, TError>>[];
+
+      queryCache.queries.forEach((queryKey, query) {
+        if (exact) {
+          if (queryKey.serialized == QueryKey(key).serialized &&
+              query is Query<TData, TError>) {
+            toInvalidate.add(query);
+          }
+        } else {
+          final isPartialMatch = queryKey.raw.length >= key.length &&
+              QueryKey(queryKey.raw.sublist(0, key.length)) == QueryKey(key);
+
+          if (isPartialMatch && query is Query<TData, TError>) {
+            toInvalidate.add(query);
+          }
         }
-      }
+      });
 
-      if (exact) {
-        if (queryKey.serialized == QueryKey(key).serialized) action();
-      } else {
-        final isPartialMatch = queryKey.raw.length >= key.length &&
-            QueryKey(queryKey.raw.sublist(0, key.length)) == QueryKey(key);
-
-        if (isPartialMatch) action();
+      for (final query in toInvalidate) {
+        query.dispatch(DispatchAction.invalidate, null);
       }
     });
   }
@@ -137,18 +147,23 @@ class QueryClient {
   /// Removes queries from the cache.
   void removeQueries<TData, TError extends Exception>(RawQueryKey key,
       {bool exact = false}) {
-    final toRemove = <Query>[]; // or correct type of queryKey
+    // Concurrent modification error if we try to remove while iterating
+    // so, collect first, remove once iteration is done
+    final toRemove = <Query<TData, TError>>[]; // or correct type of queryKey
 
     queryCache.queries.forEach((queryKey, query) {
       if (exact) {
-        if (queryKey.serialized == QueryKey(key).serialized) {
+        if (queryKey.serialized == QueryKey(key).serialized &&
+            query is Query<TData, TError>) {
           toRemove.add(query);
         }
       } else {
         final isPartialMatch = queryKey.raw.length >= key.length &&
             QueryKey(queryKey.raw.sublist(0, key.length)) == QueryKey(key);
 
-        if (isPartialMatch) toRemove.add(query);
+        if (isPartialMatch && query is Query<TData, TError>) {
+          toRemove.add(query);
+        }
       }
     });
 
