@@ -96,3 +96,7 @@
 - API docs
 - Fix bugs
 - Refetch method for infinite queries
+
+## 2.0.1
+
+- Fix `QueryClient.removeQueries()`
