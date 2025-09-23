@@ -1,18 +1,31 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fquery/src/hooks/use_mutation.dart';
+import 'package:fquery/fquery.dart';
+import 'package:fquery/src/mutation_observer.dart';
 
-class MutationBuilder<TData, TError, TVariables, TContext> extends HookWidget {
+/// Builder widget for mutations
+class MutationBuilder<TData, TError, TVariables, TContext>
+    extends StatefulWidget {
+  /// The builder function which receives the [BuildContext] along with the [UseMutationResult]
   final Widget Function(
       BuildContext, UseMutationResult<TData, TError, TVariables>) builder;
+
+  /// The function that performs the mutation.
   final Future<TData> Function(TVariables) mutationFn;
+
+  /// Called before the mutation function is executed.
   final FutureOr<TContext>? Function(TVariables)? onMutate;
+
+  /// Called when the mutation is successful.
   final void Function(TData, TVariables, TContext?)? onSuccess;
+
+  /// Called when the mutation results in an error.
   final void Function(TError, TVariables, TContext?)? onError;
+
+  /// Called when the mutation is either successful or results in an error.
   final void Function(TData?, TError?, TVariables, TContext?)? onSettled;
 
+  /// Creates a new [MutationBuilder] instance.
   MutationBuilder(
     this.mutationFn, {
     super.key,
@@ -24,17 +37,79 @@ class MutationBuilder<TData, TError, TVariables, TContext> extends HookWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final mutation = useMutation<TData, TError, TVariables, TContext>(
-      mutationFn,
-      onMutate: onMutate,
-      onError: onError,
-      onSuccess: onSuccess,
-      onSettled: onSettled,
-    );
+  State<MutationBuilder<TData, TError, TVariables, TContext>> createState() =>
+      _MutationBuilderState<TData, TError, TVariables, TContext>();
+}
 
-    return Builder(builder: (context) {
-      return builder(context, mutation);
+class _MutationBuilderState<TData, TError, TVariables, TContext>
+    extends State<MutationBuilder<TData, TError, TVariables, TContext>> {
+  late final client = QueryClient.of(context);
+  late MutationObserver<TData, TError, TVariables, TContext> observer;
+
+  MutationObserver<TData, TError, TVariables, TContext> buildObserver() {
+    return MutationObserver<TData, TError, TVariables, TContext>(
+      client: client,
+      options: UseMutationOptions(
+        mutationFn: widget.mutationFn,
+        onMutate: widget.onMutate,
+        onSuccess: widget.onSuccess,
+        onError: widget.onError,
+        onSettled: widget.onSettled,
+      ),
+    );
+  }
+
+  // Initialization of the observer
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    setState(() {
+      observer = buildObserver();
     });
+  }
+
+  @override
+  void didUpdateWidget(
+      covariant MutationBuilder<TData, TError, TVariables, TContext>
+          oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    observer.updateOptions(
+      UseMutationOptions(
+        mutationFn: widget.mutationFn,
+        onMutate: widget.onMutate,
+        onSuccess: widget.onSuccess,
+        onError: widget.onError,
+        onSettled: widget.onSettled,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    observer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: observer,
+      builder: (context, child) {
+        return widget.builder(
+          context,
+          UseMutationResult(
+            data: observer.mutation.state.data,
+            error: observer.mutation.state.error,
+            status: observer.mutation.state.status,
+            mutate: observer.mutate,
+            submittedAt: observer.mutation.state.submittedAt,
+            reset: observer.reset,
+            variables: observer.vars,
+          ),
+        );
+      },
+    );
   }
 }
