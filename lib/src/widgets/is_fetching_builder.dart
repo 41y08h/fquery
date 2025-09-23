@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
 
 /// Builder widget that provides the number of active fetches across all queries.
-class IsFetchingBuilder extends HookWidget {
+class IsFetchingBuilder extends StatelessWidget {
   /// The builder function that receives the current count of active fetches.
   final Widget Function(BuildContext context, int count) builder;
 
@@ -13,13 +12,16 @@ class IsFetchingBuilder extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final client = QueryClient.of(context);
-    final count = useListenableSelector(
-      client.queryCache,
-      () => client.queryCache.queries.entries
-          .where((q) => q.value.state.isFetching)
-          .length,
-    );
 
-    return builder(context, count);
+    return ListenableBuilder(
+      listenable: client.queryCache,
+      builder: (context, _) {
+        final count = client.queryCache.queries.entries
+            .where((q) => q.value.state.isFetching)
+            .length;
+
+        return builder(context, count);
+      },
+    );
   }
 }
