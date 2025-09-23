@@ -52,7 +52,9 @@ class _TodosPageState extends State<TodosPage> {
                 CupertinoSwitch(
                   value: isEnabled,
                   onChanged: (v) {
-                    isEnabled = v;
+                    setState(() {
+                      isEnabled = v; // Update the state and trigger a rebuild
+                    });
                   },
                 ),
                 CupertinoButton(

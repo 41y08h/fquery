@@ -1,11 +1,10 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
 import 'package:fquery/src/query_key.dart';
 
-/// A Builder widget which uses [useQuery] internally
-class QueryBuilder<TData, TError extends Exception> extends HookWidget {
+/// Builder widget for queries
+class QueryBuilder<TData, TError extends Exception> extends StatefulWidget {
   /// The builder function which recevies the [UseQueryResult] along with the [BuildContext]
   final Widget Function(BuildContext, UseQueryResult<TData, TError>) builder;
 
@@ -52,21 +51,87 @@ class QueryBuilder<TData, TError extends Exception> extends HookWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final query = useQuery<TData, TError>(
-      queryKey,
-      queryFn,
-      cacheDuration: cacheDuration,
-      enabled: enabled,
-      refetchInterval: refetchInterval,
-      refetchOnMount: refetchOnMount,
-      staleDuration: staleDuration,
-      retryCount: retryCount,
-      retryDelay: retryDelay,
-    );
+  State<QueryBuilder<TData, TError>> createState() =>
+      _QueryBuilderState<TData, TError>();
+}
 
-    return Builder(builder: (context) {
-      return builder(context, query);
+class _QueryBuilderState<TData, TError extends Exception>
+    extends State<QueryBuilder<TData, TError>> {
+  late final client = QueryClient.of(context);
+  late Observer<TData, TError> observer;
+
+  Observer<TData, TError> buildObserver() {
+    return Observer<TData, TError>(
+      QueryKey(widget.queryKey),
+      widget.queryFn,
+      client: client,
+      options: UseQueryOptions(
+        enabled: widget.enabled,
+        refetchOnMount: widget.refetchOnMount,
+        staleDuration: widget.staleDuration,
+        cacheDuration: widget.cacheDuration,
+        refetchInterval: widget.refetchInterval,
+        retryCount: widget.retryCount,
+        retryDelay: widget.retryDelay,
+      ),
+    );
+  }
+
+  // Initialization of the observer
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    setState(() {
+      observer = buildObserver();
+      observer.initialize();
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant QueryBuilder<TData, TError> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    observer.updateOptions(
+      UseQueryOptions(
+        enabled: widget.enabled,
+        refetchOnMount: widget.refetchOnMount,
+        staleDuration: widget.staleDuration,
+        cacheDuration: widget.cacheDuration,
+        refetchInterval: widget.refetchInterval,
+        retryCount: widget.retryCount,
+        retryDelay: widget.retryDelay,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    observer.destroy();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: observer,
+      builder: (context, _) {
+        final result = UseQueryResult<TData, TError>(
+          data: observer.query.state.data,
+          dataUpdatedAt: observer.query.state.dataUpdatedAt,
+          error: observer.query.state.error,
+          errorUpdatedAt: observer.query.state.errorUpdatedAt,
+          isError: observer.query.state.isError,
+          isLoading: observer.query.state.isLoading,
+          isFetching: observer.query.state.isFetching,
+          isSuccess: observer.query.state.isSuccess,
+          status: observer.query.state.status,
+          refetch: observer.fetch,
+          isInvalidated: observer.query.state.isInvalidated,
+          isRefetchError: observer.query.state.isRefetchError,
+        );
+        return widget.builder(context, result);
+      },
+    );
   }
 }

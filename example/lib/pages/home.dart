@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:fquery/fquery.dart';
 import '../widgets/home_list_tile.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 
 Future<List<Post>> getPosts() async {
   final res = await Dio().get('https://dummyjson.com/posts');
@@ -12,7 +11,7 @@ Future<List<Post>> getPosts() async {
   return (res.data['posts'] as List).map((post) => Post.fromMap(post)).toList();
 }
 
-class Home extends HookWidget {
+class Home extends StatelessWidget {
   const Home({super.key});
 
   @override
@@ -23,6 +22,7 @@ class Home extends HookWidget {
       const ['posts'],
       getPosts,
       refetchInterval: const Duration(seconds: 5),
+      enabled: false,
       builder: (context, _) {
         return CupertinoPageScaffold(
           navigationBar: const CupertinoNavigationBar(
