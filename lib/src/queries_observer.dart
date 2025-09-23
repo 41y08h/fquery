@@ -70,9 +70,7 @@ class QueriesObserver<TData, TError extends Exception> extends ChangeNotifier {
 
     difference(newObservers, previousObservers).forEach((observer) {
       observer.addListener(() {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          notifyListeners();
-        });
+        notifyListeners();
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         observer.initialize();

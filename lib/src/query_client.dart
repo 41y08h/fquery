@@ -158,7 +158,7 @@ class QueryClient {
   }
 
   /// Returns the number of queries that are currently fetching.
-  int isFetching() {
+  get isFetching {
     return queryCache.queries.entries
         .where((queryMap) => queryMap.value.state.isFetching)
         .length;
