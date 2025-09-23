@@ -137,24 +137,24 @@ class QueryClient {
   /// Removes queries from the cache.
   void removeQueries<TData, TError extends Exception>(RawQueryKey key,
       {bool exact = false}) {
-    queryCache.queries.forEach((queryKey, query) {
-      void action() {
-        if (query is Query<TData, TError>) {
-          Future.delayed(Duration.zero, () {
-            queryCache.remove<TData, TError>(query);
-          });
-        }
-      }
+    final toRemove = <Query>[]; // or correct type of queryKey
 
+    queryCache.queries.forEach((queryKey, query) {
       if (exact) {
-        if (queryKey.serialized == QueryKey(key).serialized) action();
+        if (queryKey.serialized == QueryKey(key).serialized) {
+          toRemove.add(query);
+        }
       } else {
         final isPartialMatch = queryKey.raw.length >= key.length &&
             QueryKey(queryKey.raw.sublist(0, key.length)) == QueryKey(key);
 
-        if (isPartialMatch) action();
+        if (isPartialMatch) toRemove.add(query);
       }
     });
+
+    for (final query in toRemove) {
+      queryCache.remove(query);
+    }
   }
 
   /// Returns the number of queries that are currently fetching.

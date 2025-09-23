@@ -141,7 +141,7 @@ class Observer<TData, TError extends Exception> extends ChangeNotifier
       return;
     }
 
-    final isRefetching = query.state.isFetching && !query.state.isLoading;
+    final isRefetching = !query.state.isLoading;
 
     query.dispatch(DispatchAction.fetch, null);
     // Important: State change, then any other
