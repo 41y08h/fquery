@@ -11,73 +11,10 @@ class InfiniteQueryBuilder<TData, TError extends Exception, TPageParam>
   final Widget Function(
       BuildContext, UseInfiniteQueryResult<TData, TError, TPageParam>) builder;
 
-  /// The query key used to identify the query.
-  final RawQueryKey queryKey;
-
-  /// The function that fetches the data for the query.
-  final InfiniteQueryFn<TData, TPageParam> queryFn;
-
-  /// The initial page param to be used for the first page
-  final TPageParam initialPageParam;
-
-  /// Function to get the next page param
-  final TPageParam? Function(
-    TData,
-    List<TData>,
-    TPageParam,
-    List<TPageParam>,
-  ) getNextPageParam;
-
-  /// Function to get the previous page param
-  final TPageParam? Function(
-    TData,
-    List<TData>,
-    TPageParam,
-    List<TPageParam>,
-  )? getPreviousPageParam;
-
-  /// Maximum number of pages to keep in the cache
-  final int? maxPages;
-
-  /// Whether the query is enabled or not
-  final bool enabled;
-
-  /// Refetch behavior when the widget is mounted
-  final RefetchOnMount? refetchOnMount;
-
-  /// The duration until the data becomes stale.
-  final Duration? staleDuration;
-
-  /// The duration until the data is removed from the cache.
-  final Duration? cacheDuration;
-
-  /// The interval at which the query will be refetched.
-  final Duration? refetchInterval;
-
-  /// The number of retry attempts if the query fails.
-  final int? retryCount;
-
-  /// The delay between retry attempts if the query fails.
-  final Duration? retryDelay;
+  final InfiniteQueryConfig<TData, TError, TPageParam> config;
 
   /// Creates a new [InfiniteQueryBuilder] instance.
-  const InfiniteQueryBuilder(
-    this.queryKey,
-    this.queryFn, {
-    super.key,
-    required this.builder,
-    required this.initialPageParam,
-    required this.getNextPageParam,
-    this.getPreviousPageParam,
-    this.maxPages,
-    this.enabled = true,
-    this.refetchOnMount,
-    this.staleDuration,
-    this.cacheDuration,
-    this.refetchInterval,
-    this.retryCount,
-    this.retryDelay,
-  });
+  const InfiniteQueryBuilder(this.config, {required this.builder});
 
   @override
   State<InfiniteQueryBuilder<TData, TError, TPageParam>> createState() =>
@@ -91,21 +28,21 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
 
   InfiniteQueryObserver<TData, TError, TPageParam> buildObserver() {
     return InfiniteQueryObserver<TData, TError, TPageParam>(
-      QueryKey(widget.queryKey),
-      widget.queryFn,
+      QueryKey(widget.config.queryKey),
+      widget.config.queryFn,
       client: client,
       options: UseInfiniteQueryOptions<TData, TError, TPageParam>(
-        initialPageParam: widget.initialPageParam,
-        getNextPageParam: widget.getNextPageParam,
-        getPreviousPageParam: widget.getPreviousPageParam,
-        maxPages: widget.maxPages,
-        enabled: widget.enabled,
-        refetchOnMount: widget.refetchOnMount,
-        staleDuration: widget.staleDuration,
-        cacheDuration: widget.cacheDuration,
-        refetchInterval: widget.refetchInterval,
-        retryCount: widget.retryCount,
-        retryDelay: widget.retryDelay,
+        initialPageParam: widget.config.initialPageParam,
+        getNextPageParam: widget.config.getNextPageParam,
+        getPreviousPageParam: widget.config.getPreviousPageParam,
+        maxPages: widget.config.maxPages,
+        enabled: widget.config.enabled,
+        refetchOnMount: widget.config.refetchOnMount,
+        staleDuration: widget.config.staleDuration,
+        cacheDuration: widget.config.cacheDuration,
+        refetchInterval: widget.config.refetchInterval,
+        retryCount: widget.config.retryCount,
+        retryDelay: widget.config.retryDelay,
       ),
     );
   }
@@ -128,17 +65,17 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
 
     observer.updateOptions(
       UseInfiniteQueryOptions<TData, TError, TPageParam>(
-        initialPageParam: widget.initialPageParam,
-        getNextPageParam: widget.getNextPageParam,
-        getPreviousPageParam: widget.getPreviousPageParam,
-        maxPages: widget.maxPages,
-        enabled: widget.enabled,
-        refetchOnMount: widget.refetchOnMount,
-        staleDuration: widget.staleDuration,
-        cacheDuration: widget.cacheDuration,
-        refetchInterval: widget.refetchInterval,
-        retryCount: widget.retryCount,
-        retryDelay: widget.retryDelay,
+        initialPageParam: widget.config.initialPageParam,
+        getNextPageParam: widget.config.getNextPageParam,
+        getPreviousPageParam: widget.config.getPreviousPageParam,
+        maxPages: widget.config.maxPages,
+        enabled: widget.config.enabled,
+        refetchOnMount: widget.config.refetchOnMount,
+        staleDuration: widget.config.staleDuration,
+        cacheDuration: widget.config.cacheDuration,
+        refetchInterval: widget.config.refetchInterval,
+        retryCount: widget.config.retryCount,
+        retryDelay: widget.config.retryDelay,
       ),
     );
   }
@@ -181,14 +118,14 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
           final firstPageParam = pageParams.last;
           final lastPageParam = pageParams.last;
 
-          final nextPageParam = widget.getNextPageParam(
+          final nextPageParam = widget.config.getNextPageParam(
             lastPage,
             pages,
             lastPageParam,
             pageParams,
           );
 
-          final previousPageParam = widget.getNextPageParam(
+          final previousPageParam = widget.config.getNextPageParam(
             firstPage,
             pages,
             firstPageParam,

@@ -1,50 +1,50 @@
+import 'package:basic/items_query_config.dart';
 import 'package:basic/models/infinity.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 
-class InfinityPage extends HookWidget {
+class InfinityPage extends StatefulWidget {
   const InfinityPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final scrollController = useScrollController();
-    final infinityAPI = Infinity.getInstance();
-    final itemsQuery = useInfiniteQuery<PageResult, Exception, int>(
-      [
-        'infinity',
-        {
-          'type': 'scroll',
-        },
-      ],
-      (page) {
-        return infinityAPI.get(page);
-      },
-      initialPageParam: 1,
-      getNextPageParam: ((lastPage, allPages, lastPageParam, allPageParam) {
-        return lastPage.hasMore ? lastPage.page + 1 : null;
-      }),
-    );
+  State<InfinityPage> createState() => _InfinityPageState();
+}
 
-    useEffect(() {
-      scrollController.addListener(() {
-        if (scrollController.position.pixels ==
-            scrollController.position.maxScrollExtent) {
-          itemsQuery.fetchNextPage();
-        }
-      });
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (scrollController.hasClients) {
-          scrollController.animateTo(
-            // Subtract 1 pixels to stop fetching the next page automatically
-            scrollController.position.maxScrollExtent - 1,
-            duration: const Duration(seconds: 2),
-            curve: Curves.fastOutSlowIn,
-          );
-        }
-      });
-      return null;
-    }, []);
+class _InfinityPageState extends State<InfinityPage> {
+  final ScrollController scrollController = ScrollController();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final itemsQuery = InfiniteQueryInstance<PageResult, Exception, int>(
+      context,
+      itemsQueryConfig,
+    ).result;
+
+    scrollController.addListener(() {
+      if (scrollController.position.pixels ==
+          scrollController.position.maxScrollExtent) {
+        itemsQuery.fetchNextPage();
+      }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (scrollController.hasClients) {
+        scrollController.animateTo(
+          // Subtract 1 pixels to stop fetching the next page automatically
+          scrollController.position.maxScrollExtent - 1,
+          duration: const Duration(seconds: 2),
+          curve: Curves.fastOutSlowIn,
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final itemsQuery = InfiniteQueryInstance<PageResult, Exception, int>(
+      context,
+      itemsQueryConfig,
+    ).result;
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -59,19 +59,7 @@ class InfinityPage extends HookWidget {
       ),
       child: SafeArea(
         child: InfiniteQueryBuilder<PageResult, Exception, int>(
-          const [
-            'infinity',
-            {
-              'type': 'scroll',
-            },
-          ],
-          (page) {
-            return infinityAPI.get(page);
-          },
-          initialPageParam: 1,
-          getNextPageParam: ((lastPage, allPages, lastPageParam, allPageParam) {
-            return lastPage.hasMore ? lastPage.page + 1 : null;
-          }),
+          itemsQueryConfig,
           builder: (context, items) {
             if (items.isLoading) {
               return const Center(child: CupertinoActivityIndicator());
