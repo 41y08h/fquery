@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:fquery/src/hooks/use_query.dart';
-import 'package:fquery/src/data_classes/query_options.dart';
-import '../query.dart';
+import 'package:fquery/src/models/query.dart';
+import 'package:fquery/src/models/query_options.dart';
 import '../query_client.dart';
 import '../retry_resolver.dart';
 
@@ -35,19 +35,19 @@ class Observer<TData, TError extends Exception> extends ChangeNotifier {
       queryKey: options.queryKey,
       client: client,
     );
-    query.setCacheDuration(this.options.cacheDuration);
+    // query.setCacheDuration(this.options.cacheDuration);
   }
 
   /// This is called from the [useQuery] hook
   /// whenever the first widget build is done
   void initialize() {
     // Subcribe to any query state changes
-    query.addListener(_onQueryUpdated);
+    client.queryCache.addListener(_onQueryUpdated);
 
     // Initiate query on mount
     if (options.enabled == false) return;
-    final isRefetching = !query.state.isLoading;
-    final isInvalidated = query.state.isInvalidated;
+    final isRefetching = !query.isLoading;
+    final isInvalidated = query.isInvalidated;
 
     // [RefetchOnMount] behaviour is specified here
     if (isRefetching && !isInvalidated) {
@@ -56,8 +56,7 @@ class Observer<TData, TError extends Exception> extends ChangeNotifier {
           fetch();
           break;
         case RefetchOnMount.stale:
-          DateTime? staleAt =
-              query.state.dataUpdatedAt?.add(options.staleDuration);
+          DateTime? staleAt = query.dataUpdatedAt?.add(options.staleDuration);
           final isStale = staleAt?.isBefore(DateTime.now()) ?? true;
           if (isStale) fetch();
           break;
@@ -99,13 +98,13 @@ class Observer<TData, TError extends Exception> extends ChangeNotifier {
 
   /// This is "the" function responsible for fetching the query.
   Future<void> fetch() async {
-    if (!options.enabled || query.state.isFetching) {
+    if (!options.enabled || query.isFetching) {
       return;
     }
 
-    final isRefetching = !query.state.isLoading;
+    final isRefetching = !query.isLoading;
 
-    query.dispatch(DispatchAction.fetch, null);
+    client.queryCache.dispatch(query.key, DispatchAction.fetch, null);
     // Important: State change, then any other
     // function invocation in the following callbacks
     await _resolver.resolve<TData>(
@@ -113,22 +112,22 @@ class Observer<TData, TError extends Exception> extends ChangeNotifier {
       retryCount: options.retryCount,
       retryDelay: options.retryDelay,
       onResolve: (data) {
-        query.dispatch(DispatchAction.success, data);
+        client.queryCache.dispatch(query.key, DispatchAction.success, data);
       },
       onError: (error) {
         final action =
             isRefetching ? DispatchAction.refetchError : DispatchAction.error;
-        query.dispatch(action, error);
+        client.queryCache.dispatch(query.key, action, error);
       },
       onCancel: () {
-        query.dispatch(DispatchAction.cancelFetch, null);
+        client.queryCache.dispatch(query.key, DispatchAction.cancelFetch, null);
       },
     );
   }
 
   void _onQueryUpdated() {
     notifyListeners();
-    if (query.state.isInvalidated) {
+    if (query.isInvalidated) {
       fetch();
     }
   }
@@ -136,7 +135,7 @@ class Observer<TData, TError extends Exception> extends ChangeNotifier {
   /// Disposes the observer
   @override
   void dispose() {
-    query.removeListener(_onQueryUpdated);
+    client.queryCache.removeListener(_onQueryUpdated);
     _resolver.cancel();
     _refetchTimer?.cancel();
     super.dispose();

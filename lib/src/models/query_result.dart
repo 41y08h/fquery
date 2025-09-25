@@ -1,4 +1,4 @@
-import 'package:fquery/fquery.dart';
+import 'package:fquery/src/models/query.dart';
 
 /// The result of a query, including the data, error, status flags, and a refetch function.
 class QueryResult<TData, TError> {

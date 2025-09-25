@@ -60,8 +60,8 @@ class Todo {
 
 // Mock server class
 class MockServer {
-  static Future<void> delay() async {
-    await Future.delayed(const Duration(seconds: 3));
+  static Future<void> delay({int seconds = 3}) async {
+    await Future.delayed(Duration(seconds: seconds));
   }
 }
 

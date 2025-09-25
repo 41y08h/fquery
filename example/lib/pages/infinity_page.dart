@@ -1,5 +1,4 @@
 import 'package:basic/items_query_options.dart';
-import 'package:basic/models/infinity.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:fquery/fquery.dart';
 
@@ -41,63 +40,60 @@ class _InfinityPageState extends State<InfinityPage> {
 
   @override
   Widget build(BuildContext context) {
-    final itemsQuery = InfiniteQueryInstance.of<PageResult, Exception, int>(
-      context,
-      itemsQueryOptions,
-    );
-
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: const Text("Infinity"),
-        trailing: itemsQuery.isFetching
-            ? const CupertinoActivityIndicator()
-            : CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: itemsQuery.refetch,
-                child: const Icon(CupertinoIcons.refresh),
-              ),
-      ),
-      child: SafeArea(
-        child: InfiniteQueryBuilder<PageResult, Exception, int>(
-          itemsQueryOptions,
-          builder: (context, items) {
-            if (items.isLoading) {
-              return const Center(child: CupertinoActivityIndicator());
-            }
-            if (items.isError) return Text(items.error.toString());
-            final contents = items.data?.pages
-                    .map((page) => page.content)
-                    .expand((element) => element)
-                    .toList() ??
-                [];
-
-            return Column(
-              children: [
-                if (items.isFetchingPreviousPage)
-                  const SizedBox(
-                    height: 100,
-                    width: double.maxFinite,
-                    child: CupertinoActivityIndicator(),
-                  ),
-                Expanded(
-                  child: ListView.builder(
-                      controller: scrollController,
-                      itemCount: contents.length,
-                      itemBuilder: ((context, index) {
-                        return CupertinoListTile(title: Text(contents[index]));
-                      })),
+    return InfiniteQueryBuilder(itemsQueryOptions, builder: (context, items) {
+      return CupertinoPageScaffold(
+        navigationBar: CupertinoNavigationBar(
+          middle: const Text("Infinity"),
+          trailing: items.isFetching
+              ? const CupertinoActivityIndicator()
+              : CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: items.refetch,
+                  child: const Icon(CupertinoIcons.refresh),
                 ),
-                if (items.isFetchingNextPage)
-                  const SizedBox(
-                    height: 100,
-                    width: double.maxFinite,
-                    child: CupertinoActivityIndicator(),
-                  ),
-              ],
-            );
-          },
         ),
-      ),
-    );
+        child: SafeArea(
+          child: Builder(
+            builder: (context) {
+              if (items.isLoading) {
+                return const Center(child: CupertinoActivityIndicator());
+              }
+              if (items.isError) return Text(items.error.toString());
+              final contents = items.data?.pages
+                      .map((page) => page.content)
+                      .expand((element) => element)
+                      .toList() ??
+                  [];
+
+              return Column(
+                children: [
+                  if (items.isFetchingPreviousPage)
+                    const SizedBox(
+                      height: 100,
+                      width: double.maxFinite,
+                      child: CupertinoActivityIndicator(),
+                    ),
+                  Expanded(
+                    child: ListView.builder(
+                        controller: scrollController,
+                        itemCount: contents.length,
+                        itemBuilder: ((context, index) {
+                          return CupertinoListTile(
+                              title: Text(contents[index]));
+                        })),
+                  ),
+                  if (items.isFetchingNextPage)
+                    const SizedBox(
+                      height: 100,
+                      width: double.maxFinite,
+                      child: CupertinoActivityIndicator(),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+    });
   }
 }

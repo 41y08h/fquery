@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
-import 'package:fquery/src/query.dart';
+import 'package:fquery/src/models/query.dart';
 import 'package:fquery/src/query_client.dart';
-import 'package:fquery/src/data_classes/query_key.dart';
+import 'package:fquery/src/models/query_key.dart';
 
 /// A map of query keys to their corresponding queries.
 typedef QueriesMap = Map<QueryKey, Query>;
@@ -42,13 +42,11 @@ class QueryCache extends ChangeNotifier {
   void add<TData, TError extends Exception>(
       QueryKey queryKey, Query<TData, TError> query) {
     _queries[queryKey] = query;
-    onQueryUpdated();
   }
 
   /// Removes a query from the cache.
   void remove<TData, TError extends Exception>(Query<TData, TError> query) {
     _queries.removeWhere((key, value) => value == query);
-    onQueryUpdated();
   }
 
   /// Returns a query identified by the query key.
@@ -63,14 +61,83 @@ class QueryCache extends ChangeNotifier {
       query = get<TData, TError>(queryKey);
       add(queryKey, query);
     } on QueryNotFoundException {
-      query = Query(client: client, key: queryKey);
+      query = Query(queryKey);
       add(queryKey, query);
     }
     return query;
   }
 
-  /// Notifies listeners that the query cache has been updated.
-  void onQueryUpdated() {
+  /// The single source of truth for how the cache data changes.
+  Query<TData, TError> _reducer<TData, TError extends Exception>(
+      Query<TData, TError> state, DispatchAction action, Object? data) {
+    switch (action) {
+      case DispatchAction.fetch:
+        return state.copyWith(
+          isFetching: true,
+          status:
+              state.dataUpdatedAt == null ? QueryStatus.loading : state.status,
+          fetchMeta: data as FetchMeta?,
+        );
+      case DispatchAction.cancelFetch:
+        return state.copyWith(
+          isFetching: false,
+          fetchMeta: null,
+        );
+      case DispatchAction.error:
+        return state.copyWith(
+          status: QueryStatus.error,
+          error: data as TError,
+          errorUpdatedAt: DateTime.now(),
+          isFetching: false,
+          isInvalidated: false,
+          fetchMeta: state.fetchMeta,
+        );
+      case DispatchAction.success:
+        return state.copyWith(
+          status: QueryStatus.success,
+          error: null,
+          data: data as TData,
+          dataUpdatedAt: DateTime.now(),
+          isFetching: false,
+          isInvalidated: false,
+          fetchMeta: null,
+        );
+      case DispatchAction.invalidate:
+        return state.copyWith(
+          isInvalidated: true,
+        );
+      case DispatchAction.refetchSequence:
+        return state.copyWith(
+          error: null,
+          data: data as TData,
+          dataUpdatedAt: DateTime.now(),
+          isInvalidated: false,
+          fetchMeta: null,
+        );
+      case DispatchAction.refetchError:
+        return state.copyWith(
+          isRefetchError: true,
+          status: QueryStatus.error,
+          error: data as TError,
+          errorUpdatedAt: DateTime.now(),
+          isFetching: false,
+          isInvalidated: false,
+          fetchMeta: null,
+        );
+    }
+  }
+
+  /// Dispatches an action to the reducer and notifies observers
+  void dispatch<TData, TError extends Exception>(
+      QueryKey queryKey, DispatchAction action, Object? data) {
+    final query = get<TData, TError>(queryKey);
+    final newQueryState = _reducer<TData, TError>(query, action, data);
+    queries[queryKey] = newQueryState;
+
+    _notifyListeners();
+  }
+
+  void _notifyListeners() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });

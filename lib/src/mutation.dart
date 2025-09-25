@@ -83,8 +83,6 @@ class Mutation<TData, TError, TVariables, TContext> {
           data: data,
           status: MutationStatus.success,
         );
-      default:
-        return state;
     }
   }
 

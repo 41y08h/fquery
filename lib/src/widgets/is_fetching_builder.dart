@@ -17,7 +17,7 @@ class IsFetchingBuilder extends StatelessWidget {
       listenable: client.queryCache,
       builder: (context, _) {
         final count = client.queryCache.queries.entries
-            .where((q) => q.value.state.isFetching)
+            .where((q) => q.value.isFetching)
             .length;
 
         return builder(context, count);

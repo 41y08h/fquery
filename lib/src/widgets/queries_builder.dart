@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/data_classes/query_result.dart';
+import 'package:fquery/src/models/query_result.dart';
 import 'package:fquery/src/observers/queries_observer.dart';
 
 /// Builder widget for multiple queries
@@ -60,18 +60,18 @@ class _QueriesBuilderState<TData, TError extends Exception>
         final queries = observer.observers
             .map(
               (observer) => QueryResult(
-                data: observer.query.state.data,
-                dataUpdatedAt: observer.query.state.dataUpdatedAt,
-                error: observer.query.state.error,
-                errorUpdatedAt: observer.query.state.errorUpdatedAt,
-                isError: observer.query.state.isError,
-                isLoading: observer.query.state.isLoading,
-                isFetching: observer.query.state.isFetching,
-                isSuccess: observer.query.state.isSuccess,
-                status: observer.query.state.status,
+                data: observer.query.data,
+                dataUpdatedAt: observer.query.dataUpdatedAt,
+                error: observer.query.error,
+                errorUpdatedAt: observer.query.errorUpdatedAt,
+                isError: observer.query.isError,
+                isLoading: observer.query.isLoading,
+                isFetching: observer.query.isFetching,
+                isSuccess: observer.query.isSuccess,
+                status: observer.query.status,
                 refetch: observer.fetch,
-                isInvalidated: observer.query.state.isInvalidated,
-                isRefetchError: observer.query.state.isRefetchError,
+                isInvalidated: observer.query.isInvalidated,
+                isRefetchError: observer.query.isRefetchError,
               ),
             )
             .toList();

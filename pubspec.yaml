@@ -4,7 +4,7 @@ version: 2.0.1
 repository: https://github.com/41y08h/fquery
 
 environment:
-  sdk: ">=2.17.5 <4.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   collection: ^1.18.0

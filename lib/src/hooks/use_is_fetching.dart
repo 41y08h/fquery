@@ -7,7 +7,7 @@ int useIsFetching() {
   final count = useListenableSelector(
       client.queryCache,
       () => client.queryCache.queries.entries
-          .where((queryMap) => queryMap.value.state.isFetching)
+          .where((queryMap) => queryMap.value.isFetching)
           .length);
 
   return count;

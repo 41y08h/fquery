@@ -3,7 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/data_classes/query_options.dart';
+import 'package:fquery/src/models/query_options.dart';
 import 'package:fquery/src/observers/observer.dart';
 
 typedef QueriesOptions<TData, TError extends Exception>

@@ -1,5 +1,5 @@
+import 'package:fquery/src/models/query.dart';
 import 'package:fquery/src/observers/observer.dart';
-import 'package:fquery/src/query.dart';
 
 /// Query options
 class QueryOptions<TData, TError extends Exception>

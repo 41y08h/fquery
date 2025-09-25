@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
+import 'package:fquery/src/models/query.dart';
 import 'package:fquery/src/query_cache.dart';
 import 'package:fquery/src/widgets/query_client_provider.dart';
-import 'package:fquery/src/data_classes/query_key.dart';
-import 'query.dart';
+import 'package:fquery/src/models/query_key.dart';
 
 /// Default options for all queries.
 class DefaultQueryOptions {
@@ -79,14 +79,14 @@ class QueryClient {
       RawQueryKey queryKey, TData Function(TData? previous) updater) {
     final query = queryCache.build<TData, TError>(
         queryKey: QueryKey(queryKey), client: this);
-    query.dispatch(DispatchAction.success, updater(query.state.data));
+    queryCache.dispatch(query.key, DispatchAction.success, updater(query.data));
   }
 
   /// Retrieves the query data for the given query key.
   TData? getQueryData<TData, TError extends Exception>(RawQueryKey queryKey) {
     try {
       final query = queryCache.get<TData, TError>(QueryKey(queryKey));
-      return query.state.data;
+      return query.data;
     } on QueryNotFoundException {
       return null as TData?;
     }
@@ -139,7 +139,7 @@ class QueryClient {
       });
 
       for (final query in toInvalidate) {
-        query.dispatch(DispatchAction.invalidate, null);
+        queryCache.dispatch(query.key, DispatchAction.invalidate, null);
       }
     });
   }
@@ -175,7 +175,7 @@ class QueryClient {
   /// Returns the number of queries that are currently fetching.
   get isFetching {
     return queryCache.queries.entries
-        .where((queryMap) => queryMap.value.state.isFetching)
+        .where((queryMap) => queryMap.value.isFetching)
         .length;
   }
 }

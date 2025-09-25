@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/query.dart';
+import 'package:fquery/src/models/query.dart';
 
 /// Builder widget for infinite queries
 class InfiniteQueryBuilder<TData, TError extends Exception, TPageParam>
@@ -76,21 +76,19 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
     return ListenableBuilder(
       listenable: observer,
       builder: (context, _) {
-        final isFetchingNextPage = observer.query.state.isFetching &&
-            observer.query.state.fetchMeta?.direction == FetchDirection.forward;
-        final isFetchingPreviousPage = observer.query.state.isFetching &&
-            observer.query.state.fetchMeta?.direction ==
-                FetchDirection.backward;
+        final isFetchingNextPage = observer.query.isFetching &&
+            observer.query.fetchMeta?.direction == FetchDirection.forward;
+        final isFetchingPreviousPage = observer.query.isFetching &&
+            observer.query.fetchMeta?.direction == FetchDirection.backward;
 
-        final isFetchNextPageError = observer.query.state.isError &&
-            observer.query.state.fetchMeta?.direction == FetchDirection.forward;
-        final isFetchPreviousPageError = observer.query.state.isError &&
-            observer.query.state.fetchMeta?.direction ==
-                FetchDirection.backward;
+        final isFetchNextPageError = observer.query.isError &&
+            observer.query.fetchMeta?.direction == FetchDirection.forward;
+        final isFetchPreviousPageError = observer.query.isError &&
+            observer.query.fetchMeta?.direction == FetchDirection.backward;
 
         late final bool hasNextPage;
         late final bool hasPreviousPage;
-        final data = observer.query.state.data;
+        final data = observer.query.data;
 
         if (data == null) {
           hasNextPage = false;
@@ -128,23 +126,23 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
           isFetchingPreviousPage: isFetchingPreviousPage,
           hasNextPage: hasNextPage,
           hasPreviousPage: hasPreviousPage,
-          isRefetching: observer.query.state.isFetching &&
+          isRefetching: observer.query.isFetching &&
               !isFetchingNextPage &&
               !isFetchingPreviousPage,
-          data: observer.query.state.data,
-          dataUpdatedAt: observer.query.state.dataUpdatedAt,
-          error: observer.query.state.error,
-          errorUpdatedAt: observer.query.state.errorUpdatedAt,
-          isError: observer.query.state.isError,
-          isLoading: observer.query.state.isLoading,
-          isFetching: observer.query.state.isFetching,
-          isSuccess: observer.query.state.isSuccess,
-          status: observer.query.state.status,
+          data: observer.query.data,
+          dataUpdatedAt: observer.query.dataUpdatedAt,
+          error: observer.query.error,
+          errorUpdatedAt: observer.query.errorUpdatedAt,
+          isError: observer.query.isError,
+          isLoading: observer.query.isLoading,
+          isFetching: observer.query.isFetching,
+          isSuccess: observer.query.isSuccess,
+          status: observer.query.status,
           refetch: observer.refetch,
           isFetchNextPageError: isFetchNextPageError,
           isFetchPreviousPageError: isFetchPreviousPageError,
-          isInvalidated: observer.query.state.isInvalidated,
-          isRefetchError: observer.query.state.isRefetchError,
+          isInvalidated: observer.query.isInvalidated,
+          isRefetchError: observer.query.isRefetchError,
         );
 
         return widget.builder(

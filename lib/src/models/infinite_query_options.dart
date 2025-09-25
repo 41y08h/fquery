@@ -1,5 +1,5 @@
+import 'package:fquery/src/models/query.dart';
 import 'package:fquery/src/observers/infinite_query_observer.dart';
-import 'package:fquery/src/query.dart';
 
 /// The result of an infinite query, including the pages, page parameters, error, status flags, and functions to fetch more pages.
 class InfiniteQueryOptions<TData, TError, TPageParam>

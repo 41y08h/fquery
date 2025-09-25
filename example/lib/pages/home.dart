@@ -23,6 +23,7 @@ class Home extends StatelessWidget {
         queryKey: QueryKey(['posts']),
         queryFn: getPosts,
         refetchInterval: const Duration(seconds: 5),
+        enabled: false,
       ),
       builder: (context, _) {
         return CupertinoPageScaffold(
