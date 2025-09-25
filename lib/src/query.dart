@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observer.dart';
 import 'package:fquery/src/query_key.dart';
@@ -38,13 +39,13 @@ class QueryOptions<TData, TError> {
   final Duration retryDelay;
 
   QueryOptions({
-    required this.enabled,
-    required this.refetchOnMount,
-    required this.staleDuration,
-    required this.cacheDuration,
+    this.enabled = true,
+    this.refetchOnMount = RefetchOnMount.stale,
+    this.staleDuration = Duration.zero,
+    this.cacheDuration = const Duration(minutes: 5),
     this.refetchInterval,
-    required this.retryCount,
-    required this.retryDelay,
+    this.retryCount = 3,
+    this.retryDelay = const Duration(seconds: 1, milliseconds: 500),
   });
 }
 
@@ -65,7 +66,8 @@ class FetchMeta {
   }
 }
 
-class Query<TData, TError extends Exception> with Removable {
+class Query<TData, TError extends Exception> extends ChangeNotifier
+    with Removable {
   final QueryClient client;
   final QueryKey key;
 
@@ -140,19 +142,8 @@ class Query<TData, TError extends Exception> with Removable {
   /// Dispatches an action to the reducer and notifies observers
   void dispatch(DispatchAction action, dynamic data) {
     _state = _reducer(state, action, data);
-    _notifyListeners();
+    notifyListeners();
     client.queryCache.onQueryUpdated();
-
-    // Refetching is scheduled here after success or error
-    final scheduleRefetchActions = [
-      DispatchAction.success,
-      DispatchAction.error
-    ];
-    if (scheduleRefetchActions.contains(action)) {
-      for (var listener in _listeners) {
-        listener.scheduleRefetch();
-      }
-    }
   }
 
   /// This is called from the [Observer]
@@ -170,12 +161,6 @@ class Query<TData, TError extends Exception> with Removable {
 
     if (_listeners.isEmpty) {
       scheduleGarbageCollection();
-    }
-  }
-
-  void _notifyListeners() {
-    for (var listener in _listeners) {
-      listener.onQueryUpdated();
     }
   }
 

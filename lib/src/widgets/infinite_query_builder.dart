@@ -2,7 +2,6 @@ import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/infinite_query_observer.dart';
 import 'package:fquery/src/query.dart';
-import 'package:fquery/src/query_key.dart';
 
 /// Builder widget for infinite queries
 class InfiniteQueryBuilder<TData, TError extends Exception, TPageParam>
@@ -11,7 +10,7 @@ class InfiniteQueryBuilder<TData, TError extends Exception, TPageParam>
   final Widget Function(
       BuildContext, UseInfiniteQueryResult<TData, TError, TPageParam>) builder;
 
-  final InfiniteQueryConfig<TData, TError, TPageParam> config;
+  final InfiniteQueryOptions<TData, TError, TPageParam> config;
 
   /// Creates a new [InfiniteQueryBuilder] instance.
   const InfiniteQueryBuilder(this.config, {required this.builder});
@@ -28,22 +27,8 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
 
   InfiniteQueryObserver<TData, TError, TPageParam> buildObserver() {
     return InfiniteQueryObserver<TData, TError, TPageParam>(
-      QueryKey(widget.config.queryKey),
-      widget.config.queryFn,
       client: client,
-      options: UseInfiniteQueryOptions<TData, TError, TPageParam>(
-        initialPageParam: widget.config.initialPageParam,
-        getNextPageParam: widget.config.getNextPageParam,
-        getPreviousPageParam: widget.config.getPreviousPageParam,
-        maxPages: widget.config.maxPages,
-        enabled: widget.config.enabled,
-        refetchOnMount: widget.config.refetchOnMount,
-        staleDuration: widget.config.staleDuration,
-        cacheDuration: widget.config.cacheDuration,
-        refetchInterval: widget.config.refetchInterval,
-        retryCount: widget.config.retryCount,
-        retryDelay: widget.config.retryDelay,
-      ),
+      options: widget.config,
     );
   }
 
@@ -64,16 +49,15 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
     super.didUpdateWidget(oldWidget);
 
     observer.updateOptions(
-      UseInfiniteQueryOptions<TData, TError, TPageParam>(
+      InfiniteQueryOptions(
+        queryKey: widget.config.queryKey,
+        queryFn: widget.config.queryFn,
         initialPageParam: widget.config.initialPageParam,
         getNextPageParam: widget.config.getNextPageParam,
-        getPreviousPageParam: widget.config.getPreviousPageParam,
-        maxPages: widget.config.maxPages,
         enabled: widget.config.enabled,
         refetchOnMount: widget.config.refetchOnMount,
         staleDuration: widget.config.staleDuration,
         cacheDuration: widget.config.cacheDuration,
-        refetchInterval: widget.config.refetchInterval,
         retryCount: widget.config.retryCount,
         retryDelay: widget.config.retryDelay,
       ),
@@ -82,7 +66,7 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
 
   @override
   void dispose() {
-    observer.destroy();
+    observer.dispose();
     super.dispose();
   }
 

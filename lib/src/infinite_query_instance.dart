@@ -1,14 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/src/hooks/use_infinite_query.dart';
-import 'package:fquery/src/infinite_query_config.dart';
 import 'package:fquery/src/infinite_query_observer.dart';
 import 'package:fquery/src/query.dart';
 import 'package:fquery/src/query_client.dart';
-import 'package:fquery/src/query_key.dart';
 
 class InfiniteQueryInstance<TData, TError extends Exception, TPageParam> {
   final BuildContext context;
-  final InfiniteQueryConfig<TData, TError, TPageParam> config;
+  final InfiniteQueryOptions<TData, TError, TPageParam> config;
 
   late final client;
   late InfiniteQueryObserver<TData, TError, TPageParam> observer;
@@ -17,22 +15,8 @@ class InfiniteQueryInstance<TData, TError extends Exception, TPageParam> {
   InfiniteQueryInstance(this.context, this.config) {
     client = QueryClient.of(context);
     observer = InfiniteQueryObserver<TData, TError, TPageParam>(
-      QueryKey(config.queryKey),
-      config.queryFn,
       client: client,
-      options: UseInfiniteQueryOptions<TData, TError, TPageParam>(
-        initialPageParam: config.initialPageParam,
-        getNextPageParam: config.getNextPageParam,
-        getPreviousPageParam: config.getPreviousPageParam,
-        maxPages: config.maxPages,
-        enabled: config.enabled,
-        refetchOnMount: config.refetchOnMount,
-        staleDuration: config.staleDuration,
-        cacheDuration: config.cacheDuration,
-        refetchInterval: config.refetchInterval,
-        retryCount: config.retryCount,
-        retryDelay: config.retryDelay,
-      ),
+      options: config,
     );
   }
 

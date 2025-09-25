@@ -1,13 +1,13 @@
 import 'package:basic/models/infinity.dart';
 import 'package:fquery/fquery.dart';
 
-final itemsQueryConfig = InfiniteQueryConfig<PageResult, Exception, int>(
-  queryKey: [
+final itemsQueryConfig = InfiniteQueryOptions<PageResult, Exception, int>(
+  queryKey: QueryKey([
     'infinity',
     {
       'type': 'scroll',
     },
-  ],
+  ]),
   queryFn: (page) {
     final infinityAPI = Infinity.getInstance();
 

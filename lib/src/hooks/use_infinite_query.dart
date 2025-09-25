@@ -149,41 +149,25 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
   int? retryCount,
   Duration? retryDelay,
 }) {
-  final options = useMemoized(
-    () => UseInfiniteQueryOptions<TData, TError, TPageParam>(
-      initialPageParam: initialPageParam,
-      getNextPageParam: getNextPageParam,
-      getPreviousPageParam: getPreviousPageParam,
-      maxPages: maxPages,
-      enabled: enabled,
-      refetchOnMount: refetchOnMount,
-      staleDuration: staleDuration,
-      cacheDuration: cacheDuration,
-      refetchInterval: refetchInterval,
-      retryCount: retryCount,
-      retryDelay: retryDelay,
-    ),
-    [
-      initialPageParam,
-      getNextPageParam,
-      getPreviousPageParam,
-      maxPages,
-      enabled,
-      refetchOnMount,
-      staleDuration,
-      cacheDuration,
-      refetchInterval,
-      retryCount,
-      retryDelay,
-    ],
-  );
   final client = useQueryClient();
   final observer = useMemoized(
     () => InfiniteQueryObserver<TData, TError, TPageParam>(
-      QueryKey(queryKey),
-      queryFn,
       client: client,
-      options: options,
+      options: InfiniteQueryOptions(
+        queryKey: QueryKey(queryKey),
+        queryFn: queryFn,
+        initialPageParam: initialPageParam,
+        getNextPageParam: getNextPageParam,
+        enabled: enabled,
+        refetchOnMount:
+            refetchOnMount ?? client.defaultQueryOptions.refetchOnMount,
+        staleDuration:
+            staleDuration ?? client.defaultQueryOptions.staleDuration,
+        cacheDuration:
+            cacheDuration ?? client.defaultQueryOptions.cacheDuration,
+        retryCount: retryCount ?? client.defaultQueryOptions.retryCount,
+        retryDelay: retryDelay ?? client.defaultQueryOptions.retryDelay,
+      ),
     ),
     [QueryKey(queryKey)],
   );
@@ -194,17 +178,33 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
 
   useEffect(() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      observer.updateOptions(options);
+      observer.updateOptions(
+        InfiniteQueryOptions(
+          queryKey: QueryKey(queryKey),
+          queryFn: queryFn,
+          initialPageParam: initialPageParam,
+          getNextPageParam: getNextPageParam,
+          enabled: enabled,
+          refetchOnMount:
+              refetchOnMount ?? client.defaultQueryOptions.refetchOnMount,
+          staleDuration:
+              staleDuration ?? client.defaultQueryOptions.staleDuration,
+          cacheDuration:
+              cacheDuration ?? client.defaultQueryOptions.cacheDuration,
+          retryCount: retryCount ?? client.defaultQueryOptions.retryCount,
+          retryDelay: retryDelay ?? client.defaultQueryOptions.retryDelay,
+        ),
+      );
     });
     return null;
-  }, [observer, options]);
+  }, [observer]);
 
   useEffect(() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       observer.initialize();
     });
     return () {
-      observer.destroy();
+      observer.dispose();
     };
   }, [observer]);
 
@@ -233,14 +233,14 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
     final firstPageParam = pageParams.last;
     final lastPageParam = pageParams.last;
 
-    final nextPageParam = options.getNextPageParam(
+    final nextPageParam = getNextPageParam(
       lastPage,
       pages,
       lastPageParam,
       pageParams,
     );
 
-    final previousPageParam = options.getNextPageParam(
+    final previousPageParam = getNextPageParam(
       firstPage,
       pages,
       firstPageParam,

@@ -16,4 +16,5 @@ export 'src/widgets/infinite_query_builder.dart';
 export 'src/widgets/queries_builder.dart';
 export 'src/widgets/is_fetching_builder.dart';
 export 'src/infinite_query_instance.dart';
-export 'src/infinite_query_config.dart';
+export 'src/infinite_query_observer.dart' show InfiniteQueryOptions;
+export 'src/query_key.dart';

@@ -4,13 +4,17 @@ import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/query.dart';
-import 'package:fquery/src/query_key.dart';
 import 'package:fquery/src/retry_resolver.dart';
-import 'package:fquery/src/query_listener.dart';
 
 /// The result of an infinite query, including the pages, page parameters, error, status flags, and functions to fetch more pages.
 class InfiniteQueryOptions<TData, TError, TPageParam>
     extends QueryOptions<TData, TError> {
+  /// The query key that defines a query
+  final QueryKey queryKey;
+
+  /// The query function responsible for fetching the query
+  final InfiniteQueryFn<TData, TPageParam> queryFn;
+
   /// The initial page parameter to start fetching from.
   final TPageParam initialPageParam;
 
@@ -35,17 +39,18 @@ class InfiniteQueryOptions<TData, TError, TPageParam>
 
   /// Creates a new instance of [InfiniteQueryOptions].
   InfiniteQueryOptions({
+    required this.queryKey,
+    required this.queryFn,
     required this.initialPageParam,
     required this.getNextPageParam,
     this.getPreviousPageParam,
-    this.maxPages,
-    required super.enabled,
-    required super.refetchOnMount,
-    required super.staleDuration,
-    required super.cacheDuration,
+    super.cacheDuration,
+    super.enabled,
     super.refetchInterval,
-    required super.retryCount,
-    required super.retryDelay,
+    super.refetchOnMount,
+    super.retryCount,
+    super.retryDelay,
+    super.staleDuration,
   });
 }
 
@@ -54,15 +59,9 @@ typedef InfiniteQueryFn<TData, TPageParam> = Future<TData> Function(TPageParam);
 
 /// Observer for infinite queries.
 class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
-    extends ChangeNotifier with QueryListener {
-  /// The query key associated with this observer.
-  final QueryKey queryKey;
-
+    extends ChangeNotifier {
   /// The query client used to manage queries.
   final QueryClient client;
-
-  /// The function used to fetch a page of data.
-  final InfiniteQueryFn<TData, TPageParam> fetcher;
 
   /// The query instance managed by this observer.
   late final Query<InfiniteQueryData<TData, TPageParam>, TError> query;
@@ -70,36 +69,34 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   /// The options used to configure this observer.
   late InfiniteQueryOptions<TData, TError, TPageParam> options;
 
-  /// Resolver to handle retries for fetching data.
-  final resolver = RetryResolver();
-
-  /// List of resolvers for refetching each page.
-  var refetchResolvers = <RetryResolver>[];
-
-  /// Timer for scheduling refetches.
-  Timer? refetchTimer;
+  final _resolver = RetryResolver();
+  var _refetchResolvers = <RetryResolver>[];
+  Timer? _refetchTimer;
 
   /// Creates a new instance of [InfiniteQueryObserver].
-  InfiniteQueryObserver(
-    this.queryKey,
-    this.fetcher, {
+  InfiniteQueryObserver({
     required this.client,
-    required UseInfiniteQueryOptions<TData, TError, TPageParam> options,
+    required this.options,
   }) {
     query =
         client.queryCache.build<InfiniteQueryData<TData, TPageParam>, TError>(
-      queryKey: queryKey,
+      queryKey: options.queryKey,
       client: client,
     );
-    _setOptions(options);
     query.setCacheDuration(this.options.cacheDuration);
   }
 
-  /// This is called from the [useInfiniteQuery] hook
-  /// whenever the first widget build is done
+  void _onQueryUpdated() {
+    notifyListeners();
+    if (query.state.isInvalidated) {
+      refetch();
+    }
+  }
+
+  /// Initializes the observer
   void initialize() {
     // Subcribe to any query state changes
-    query.subscribe(this);
+    query.addListener(_onQueryUpdated);
 
     // Initiate query on mount
     if (options.enabled == false) return;
@@ -129,38 +126,11 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     }
   }
 
-  /// Takes a [UseInfiniteQueryOptions] and sets the [options] field.
-  /// The [DefaultQueryOptions] from the [QueryClient]
-  /// is used if a field is not specified.
-  void _setOptions(UseInfiniteQueryOptions<TData, TError, TPageParam> options) {
-    this.options = InfiniteQueryOptions<TData, TError, TPageParam>(
-      enabled: options.enabled,
-      refetchOnMount:
-          options.refetchOnMount ?? client.defaultQueryOptions.refetchOnMount,
-      staleDuration:
-          options.staleDuration ?? client.defaultQueryOptions.staleDuration,
-      cacheDuration:
-          options.cacheDuration ?? client.defaultQueryOptions.cacheDuration,
-      refetchInterval: options.refetchInterval,
-      retryCount: options.retryCount ?? client.defaultQueryOptions.retryCount,
-      retryDelay: options.retryDelay ?? client.defaultQueryOptions.retryDelay,
-      initialPageParam: options.initialPageParam,
-      getNextPageParam: options.getNextPageParam,
-      getPreviousPageParam: options.getPreviousPageParam,
-      maxPages: options.maxPages,
-    );
-  }
-
-  /// This is usually called from the [useQuery] hook
-  /// whenever there is any change in the options
-  void updateOptions(
-      UseInfiniteQueryOptions<TData, TError, TPageParam> options) {
-    // Compare variable changes before calling `_setOptions`
+  /// Updates the options and produces any side effects required
+  void updateOptions(InfiniteQueryOptions<TData, TError, TPageParam> options) {
     final refetchIntervalChanged =
         this.options.refetchInterval != options.refetchInterval;
     final isEnabledChanged = this.options.enabled != options.enabled;
-
-    _setOptions(options);
 
     if (isEnabledChanged) {
       if (options.enabled) {
@@ -171,13 +141,9 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
           );
         }
       } else {
-        resolver.cancel();
-        refetchTimer?.cancel();
+        _resolver.cancel();
+        _refetchTimer?.cancel();
       }
-    }
-
-    if (options.cacheDuration != null) {
-      query.setCacheDuration(options.cacheDuration as Duration);
     }
 
     if (refetchIntervalChanged) {
@@ -185,8 +151,8 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
       if (options.refetchInterval != null) {
         scheduleRefetch();
       } else {
-        refetchTimer?.cancel();
-        refetchTimer = null;
+        _refetchTimer?.cancel();
+        _refetchTimer = null;
       }
     }
   }
@@ -251,14 +217,14 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
 
     query.dispatch(DispatchAction.fetch, null);
     final pageParams = data.pageParams;
-    refetchResolvers = [];
+    _refetchResolvers = [];
 
     pageParams.forEachIndexed((i, param) async {
       final resolver = RetryResolver();
-      refetchResolvers.add(resolver);
+      _refetchResolvers.add(resolver);
 
       await resolver.resolve<TData>(
-        () => fetcher(param),
+        () => options.queryFn(param),
         retryCount: options.retryCount,
         retryDelay: options.retryDelay,
         onResolve: (refetchedData) {
@@ -296,8 +262,9 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     query.dispatch(DispatchAction.fetch, meta);
     // Important: State change, then any other
     // function invocation in the following callbacks
-    await resolver.resolve<TData>(
-      () => fetcher(pageParam),
+    DispatchAction actionFlag = DispatchAction.fetch;
+    await _resolver.resolve<TData>(
+      () => options.queryFn(pageParam),
       retryCount: options.retryCount,
       retryDelay: options.retryDelay,
       onResolve: (data) {
@@ -329,43 +296,44 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
             );
 
         query.dispatch(DispatchAction.success, newData);
+        actionFlag = DispatchAction.success;
       },
       onError: (error) {
         query.dispatch(DispatchAction.error, error);
+        actionFlag = DispatchAction.error;
       },
       onCancel: () {
         query.dispatch(DispatchAction.cancelFetch, null);
+        actionFlag = DispatchAction.cancelFetch;
       },
     );
-  }
 
-  /// This is called from the [Query] class whenever the query state changes.
-  /// It notifies the observers about the change and it also nofities the [useQuery] hook.
-  @override
-  void onQueryUpdated() {
-    Future.delayed(Duration.zero, () {
-      notifyListeners();
-    });
-    if (query.state.isInvalidated) {
-      refetch();
+    // Refetching is scheduled here after success or error
+    final scheduleRefetchActions = [
+      DispatchAction.success,
+      DispatchAction.error
+    ];
+    if (scheduleRefetchActions.contains(actionFlag)) {
+      scheduleRefetch();
     }
   }
 
-  /// This is called from the [useQuery] hook when the widget is unmounted.
-  void destroy() {
-    query.unsubscribe(this);
-    resolver.cancel();
-    for (var resolver in refetchResolvers) {
+  /// Disposes the observer
+  @override
+  void dispose() {
+    super.dispose();
+    query.removeListener(_onQueryUpdated);
+    _resolver.cancel();
+    for (var resolver in _refetchResolvers) {
       resolver.cancel();
     }
-    refetchTimer?.cancel();
+    _refetchTimer?.cancel();
   }
 
   /// Schedules the next fetch if the [options.refetchInterval] is set.
-  @override
   void scheduleRefetch() {
     if (options.refetchInterval == null) return;
-    refetchTimer?.cancel();
-    refetchTimer = Timer(options.refetchInterval as Duration, refetch);
+    _refetchTimer?.cancel();
+    _refetchTimer = Timer(options.refetchInterval as Duration, refetch);
   }
 }
