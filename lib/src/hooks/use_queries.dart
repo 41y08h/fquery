@@ -1,11 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fquery/src/hooks/use_query.dart';
+import 'package:fquery/src/data_classes/query_result.dart';
 import 'package:fquery/src/hooks/use_query_client.dart';
 import 'package:fquery/src/observers/queries_observer.dart';
 import 'package:fquery/src/data_classes/query_options.dart';
 
-List<UseQueryResult<TData, TError>> useQueries<TData, TError extends Exception>(
+List<QueryResult<TData, TError>> useQueries<TData, TError extends Exception>(
   List<QueryOptions<TData, TError>> options,
 ) {
   final client = useQueryClient();
@@ -30,7 +30,7 @@ List<UseQueryResult<TData, TError>> useQueries<TData, TError extends Exception>(
 
   return observer.observers
       .map(
-        (observer) => UseQueryResult(
+        (observer) => QueryResult(
           data: observer.query.state.data,
           dataUpdatedAt: observer.query.state.dataUpdatedAt,
           error: observer.query.state.error,

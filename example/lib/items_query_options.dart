@@ -1,7 +1,7 @@
 import 'package:basic/models/infinity.dart';
 import 'package:fquery/fquery.dart';
 
-final itemsQueryConfig = InfiniteQueryOptions<PageResult, Exception, int>(
+final itemsQueryOptions = InfiniteQueryOptions<PageResult, Exception, int>(
   queryKey: QueryKey([
     'infinity',
     {

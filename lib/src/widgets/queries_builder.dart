@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
+import 'package:fquery/src/data_classes/query_result.dart';
 import 'package:fquery/src/observers/queries_observer.dart';
 
 /// Builder widget for multiple queries
 class QueriesBuilder<TData, TError extends Exception> extends StatefulWidget {
-  /// The builder function which recevies the [UseQueryResult] along with the [BuildContext]
-  final Widget Function(BuildContext, List<UseQueryResult<TData, TError>>)
-      builder;
+  /// The builder function which recevies the [QueryResult] along with the [BuildContext]
+  final Widget Function(BuildContext, List<QueryResult<TData, TError>>) builder;
 
   /// The list of options for each query.
   final List<QueryOptions<TData, TError>> options;
@@ -59,7 +59,7 @@ class _QueriesBuilderState<TData, TError extends Exception>
         // to update on every change
         final queries = observer.observers
             .map(
-              (observer) => UseQueryResult(
+              (observer) => QueryResult(
                 data: observer.query.state.data,
                 dataUpdatedAt: observer.query.state.dataUpdatedAt,
                 error: observer.query.state.error,

@@ -1,12 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
+import 'package:fquery/src/data_classes/query_result.dart';
 import 'package:fquery/src/observers/observer.dart';
 import 'package:fquery/src/data_classes/query_options.dart';
 
 /// Builder widget for queries
 class QueryBuilder<TData, TError extends Exception> extends StatefulWidget {
-  /// The builder function which recevies the [UseQueryResult] along with the [BuildContext]
-  final Widget Function(BuildContext, UseQueryResult<TData, TError>) builder;
+  /// The builder function which recevies the [QueryResult] along with the [BuildContext]
+  final Widget Function(BuildContext, QueryResult<TData, TError>) builder;
 
   final QueryOptions<TData, TError> options;
 
@@ -81,7 +82,7 @@ class _QueryBuilderState<TData, TError extends Exception>
     return ListenableBuilder(
       listenable: observer,
       builder: (context, _) {
-        final result = UseQueryResult<TData, TError>(
+        final result = QueryResult<TData, TError>(
           data: observer.query.state.data,
           dataUpdatedAt: observer.query.state.dataUpdatedAt,
           error: observer.query.state.error,

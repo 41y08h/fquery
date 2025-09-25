@@ -20,6 +20,16 @@ class _TodosPageState extends State<TodosPage> {
   Widget build(BuildContext context) {
     final client = QueryClient.of(context);
     final todosAPI = TodosAPI.getInstance();
+    final todosQuery = QueryInstance.of(
+      context,
+      QueryOptions(
+        queryKey: QueryKey(['todos']),
+        queryFn: todosAPI.getAll,
+        refetchOnMount: RefetchOnMount.never,
+        refetchInterval: null,
+        enabled: isEnabled,
+      ),
+    );
 
     return QueryBuilder<List<Todo>, Exception>(
       options: QueryOptions(
@@ -61,7 +71,7 @@ class _TodosPageState extends State<TodosPage> {
                 ),
                 CupertinoButton(
                   padding: EdgeInsets.zero,
-                  onPressed: todos.refetch,
+                  onPressed: todosQuery.refetch,
                   child: const Icon(CupertinoIcons.refresh),
                 ),
                 CupertinoButton(

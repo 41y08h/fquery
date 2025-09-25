@@ -1,4 +1,4 @@
-import 'package:basic/items_query_config.dart';
+import 'package:basic/items_query_options.dart';
 import 'package:basic/models/infinity.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:fquery/fquery.dart';
@@ -16,10 +16,10 @@ class _InfinityPageState extends State<InfinityPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final itemsQuery = InfiniteQueryInstance<PageResult, Exception, int>(
+    final itemsQuery = InfiniteQueryInstance.of(
       context,
-      itemsQueryConfig,
-    ).result;
+      itemsQueryOptions,
+    );
 
     scrollController.addListener(() {
       if (scrollController.position.pixels ==
@@ -41,10 +41,10 @@ class _InfinityPageState extends State<InfinityPage> {
 
   @override
   Widget build(BuildContext context) {
-    final itemsQuery = InfiniteQueryInstance<PageResult, Exception, int>(
+    final itemsQuery = InfiniteQueryInstance.of<PageResult, Exception, int>(
       context,
-      itemsQueryConfig,
-    ).result;
+      itemsQueryOptions,
+    );
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -59,7 +59,7 @@ class _InfinityPageState extends State<InfinityPage> {
       ),
       child: SafeArea(
         child: InfiniteQueryBuilder<PageResult, Exception, int>(
-          itemsQueryConfig,
+          itemsQueryOptions,
           builder: (context, items) {
             if (items.isLoading) {
               return const Center(child: CupertinoActivityIndicator());

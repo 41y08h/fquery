@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
+import 'package:fquery/src/data_classes/infinite_query_options.dart';
 import 'package:fquery/src/observers/infinite_query_observer.dart';
 import 'package:fquery/src/query.dart';
 

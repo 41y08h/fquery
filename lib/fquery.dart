@@ -15,7 +15,10 @@ export 'src/widgets/query_client_builder.dart';
 export 'src/widgets/infinite_query_builder.dart';
 export 'src/widgets/queries_builder.dart';
 export 'src/widgets/is_fetching_builder.dart';
-export 'src/infinite_query_instance.dart';
-export 'src/observers/infinite_query_observer.dart' show InfiniteQueryOptions;
+export 'src/observers/infinite_query_observer.dart';
 export 'src/data_classes/query_key.dart';
 export 'src/data_classes/query_options.dart';
+export 'src/data_classes/infinite_query_options.dart';
+
+export 'src/instances/infinite_query_instance.dart';
+export 'src/instances/query_instance.dart';

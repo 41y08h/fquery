@@ -1,26 +1,20 @@
 import 'package:flutter/widgets.dart';
+import 'package:fquery/src/data_classes/infinite_query_options.dart';
 import 'package:fquery/src/hooks/use_infinite_query.dart';
 import 'package:fquery/src/observers/infinite_query_observer.dart';
 import 'package:fquery/src/query.dart';
 import 'package:fquery/src/query_client.dart';
 
-class InfiniteQueryInstance<TData, TError extends Exception, TPageParam> {
-  final BuildContext context;
-  final InfiniteQueryOptions<TData, TError, TPageParam> config;
-
-  late final client;
-  late InfiniteQueryObserver<TData, TError, TPageParam> observer;
-
-  /// Creates a new [InfiniteQueryInstance] instance.
-  InfiniteQueryInstance(this.context, this.config) {
-    client = QueryClient.of(context);
-    observer = InfiniteQueryObserver<TData, TError, TPageParam>(
+class InfiniteQueryInstance {
+  static UseInfiniteQueryResult<TData, TError, TPageParam>
+      of<TData, TError extends Exception, TPageParam>(BuildContext context,
+          InfiniteQueryOptions<TData, TError, TPageParam> options) {
+    final client = QueryClient.of(context);
+    final observer = InfiniteQueryObserver<TData, TError, TPageParam>(
       client: client,
-      options: config,
+      options: options,
     );
-  }
 
-  UseInfiniteQueryResult<TData, TError, TPageParam> get result {
     final isFetchingNextPage = observer.query.state.isFetching &&
         observer.query.state.fetchMeta?.direction == FetchDirection.forward;
     final isFetchingPreviousPage = observer.query.state.isFetching &&
@@ -46,14 +40,14 @@ class InfiniteQueryInstance<TData, TError extends Exception, TPageParam> {
       final firstPageParam = pageParams.last;
       final lastPageParam = pageParams.last;
 
-      final nextPageParam = config.getNextPageParam(
+      final nextPageParam = options.getNextPageParam(
         lastPage,
         pages,
         lastPageParam,
         pageParams,
       );
 
-      final previousPageParam = config.getNextPageParam(
+      final previousPageParam = options.getNextPageParam(
         firstPage,
         pages,
         firstPageParam,

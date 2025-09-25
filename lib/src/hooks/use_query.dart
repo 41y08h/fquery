@@ -1,67 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
+import 'package:fquery/src/data_classes/query_result.dart';
 import 'package:fquery/src/observers/observer.dart';
-import 'package:fquery/src/data_classes/query_options.dart';
-
-/// The result of a query, including the data, error, status flags, and a refetch function.
-class UseQueryResult<TData, TError> {
-  /// The latest data returned by the query, or null if the query has not been successful yet.
-  final TData? data;
-
-  /// The time the data was last updated.
-  final DateTime? dataUpdatedAt;
-
-  /// The latest error returned by the query, or null if the query has not resulted in an error.
-  final TError? error;
-
-  /// The time the error was last updated.
-  final DateTime? errorUpdatedAt;
-
-  /// Tells if the query resulted in an error.
-  final bool isError;
-
-  /// Tells if the query is currently loading for the first time (no data yet).
-  final bool isLoading;
-
-  /// Tells if the query is currently fetching, including background refetches.
-  final bool isFetching;
-
-  /// Tells if the query was successful.
-  final bool isSuccess;
-
-  /// The current status of the query.
-  final QueryStatus status;
-
-  /// The function to manually refetch the query.
-  final Future<void> Function() refetch;
-
-  /// Tells if the query has been invalidated and needs to be refetched.
-  final bool isInvalidated;
-
-  /// Tells if the last fetch resulted in an error.
-  final bool isRefetchError;
-
-  /// Creates a new [UseQueryResult] instance.
-  UseQueryResult({
-    required this.data,
-    required this.dataUpdatedAt,
-    required this.error,
-    required this.errorUpdatedAt,
-    required this.isError,
-    required this.isLoading,
-    required this.isFetching,
-    required this.isSuccess,
-    required this.status,
-    required this.refetch,
-    required this.isInvalidated,
-    required this.isRefetchError,
-  });
-}
 
 /// Builds and subscribes to a query stored in the cache.
 /// Takes a query key and a fetcher function which either resolves or throws an error.
-/// Returns a [UseQueryResult]
+/// Returns a [QueryResult]
 ///
 /// Example:
 /// ```dart
@@ -85,7 +30,7 @@ class UseQueryResult<TData, TError> {
 ///   - `RefetchOnMount.never` - will never refetch.
 /// - `staleDuration` - specifies the duration until the data becomes stale. This value applies to each query instance individually.
 
-UseQueryResult<TData, TError> useQuery<TData, TError extends Exception>(
+QueryResult<TData, TError> useQuery<TData, TError extends Exception>(
   RawQueryKey queryKey,
   QueryFn<TData> fetcher, {
   // These options must match with the `UseQueryOptions`
@@ -181,7 +126,7 @@ UseQueryResult<TData, TError> useQuery<TData, TError extends Exception>(
     };
   }, [observer]);
 
-  return UseQueryResult<TData, TError>(
+  return QueryResult<TData, TError>(
     data: observer.query.state.data,
     dataUpdatedAt: observer.query.state.dataUpdatedAt,
     error: observer.query.state.error,
