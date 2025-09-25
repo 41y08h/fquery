@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/data_classes/infinite_query_options.dart';
 import 'package:fquery/src/query.dart';
 import 'package:fquery/src/retry_resolver.dart';
 
