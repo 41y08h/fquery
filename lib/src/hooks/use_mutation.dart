@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/mutation.dart';
-import 'package:fquery/src/mutation_observer.dart';
+import 'package:fquery/src/observers/mutation_observer.dart';
 
 /// The result of a mutation, including the mutate function and status flags.
 class UseMutationResult<TData, TError, TVariables> {

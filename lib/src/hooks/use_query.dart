@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/observer.dart';
-import 'package:fquery/src/query_key.dart';
+import 'package:fquery/src/observers/observer.dart';
+import 'package:fquery/src/data_classes/query_options.dart';
 
 /// The result of a query, including the data, error, status flags, and a refetch function.
 class UseQueryResult<TData, TError> {
@@ -59,41 +59,6 @@ class UseQueryResult<TData, TError> {
   });
 }
 
-/// Options for configuring a query.
-class UseQueryOptions<TData, TError> {
-  /// Whether the query is enabled and should automatically fetch data.
-  final bool enabled;
-
-  /// The behavior of the query when the widget is first built and the data is already available.
-  final RefetchOnMount? refetchOnMount;
-
-  /// The duration until the data becomes stale.
-  final Duration? staleDuration;
-
-  /// The duration unused/inactive cache data remains in memory.
-  final Duration? cacheDuration;
-
-  /// The time interval in which the query will refetch the data.
-  final Duration? refetchInterval;
-
-  /// The number of retry attempts if the query fails.
-  final int? retryCount;
-
-  /// The delay between retry attempts if the query fails.
-  final Duration? retryDelay;
-
-  /// Creates a new [UseQueryOptions] instance.
-  UseQueryOptions({
-    required this.enabled,
-    this.refetchOnMount,
-    this.staleDuration,
-    this.cacheDuration,
-    this.refetchInterval,
-    this.retryCount,
-    this.retryDelay,
-  });
-}
-
 /// Builds and subscribes to a query stored in the cache.
 /// Takes a query key and a fetcher function which either resolves or throws an error.
 /// Returns a [UseQueryResult]
@@ -132,35 +97,24 @@ UseQueryResult<TData, TError> useQuery<TData, TError extends Exception>(
   int? retryCount,
   Duration? retryDelay,
 }) {
-  final options = useMemoized(
-    () => UseQueryOptions<TData, TError>(
-      enabled: enabled,
-      refetchOnMount: refetchOnMount,
-      staleDuration: staleDuration,
-      cacheDuration: cacheDuration,
-      refetchInterval: refetchInterval,
-      retryCount: retryCount,
-      retryDelay: retryDelay,
-    ),
-    [
-      enabled,
-      refetchOnMount,
-      staleDuration,
-      cacheDuration,
-      refetchInterval,
-      retryCount,
-      retryDelay
-    ],
-  );
   final client = useQueryClient();
-
   final observerRef = useRef<Observer<TData, TError>?>(null);
   useEffect(() {
     observerRef.value = Observer(
-      QueryKey(queryKey),
-      fetcher,
       client: client,
-      options: options,
+      options: QueryOptions(
+        queryKey: QueryKey(queryKey),
+        queryFn: fetcher,
+        enabled: enabled,
+        refetchOnMount:
+            refetchOnMount ?? client.defaultQueryOptions.refetchOnMount,
+        staleDuration:
+            staleDuration ?? client.defaultQueryOptions.staleDuration,
+        cacheDuration:
+            cacheDuration ?? client.defaultQueryOptions.cacheDuration,
+        retryCount: retryCount ?? client.defaultQueryOptions.retryCount,
+        retryDelay: retryDelay ?? client.defaultQueryOptions.retryDelay,
+      ),
     );
     return;
   }, [QueryKey(queryKey)]);
@@ -174,10 +128,20 @@ UseQueryResult<TData, TError> useQuery<TData, TError extends Exception>(
   useEffect(() {
     if (query == null) {
       observerRef.value = Observer(
-        QueryKey(queryKey),
-        fetcher,
         client: client,
-        options: options,
+        options: QueryOptions(
+          queryKey: QueryKey(queryKey),
+          queryFn: fetcher,
+          enabled: enabled,
+          refetchOnMount:
+              refetchOnMount ?? client.defaultQueryOptions.refetchOnMount,
+          staleDuration:
+              staleDuration ?? client.defaultQueryOptions.staleDuration,
+          cacheDuration:
+              cacheDuration ?? client.defaultQueryOptions.cacheDuration,
+          retryCount: retryCount ?? client.defaultQueryOptions.retryCount,
+          retryDelay: retryDelay ?? client.defaultQueryOptions.retryDelay,
+        ),
       );
     }
     return;
@@ -191,17 +155,29 @@ UseQueryResult<TData, TError> useQuery<TData, TError extends Exception>(
 
   useEffect(() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      observer.updateOptions(options);
+      observer.updateOptions(QueryOptions(
+        queryKey: QueryKey(queryKey),
+        queryFn: fetcher,
+        enabled: enabled,
+        refetchOnMount:
+            refetchOnMount ?? client.defaultQueryOptions.refetchOnMount,
+        staleDuration:
+            staleDuration ?? client.defaultQueryOptions.staleDuration,
+        cacheDuration:
+            cacheDuration ?? client.defaultQueryOptions.cacheDuration,
+        retryCount: retryCount ?? client.defaultQueryOptions.retryCount,
+        retryDelay: retryDelay ?? client.defaultQueryOptions.retryDelay,
+      ));
     });
     return;
-  }, [observer, options]);
+  }, [observer]);
 
   useEffect(() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       observer.initialize();
     });
     return () {
-      observer.destroy();
+      observer.dispose();
     };
   }, [observer]);
 

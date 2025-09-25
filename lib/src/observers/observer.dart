@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:fquery/src/hooks/use_query.dart';
-import 'package:fquery/src/query_key.dart';
-import 'package:fquery/src/query_listener.dart';
-import 'query.dart';
-import 'query_client.dart';
-import 'retry_resolver.dart';
+import 'package:fquery/src/data_classes/query_options.dart';
+import '../query.dart';
+import '../query_client.dart';
+import '../retry_resolver.dart';
 
 /// A function that fetches data for a query.
 typedef QueryFn<TData> = Future<TData> Function();
@@ -14,16 +13,9 @@ typedef QueryFn<TData> = Future<TData> Function();
 /// It is responsible for fetching the query and updating the cache.
 /// There can be multiple observers for the same query and hence
 /// sharing the same piece of data throughout the whole application.
-class Observer<TData, TError extends Exception> extends ChangeNotifier
-    with QueryListener {
-  /// The query key used to identify the query.
-  final QueryKey queryKey;
-
+class Observer<TData, TError extends Exception> extends ChangeNotifier {
   /// The query client used to manage the query.
   final QueryClient client;
-
-  /// The function that fetches the data for the query.
-  final QueryFn<TData> fetcher;
 
   /// The query instance managed by this observer.
   late final Query<TData, TError> query;
@@ -31,24 +23,18 @@ class Observer<TData, TError extends Exception> extends ChangeNotifier
   /// The options used to configure the query.
   late QueryOptions<TData, TError> options;
 
-  /// The retry resolver used to handle retries.
-  final resolver = RetryResolver();
-
-  /// The timer used to schedule refetches.
-  Timer? refetchTimer;
+  final _resolver = RetryResolver();
+  Timer? _refetchTimer;
 
   /// Creates a new [Observer] instance.
-  Observer(
-    this.queryKey,
-    this.fetcher, {
+  Observer({
     required this.client,
-    required UseQueryOptions<TData, TError> options,
+    required this.options,
   }) {
     query = client.queryCache.build<TData, TError>(
-      queryKey: queryKey,
+      queryKey: options.queryKey,
       client: client,
     );
-    _setOptions(options);
     query.setCacheDuration(this.options.cacheDuration);
   }
 
@@ -56,7 +42,7 @@ class Observer<TData, TError extends Exception> extends ChangeNotifier
   /// whenever the first widget build is done
   void initialize() {
     // Subcribe to any query state changes
-    query.subscribe(this);
+    query.addListener(_onQueryUpdated);
 
     // Initiate query on mount
     if (options.enabled == false) return;
@@ -83,45 +69,21 @@ class Observer<TData, TError extends Exception> extends ChangeNotifier
     }
   }
 
-  /// Takes a [UseQueryOptions] and sets the [options] field.
-  /// The [DefaultQueryOptions] from the [QueryClient]
-  /// is used if a field is not specified.
-  void _setOptions(UseQueryOptions<TData, TError> options) {
-    this.options = QueryOptions<TData, TError>(
-      enabled: options.enabled,
-      refetchOnMount:
-          options.refetchOnMount ?? client.defaultQueryOptions.refetchOnMount,
-      staleDuration:
-          options.staleDuration ?? client.defaultQueryOptions.staleDuration,
-      cacheDuration:
-          options.cacheDuration ?? client.defaultQueryOptions.cacheDuration,
-      refetchInterval: options.refetchInterval,
-      retryCount: options.retryCount ?? client.defaultQueryOptions.retryCount,
-      retryDelay: options.retryDelay ?? client.defaultQueryOptions.retryDelay,
-    );
-  }
-
   /// This is usually called from the [useQuery] hook
   /// whenever there is any change in the options
-  void updateOptions(UseQueryOptions<TData, TError> options) {
+  void updateOptions(QueryOptions<TData, TError> options) {
     // Compare variable changes before calling `_setOptions`
     final refetchIntervalChanged =
         this.options.refetchInterval != options.refetchInterval;
     final isEnabledChanged = this.options.enabled != options.enabled;
 
-    _setOptions(options);
-
     if (isEnabledChanged) {
       if (options.enabled) {
         fetch();
       } else {
-        resolver.cancel();
-        refetchTimer?.cancel();
+        _resolver.cancel();
+        _refetchTimer?.cancel();
       }
-    }
-
-    if (options.cacheDuration != null) {
-      query.setCacheDuration(options.cacheDuration as Duration);
     }
 
     if (refetchIntervalChanged) {
@@ -129,8 +91,8 @@ class Observer<TData, TError extends Exception> extends ChangeNotifier
       if (options.refetchInterval != null) {
         scheduleRefetch();
       } else {
-        refetchTimer?.cancel();
-        refetchTimer = null;
+        _refetchTimer?.cancel();
+        _refetchTimer = null;
       }
     }
   }
@@ -146,8 +108,8 @@ class Observer<TData, TError extends Exception> extends ChangeNotifier
     query.dispatch(DispatchAction.fetch, null);
     // Important: State change, then any other
     // function invocation in the following callbacks
-    await resolver.resolve<TData>(
-      fetcher,
+    await _resolver.resolve<TData>(
+      options.queryFn,
       retryCount: options.retryCount,
       retryDelay: options.retryDelay,
       onResolve: (data) {
@@ -164,30 +126,26 @@ class Observer<TData, TError extends Exception> extends ChangeNotifier
     );
   }
 
-  /// This is called from the [Query] class whenever the query state changes.
-  /// It notifies the observers about the change and it also nofities the [useQuery] hook.
-  @override
-  void onQueryUpdated() {
-    Future.delayed(Duration.zero, () {
-      notifyListeners();
-    });
+  void _onQueryUpdated() {
+    notifyListeners();
     if (query.state.isInvalidated) {
       fetch();
     }
   }
 
-  /// This is called from the [useQuery] hook when the widget is unmounted.
-  void destroy() {
-    query.unsubscribe(this);
-    resolver.cancel();
-    refetchTimer?.cancel();
+  /// Disposes the observer
+  @override
+  void dispose() {
+    query.removeListener(_onQueryUpdated);
+    _resolver.cancel();
+    _refetchTimer?.cancel();
+    super.dispose();
   }
 
   /// Schedules the next fetch if the [options.refetchInterval] is set.
-  @override
   void scheduleRefetch() {
     if (options.refetchInterval == null) return;
-    refetchTimer?.cancel();
-    refetchTimer = Timer(options.refetchInterval as Duration, fetch);
+    _refetchTimer?.cancel();
+    _refetchTimer = Timer(options.refetchInterval as Duration, fetch);
   }
 }

@@ -31,11 +31,11 @@ class _PostsPageState extends State<PostsPage> {
   @override
   Widget build(BuildContext context) {
     return QueriesBuilder<Post, Exception>(
-      List<UseQueriesOptions<Post, Exception>>.generate(
+      options: List<QueryOptions<Post, Exception>>.generate(
         text,
-        (i) => UseQueriesOptions(
-          queryKey: ['posts', i + 1],
-          fetcher: () => getPost(i + 1),
+        (i) => QueryOptions(
+          queryKey: QueryKey(['posts', i + 1]),
+          queryFn: () => getPost(i + 1),
           refetchOnMount: RefetchOnMount.never,
         ),
       ),

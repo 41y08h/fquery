@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/mutation_observer.dart';
+import 'package:fquery/src/observers/mutation_observer.dart';
 
 /// Builder widget for mutations
 class MutationBuilder<TData, TError, TVariables, TContext>

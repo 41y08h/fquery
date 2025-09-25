@@ -1,7 +1,7 @@
 library fquery;
 
 export 'src/query_client.dart';
-export 'src/query_client_provider.dart';
+export 'src/widgets/query_client_provider.dart';
 export 'src/hooks/use_query.dart';
 export 'src/hooks/use_query_client.dart';
 export 'src/hooks/use_mutation.dart';
@@ -16,5 +16,6 @@ export 'src/widgets/infinite_query_builder.dart';
 export 'src/widgets/queries_builder.dart';
 export 'src/widgets/is_fetching_builder.dart';
 export 'src/infinite_query_instance.dart';
-export 'src/infinite_query_observer.dart' show InfiniteQueryOptions;
-export 'src/query_key.dart';
+export 'src/observers/infinite_query_observer.dart' show InfiniteQueryOptions;
+export 'src/data_classes/query_key.dart';
+export 'src/data_classes/query_options.dart';

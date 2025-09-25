@@ -1,10 +1,9 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/observer.dart';
-import 'package:fquery/src/query_key.dart';
-import 'package:fquery/src/query_listener.dart';
-import 'package:fquery/src/query_state.dart';
+import 'package:fquery/src/observers/observer.dart';
+import 'package:fquery/src/data_classes/query_key.dart';
+import 'package:fquery/src/data_classes/query_state.dart';
 import 'package:fquery/src/removable.dart';
 
 enum DispatchAction {
@@ -29,7 +28,8 @@ enum RefetchOnMount {
   never,
 }
 
-class QueryOptions<TData, TError> {
+class BaseQueryOptions<TData, TError> {
+  final QueryKey queryKey;
   final bool enabled;
   final RefetchOnMount refetchOnMount;
   final Duration staleDuration;
@@ -38,7 +38,8 @@ class QueryOptions<TData, TError> {
   final int retryCount;
   final Duration retryDelay;
 
-  QueryOptions({
+  BaseQueryOptions({
+    required this.queryKey,
     this.enabled = true,
     this.refetchOnMount = RefetchOnMount.stale,
     this.staleDuration = Duration.zero,
@@ -73,7 +74,6 @@ class Query<TData, TError extends Exception> extends ChangeNotifier
 
   QueryState<TData, TError> _state = QueryState<TData, TError>();
   QueryState<TData, TError> get state => _state;
-  final List<QueryListener> _listeners = [];
 
   Query({required this.client, required this.key});
 
@@ -148,20 +148,20 @@ class Query<TData, TError extends Exception> extends ChangeNotifier
 
   /// This is called from the [Observer]
   /// to subscribe to the query
-  void subscribe(QueryListener observer) {
-    _listeners.add(observer);
+  void subscribe() {
+    // _listeners.add(observer);
 
     // At least we have one observer
     // So no need to garbage collect
     cancelGarbageCollection();
   }
 
-  void unsubscribe(QueryListener observer) {
-    _listeners.remove(observer);
+  void unsubscribe() {
+    // _listeners.remove(observer);
 
-    if (_listeners.isEmpty) {
-      scheduleGarbageCollection();
-    }
+    // if (_listeners.isEmpty) {
+    //   scheduleGarbageCollection();
+    // }
   }
 
   /// This is called when garbage collection timer fires

@@ -19,10 +19,11 @@ class Home extends StatelessWidget {
     // Fetch a query here so that
     // we can see it refetching in the background on posts page
     return QueryBuilder<List, Exception>(
-      const ['posts'],
-      getPosts,
-      refetchInterval: const Duration(seconds: 5),
-      enabled: false,
+      options: QueryOptions(
+        queryKey: QueryKey(['posts']),
+        queryFn: getPosts,
+        refetchInterval: const Duration(seconds: 5),
+      ),
       builder: (context, _) {
         return CupertinoPageScaffold(
           navigationBar: const CupertinoNavigationBar(

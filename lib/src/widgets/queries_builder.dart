@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/queries_observer.dart';
+import 'package:fquery/src/observers/queries_observer.dart';
 
 /// Builder widget for multiple queries
 class QueriesBuilder<TData, TError extends Exception> extends StatefulWidget {
@@ -9,12 +9,11 @@ class QueriesBuilder<TData, TError extends Exception> extends StatefulWidget {
       builder;
 
   /// The list of options for each query.
-  final List<UseQueriesOptions<TData, TError>> options;
+  final List<QueryOptions<TData, TError>> options;
 
   /// Creates a new [QueriesBuilder] instance.
-  const QueriesBuilder(
-    this.options, {
-    super.key,
+  const QueriesBuilder({
+    required this.options,
     required this.builder,
   });
 
@@ -47,7 +46,7 @@ class _QueriesBuilderState<TData, TError extends Exception>
 
   @override
   void dispose() {
-    observer.destroy();
+    observer.dispose();
     super.dispose();
   }
 

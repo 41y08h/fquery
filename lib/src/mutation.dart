@@ -1,6 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/mutation_observer.dart';
+import 'package:fquery/src/observers/mutation_observer.dart';
 
 enum MutationDispatchAction {
   reset,

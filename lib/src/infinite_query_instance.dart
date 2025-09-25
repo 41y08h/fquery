@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/src/hooks/use_infinite_query.dart';
-import 'package:fquery/src/infinite_query_observer.dart';
+import 'package:fquery/src/observers/infinite_query_observer.dart';
 import 'package:fquery/src/query.dart';
 import 'package:fquery/src/query_client.dart';
 

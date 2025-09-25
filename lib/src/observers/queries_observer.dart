@@ -3,16 +3,17 @@ import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/observer.dart';
-import 'package:fquery/src/query_key.dart';
+import 'package:fquery/src/data_classes/query_options.dart';
+import 'package:fquery/src/observers/observer.dart';
 
-typedef QueriesOptions<TData, TError> = UseQueriesOptions<TData, TError>;
+typedef QueriesOptions<TData, TError extends Exception>
+    = QueryOptions<TData, TError>;
 
 List<T> difference<T>(List<T> array1, List<T> array2) {
   return array1.where((x) => !array2.contains(x)).toList();
 }
 
-typedef QueriesObserverOptions<TData, TError>
+typedef QueriesObserverOptions<TData, TError extends Exception>
     = List<QueriesOptions<TData, TError>>;
 
 class QueriesObserver<TData, TError extends Exception> extends ChangeNotifier {
@@ -23,10 +24,12 @@ class QueriesObserver<TData, TError extends Exception> extends ChangeNotifier {
     required this.client,
   });
 
-  void destroy() {
+  @override
+  void dispose() {
     for (var observer in observers) {
-      observer.destroy();
+      observer.dispose();
     }
+    super.dispose();
   }
 
   void setOptions(QueriesObserverOptions<TData, TError> options) {
@@ -36,33 +39,37 @@ class QueriesObserver<TData, TError extends Exception> extends ChangeNotifier {
     final newObservers = options.map(
       (option) {
         final observer = previousObservers.firstWhereOrNull(
-              (observer) => observer.queryKey == QueryKey(option.queryKey),
+              (observer) => observer.options.queryKey == option.queryKey,
             ) ??
-            Observer<TData, TError>(
-              QueryKey(option.queryKey),
-              option.fetcher,
+            Observer(
               client: client,
-              options: UseQueryOptions(
+              options: QueryOptions(
+                queryKey: option.queryKey,
+                queryFn: option.queryFn,
                 enabled: option.enabled,
-                cacheDuration: option.cacheDuration,
-                refetchInterval: option.refetchInterval,
                 refetchOnMount: option.refetchOnMount,
                 staleDuration: option.staleDuration,
+                cacheDuration: option.cacheDuration,
                 retryCount: option.retryCount,
                 retryDelay: option.retryDelay,
+                refetchInterval: option.refetchInterval,
               ),
             );
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          observer.updateOptions(UseQueryOptions(
-            enabled: option.enabled,
-            cacheDuration: option.cacheDuration,
-            refetchInterval: option.refetchInterval,
-            refetchOnMount: option.refetchOnMount,
-            staleDuration: option.staleDuration,
-            retryCount: option.retryCount,
-            retryDelay: option.retryDelay,
-          ));
+          observer.updateOptions(
+            QueryOptions(
+              queryKey: option.queryKey,
+              queryFn: option.queryFn,
+              enabled: option.enabled,
+              refetchOnMount: option.refetchOnMount,
+              staleDuration: option.staleDuration,
+              cacheDuration: option.cacheDuration,
+              retryCount: option.retryCount,
+              retryDelay: option.retryDelay,
+              refetchInterval: option.refetchInterval,
+            ),
+          );
         });
         return observer;
       },
@@ -78,7 +85,7 @@ class QueriesObserver<TData, TError extends Exception> extends ChangeNotifier {
     });
 
     difference(previousObservers, newObservers).forEach((observer) {
-      observer.destroy();
+      observer.dispose();
     });
 
     observers = newObservers;

@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/src/query_cache.dart';
-import 'package:fquery/src/query_client_provider.dart';
-import 'package:fquery/src/query_key.dart';
+import 'package:fquery/src/widgets/query_client_provider.dart';
+import 'package:fquery/src/data_classes/query_key.dart';
 import 'query.dart';
 
 /// Default options for all queries.

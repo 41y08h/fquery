@@ -3,9 +3,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/infinite_query_observer.dart';
+import 'package:fquery/src/observers/infinite_query_observer.dart';
 import 'package:fquery/src/query.dart';
-import 'package:fquery/src/query_key.dart';
+import 'package:fquery/src/data_classes/query_key.dart';
 
 class InfiniteQueryData<TPage, TPageParam> {
   List<TPage> pages;
@@ -24,37 +24,6 @@ class InfiniteQueryData<TPage, TPageParam> {
       pageParams: pageParams ?? this.pageParams,
     );
   }
-}
-
-class UseInfiniteQueryOptions<TData, TError, TPageParam>
-    extends UseQueryOptions {
-  final TPageParam initialPageParam;
-  final TPageParam? Function(
-    TData,
-    List<TData>,
-    TPageParam,
-    List<TPageParam>,
-  ) getNextPageParam;
-  final TPageParam? Function(
-    TData,
-    List<TData>,
-    TPageParam,
-    List<TPageParam>,
-  )? getPreviousPageParam;
-  int? maxPages;
-  UseInfiniteQueryOptions({
-    required this.initialPageParam,
-    required this.getNextPageParam,
-    this.getPreviousPageParam,
-    this.maxPages,
-    super.enabled = true,
-    super.cacheDuration,
-    super.refetchInterval,
-    super.refetchOnMount,
-    super.retryCount,
-    super.retryDelay,
-    super.staleDuration,
-  });
 }
 
 class UseInfiniteQueryResult<TData, TError, TPageParam> {

@@ -22,11 +22,13 @@ class _TodosPageState extends State<TodosPage> {
     final todosAPI = TodosAPI.getInstance();
 
     return QueryBuilder<List<Todo>, Exception>(
-      const ['todos'],
-      todosAPI.getAll,
-      refetchOnMount: RefetchOnMount.never,
-      refetchInterval: null,
-      enabled: isEnabled,
+      options: QueryOptions(
+        queryKey: QueryKey(['todos']),
+        queryFn: todosAPI.getAll,
+        refetchOnMount: RefetchOnMount.never,
+        refetchInterval: null,
+        enabled: isEnabled,
+      ),
       builder: (context, todos) {
         return CupertinoPageScaffold(
           navigationBar: CupertinoNavigationBar(

@@ -8,10 +8,7 @@ import 'package:fquery/src/retry_resolver.dart';
 
 /// The result of an infinite query, including the pages, page parameters, error, status flags, and functions to fetch more pages.
 class InfiniteQueryOptions<TData, TError, TPageParam>
-    extends QueryOptions<TData, TError> {
-  /// The query key that defines a query
-  final QueryKey queryKey;
-
+    extends BaseQueryOptions<TData, TError> {
   /// The query function responsible for fetching the query
   final InfiniteQueryFn<TData, TPageParam> queryFn;
 
@@ -39,7 +36,7 @@ class InfiniteQueryOptions<TData, TError, TPageParam>
 
   /// Creates a new instance of [InfiniteQueryOptions].
   InfiniteQueryOptions({
-    required this.queryKey,
+    required super.queryKey,
     required this.queryFn,
     required this.initialPageParam,
     required this.getNextPageParam,

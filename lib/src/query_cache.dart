@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/src/query.dart';
 import 'package:fquery/src/query_client.dart';
-import 'package:fquery/src/query_key.dart';
+import 'package:fquery/src/data_classes/query_key.dart';
 
 /// A map of query keys to their corresponding queries.
 typedef QueriesMap = Map<QueryKey, Query>;

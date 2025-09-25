@@ -2,36 +2,18 @@
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/src/hooks/use_query.dart';
 import 'package:fquery/src/hooks/use_query_client.dart';
-import 'package:fquery/src/observer.dart';
-import 'package:fquery/src/queries_observer.dart';
-import 'package:fquery/src/query_key.dart';
-
-class UseQueriesOptions<TData, TError> extends UseQueryOptions<TData, TError> {
-  final RawQueryKey queryKey;
-  final QueryFn<TData> fetcher;
-
-  UseQueriesOptions({
-    required this.queryKey,
-    required this.fetcher,
-    super.enabled = true,
-    super.cacheDuration,
-    super.refetchInterval,
-    super.refetchOnMount,
-    super.staleDuration,
-    super.retryCount,
-    super.retryDelay,
-  });
-}
+import 'package:fquery/src/observers/queries_observer.dart';
+import 'package:fquery/src/data_classes/query_options.dart';
 
 List<UseQueryResult<TData, TError>> useQueries<TData, TError extends Exception>(
-  List<UseQueriesOptions<TData, TError>> options,
+  List<QueryOptions<TData, TError>> options,
 ) {
   final client = useQueryClient();
-  final observer = useMemoized(
-    () => QueriesObserver<TData, TError>(
+  final observer = useRef(
+    QueriesObserver<TData, TError>(
       client: client,
     ),
-  );
+  ).value;
 
   useListenable(observer);
 
@@ -42,7 +24,7 @@ List<UseQueryResult<TData, TError>> useQueries<TData, TError extends Exception>(
 
   useEffect(() {
     return () {
-      observer.destroy();
+      observer.dispose();
     };
   }, [observer]);
 
