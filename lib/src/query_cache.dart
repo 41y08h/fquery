@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:fquery/src/models/query.dart';
 import 'package:fquery/src/observable.dart';
@@ -37,7 +38,10 @@ class QueryCache with Observable {
 
   /// The single source of truth for how the cache data changes.
   Query<TData, TError> _reducer<TData, TError extends Exception>(
-      Query<TData, TError> state, DispatchAction action, Object? data) {
+    Query<TData, TError> state,
+    DispatchAction action,
+    Object? data,
+  ) {
     switch (action) {
       case DispatchAction.fetch:
         return state.copyWith(
@@ -136,50 +140,50 @@ class QueryCache with Observable {
   }
 
   void _addObserver(Observer observer) {
-    final key = observer.options.queryKey;
-    _observers[key] = [...(_observers[key] ?? []), observer];
+    _observers.putIfAbsent(observer.options.queryKey, () => []).add(observer);
     _gcRoutine();
   }
 
   /// This is called when an observer is disposed
   void dismantle(Observer observer) {
+    // Set max cache duration before removing the observer
     final queryKey = observer.options.queryKey;
+    final currentMaxCacheDuration =
+        _maxCacheDurations[queryKey] ?? Duration.zero;
+
+    _maxCacheDurations[queryKey] = Duration(
+      milliseconds: max(
+        observer.options.cacheDuration.inMilliseconds,
+        currentMaxCacheDuration.inMilliseconds,
+      ),
+    );
+
     final observers = _observers[queryKey];
-
-    if (observers != null && observers.isNotEmpty) {
-      final maxDuration = observers
-          .map((o) => o.options.cacheDuration)
-          .fold(Duration.zero, (a, b) => a > b ? a : b);
-
-      _maxCacheDurations[queryKey] = maxDuration;
-
-      observers.remove(observer);
-    } else {
-      _maxCacheDurations[queryKey] = Duration.zero;
-    }
+    observers?.remove(observer);
 
     _gcRoutine();
   }
 
   /// Dispatches an action to the reducer and notifies observers
   void dispatch<TData, TError extends Exception>(
-      QueryKey queryKey, DispatchAction action, Object? data) {
-    final query = get<TData, TError>(queryKey);
-    final newQueryState = _reducer<TData, TError>(query, action, data);
-    queries[queryKey] = newQueryState;
+    QueryKey queryKey,
+    DispatchAction action,
+    Object? data,
+  ) {
+    queries[queryKey] = _reducer<TData, TError>(
+      get<TData, TError>(queryKey),
+      action,
+      data,
+    );
     notifyListeners();
   }
 
   void _gcRoutine() {
     _maxCacheDurations.forEach((queryKey, cacheDuration) {
-      // Check if there are no observers for this query
-      final observers = _observers[queryKey];
-      if (observers == null) return;
+      final observers = _observers[queryKey] ?? [];
       if (observers.isEmpty) {
         _scheduleGc(queryKey, cacheDuration);
-      }
-
-      if (observers.isNotEmpty) {
+      } else {
         _cancleGc(queryKey);
       }
     });
@@ -193,11 +197,13 @@ class QueryCache with Observable {
   void _scheduleGc(QueryKey queryKey, Duration cacheDuration) {
     _cancleGc(queryKey);
 
-    _gcTimers[queryKey] = Timer(cacheDuration, () {
+    void onGc() {
       _queries.removeWhere((key, value) => key == queryKey);
       _observers.remove(queryKey);
       _maxCacheDurations.remove(queryKey);
       _gcTimers.remove(queryKey);
-    });
+    }
+
+    _gcTimers[queryKey] = Timer(cacheDuration, onGc);
   }
 }

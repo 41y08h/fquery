@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 import 'package:fquery/fquery.dart';
+import 'package:fquery/src/hooks/use_observable.dart';
 import 'package:fquery/src/models/query.dart';
 
 class InfiniteQueryData<TPage, TPageParam> {
@@ -117,15 +118,19 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
   Duration? retryDelay,
 }) {
   final client = useQueryClient();
-  final observer = useMemoized(
-    () => InfiniteQueryObserver<TData, TError, TPageParam>(
+  final observerRef =
+      useRef<InfiniteQueryObserver<TData, TError, TPageParam>?>(null);
+  useEffect(() {
+    observerRef.value = InfiniteQueryObserver(
       client: client,
       options: InfiniteQueryOptions(
         queryKey: QueryKey(queryKey),
         queryFn: queryFn,
-        initialPageParam: initialPageParam,
-        getNextPageParam: getNextPageParam,
         enabled: enabled,
+        getNextPageParam: getNextPageParam,
+        initialPageParam: initialPageParam,
+        getPreviousPageParam: getPreviousPageParam,
+        refetchInterval: refetchInterval,
         refetchOnMount:
             refetchOnMount ?? client.defaultQueryOptions.refetchOnMount,
         staleDuration:
@@ -135,13 +140,16 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
         retryCount: retryCount ?? client.defaultQueryOptions.retryCount,
         retryDelay: retryDelay ?? client.defaultQueryOptions.retryDelay,
       ),
-    ),
-    [QueryKey(queryKey)],
-  );
+    );
+    return;
+  }, [QueryKey(queryKey)]);
+
+  final observer =
+      observerRef.value as InfiniteQueryObserver<TData, TError, TPageParam>;
 
   // This subscribes to the observer
   // and rebuilds the widgets on updates.
-  useListenable(observer);
+  useObservable(observer);
 
   useEffect(() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -149,9 +157,11 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
         InfiniteQueryOptions(
           queryKey: QueryKey(queryKey),
           queryFn: queryFn,
-          initialPageParam: initialPageParam,
-          getNextPageParam: getNextPageParam,
           enabled: enabled,
+          getNextPageParam: getNextPageParam,
+          initialPageParam: initialPageParam,
+          getPreviousPageParam: getPreviousPageParam,
+          refetchInterval: refetchInterval,
           refetchOnMount:
               refetchOnMount ?? client.defaultQueryOptions.refetchOnMount,
           staleDuration:

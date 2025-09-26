@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/models/query.dart';
+import 'package:fquery/src/observable.dart';
+import 'package:fquery/src/observers/observer.dart';
 import 'package:fquery/src/retry_resolver.dart';
 
 /// The function used to fetch a page of data in an infinite query.
@@ -11,22 +11,21 @@ typedef InfiniteQueryFn<TData, TPageParam> = Future<TData> Function(TPageParam);
 
 /// Observer for infinite queries.
 class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
-    extends ChangeNotifier {
-  /// The query client used to manage queries.
-  final QueryClient client;
-
-  /// The options used to configure this observer.
-  late InfiniteQueryOptions<TData, TError, TPageParam> options;
-
+    with
+        Observable,
+        Observer<TData, TError,
+            InfiniteQueryOptions<TData, TError, TPageParam>> {
   final _resolver = RetryResolver();
   var _refetchResolvers = <RetryResolver>[];
   Timer? _refetchTimer;
 
   /// Creates a new instance of [InfiniteQueryObserver].
   InfiniteQueryObserver({
-    required this.client,
-    required this.options,
+    required client,
+    required options,
   }) {
+    this.client = client;
+    this.options = options;
     client.queryCache.build<InfiniteQueryData<TData, TPageParam>, TError>(
       queryKey: options.queryKey,
       client: client,
@@ -270,15 +269,14 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   }
 
   /// Disposes the observer
-  @override
   void dispose() {
     client.queryCache.removeListener(hashCode);
+    client.queryCache.dismantle(this);
     _resolver.cancel();
     for (var resolver in _refetchResolvers) {
       resolver.cancel();
     }
     _refetchTimer?.cancel();
-    super.dispose();
   }
 
   /// Schedules the next fetch if the [options.refetchInterval] is set.

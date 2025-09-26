@@ -1,8 +1,9 @@
+import 'package:fquery/src/models/query.dart';
 import 'package:fquery/src/models/query_options.dart';
 import 'package:fquery/src/query_client.dart';
 
 mixin class Observer<TData, TError extends Exception,
-    TOptions extends QueryOptions<TData, TError>> {
+    TOptions extends BaseQueryOptions<TData, TError>> {
   late final QueryClient client;
-  late QueryOptions<TData, TError> options;
+  late TOptions options;
 }

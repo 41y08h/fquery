@@ -53,6 +53,7 @@ QueryResult<TData, TError> useQuery<TData, TError extends Exception>(
         queryKey: QueryKey(queryKey),
         queryFn: fetcher,
         enabled: enabled,
+        refetchInterval: refetchInterval,
         refetchOnMount:
             refetchOnMount ?? client.defaultQueryOptions.refetchOnMount,
         staleDuration:
