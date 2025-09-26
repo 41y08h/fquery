@@ -26,6 +26,7 @@ mixin Removable {
 
   /// Schedules the garbage collection timer
   void scheduleGarbageCollection() {
+    print('garbage collection scheduled');
     _garbageCollectionTimer?.cancel();
     final duration = _cacheDuration ?? DefaultQueryOptions().cacheDuration;
     _garbageCollectionTimer = Timer(duration, onGarbageCollection);

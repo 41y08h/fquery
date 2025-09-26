@@ -3,8 +3,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/models/query_options.dart';
-import 'package:fquery/src/observers/observer.dart';
+import 'package:fquery/src/observable.dart';
+import 'package:fquery/src/observers/query_observer.dart';
 
 typedef QueriesOptions<TData, TError extends Exception>
     = QueryOptions<TData, TError>;
@@ -16,20 +16,18 @@ List<T> difference<T>(List<T> array1, List<T> array2) {
 typedef QueriesObserverOptions<TData, TError extends Exception>
     = List<QueriesOptions<TData, TError>>;
 
-class QueriesObserver<TData, TError extends Exception> extends ChangeNotifier {
+class QueriesObserver<TData, TError extends Exception> with Observable {
   final QueryClient client;
-  List<Observer<TData, TError>> observers = [];
+  List<QueryObserver<TData, TError>> observers = [];
 
   QueriesObserver({
     required this.client,
   });
 
-  @override
   void dispose() {
     for (var observer in observers) {
       observer.dispose();
     }
-    super.dispose();
   }
 
   void setOptions(QueriesObserverOptions<TData, TError> options) {
@@ -41,7 +39,7 @@ class QueriesObserver<TData, TError extends Exception> extends ChangeNotifier {
         final observer = previousObservers.firstWhereOrNull(
               (observer) => observer.options.queryKey == option.queryKey,
             ) ??
-            Observer(
+            QueryObserver(
               client: client,
               options: QueryOptions(
                 queryKey: option.queryKey,
@@ -76,7 +74,7 @@ class QueriesObserver<TData, TError extends Exception> extends ChangeNotifier {
     ).toList();
 
     difference(newObservers, previousObservers).forEach((observer) {
-      observer.addListener(() {
+      observer.addListener(hashCode, () {
         notifyListeners();
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {

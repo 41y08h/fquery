@@ -1,9 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/models/query.dart';
+import 'package:fquery/src/hooks/use_observable.dart';
+import 'package:fquery/src/hooks/use_observable_selector.dart';
 import 'package:fquery/src/models/query_result.dart';
-import 'package:fquery/src/observers/observer.dart';
+import 'package:fquery/src/observers/query_observer.dart';
 
 /// Builds and subscribes to a query stored in the cache.
 /// Takes a query key and a fetcher function which either resolves or throws an error.
@@ -44,9 +45,9 @@ QueryResult<TData, TError> useQuery<TData, TError extends Exception>(
   Duration? retryDelay,
 }) {
   final client = useQueryClient();
-  final observerRef = useRef<Observer<TData, TError>?>(null);
+  final observerRef = useRef<QueryObserver<TData, TError>?>(null);
   useEffect(() {
-    observerRef.value = Observer(
+    observerRef.value = QueryObserver(
       client: client,
       options: QueryOptions(
         queryKey: QueryKey(queryKey),
@@ -67,13 +68,13 @@ QueryResult<TData, TError> useQuery<TData, TError extends Exception>(
 
   // Rebuild observer if the query is changed somehow,
   // typically when the query is removed from the cache.
-  final query = useListenableSelector(
+  final query = useObservableSelector(
     client.queryCache,
     () => client.queryCache.queries[QueryKey(queryKey)],
   );
   useEffect(() {
     if (query == null) {
-      observerRef.value = Observer(
+      observerRef.value = QueryObserver(
         client: client,
         options: QueryOptions(
           queryKey: QueryKey(queryKey),
@@ -93,11 +94,11 @@ QueryResult<TData, TError> useQuery<TData, TError extends Exception>(
     return;
   }, [query]);
 
-  final observer = observerRef.value as Observer<TData, TError>;
+  final observer = observerRef.value as QueryObserver<TData, TError>;
 
   // This subscribes to the observer
   // and rebuilds the widgets on updates.
-  useListenable<Observer<TData, TError>>(observer);
+  useObservable(observer);
 
   useEffect(() {
     WidgetsBinding.instance.addPostFrameCallback((_) {

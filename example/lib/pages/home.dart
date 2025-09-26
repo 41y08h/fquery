@@ -18,27 +18,27 @@ class Home extends StatelessWidget {
   Widget build(BuildContext context) {
     // Fetch a query here so that
     // we can see it refetching in the background on posts page
-    return QueryBuilder<List, Exception>(
-      options: QueryOptions(
-        queryKey: QueryKey(['posts']),
-        queryFn: getPosts,
-        refetchInterval: const Duration(seconds: 5),
-        enabled: false,
+    // return QueryBuilder<List, Exception>(
+    //   options: QueryOptions(
+    //     queryKey: QueryKey(['posts']),
+    //     queryFn: getPosts,
+    //     refetchInterval: const Duration(seconds: 5),
+    //     enabled: false,
+    //   ),
+    //   builder: (context, _) {
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text("examples"),
       ),
-      builder: (context, _) {
-        return CupertinoPageScaffold(
-          navigationBar: const CupertinoNavigationBar(
-            middle: Text("examples"),
-          ),
-          child: ListView(
-            children: const [
-              HomeListTile(title: "Todos", route: "/todos"),
-              HomeListTile(title: "Posts", route: "/posts"),
-              HomeListTile(title: "Infinity", route: "/infinity"),
-            ],
-          ),
-        );
-      },
+      child: ListView(
+        children: const [
+          HomeListTile(title: "Todos", route: "/todos"),
+          HomeListTile(title: "Posts", route: "/posts"),
+          HomeListTile(title: "Infinity", route: "/infinity"),
+        ],
+      ),
     );
+    //   },
+    // );
   }
 }

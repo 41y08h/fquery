@@ -27,6 +27,13 @@ class _QueriesBuilderState<TData, TError extends Exception>
   late final client = QueryClient.of(context);
   late QueriesObserver<TData, TError> observer;
 
+  @override
+  void initState() {
+    super.initState();
+    final client = QueryClient.of(context);
+    client.queryCache.addListener(hashCode, setState);
+  }
+
   // Initialization of the observer
   @override
   void didChangeDependencies() {
@@ -52,32 +59,27 @@ class _QueriesBuilderState<TData, TError extends Exception>
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: observer,
-      builder: (context, _) {
-        // Always build intermediate value inside builder
-        // to update on every change
-        final queries = observer.observers
-            .map(
-              (observer) => QueryResult(
-                data: observer.query.data,
-                dataUpdatedAt: observer.query.dataUpdatedAt,
-                error: observer.query.error,
-                errorUpdatedAt: observer.query.errorUpdatedAt,
-                isError: observer.query.isError,
-                isLoading: observer.query.isLoading,
-                isFetching: observer.query.isFetching,
-                isSuccess: observer.query.isSuccess,
-                status: observer.query.status,
-                refetch: observer.fetch,
-                isInvalidated: observer.query.isInvalidated,
-                isRefetchError: observer.query.isRefetchError,
-              ),
-            )
-            .toList();
+    // Always build intermediate value inside builder
+    // to update on every change
+    final queries = observer.observers
+        .map(
+          (observer) => QueryResult(
+            data: observer.query.data,
+            dataUpdatedAt: observer.query.dataUpdatedAt,
+            error: observer.query.error,
+            errorUpdatedAt: observer.query.errorUpdatedAt,
+            isError: observer.query.isError,
+            isLoading: observer.query.isLoading,
+            isFetching: observer.query.isFetching,
+            isSuccess: observer.query.isSuccess,
+            status: observer.query.status,
+            refetch: observer.fetch,
+            isInvalidated: observer.query.isInvalidated,
+            isRefetchError: observer.query.isRefetchError,
+          ),
+        )
+        .toList();
 
-        return widget.builder(context, queries);
-      },
-    );
+    return widget.builder(context, queries);
   }
 }

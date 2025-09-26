@@ -1,14 +1,14 @@
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
+import 'package:fquery/src/hooks/use_observable_selector.dart';
 
 /// Hook to get the number of active fetches across all queries.
 int useIsFetching() {
   final client = useQueryClient();
-  final count = useListenableSelector(
-      client.queryCache,
-      () => client.queryCache.queries.entries
-          .where((queryMap) => queryMap.value.isFetching)
-          .length);
-
+  final count = useObservableSelector(
+    client.queryCache,
+    () => client.queryCache.queries.entries
+        .where((queryMap) => queryMap.value.isFetching)
+        .length,
+  );
   return count;
 }

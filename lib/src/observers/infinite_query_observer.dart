@@ -31,7 +31,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
       queryKey: options.queryKey,
       client: client,
     );
-    client.queryCache.addListener(_onQueryUpdated);
+    client.queryCache.addListener(hashCode, _onQueryUpdated);
   }
 
   Query<InfiniteQueryData<TData, TPageParam>, TError> get query {
@@ -47,8 +47,6 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
 
   /// Initializes the observer
   void initialize() {
-    // Subcribe to any query state changes
-
     // Initiate query on mount
     if (options.enabled == false) return;
     final isRefetching = !query.isLoading;
@@ -81,6 +79,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     final refetchIntervalChanged =
         this.options.refetchInterval != options.refetchInterval;
     final isEnabledChanged = this.options.enabled != options.enabled;
+    this.options = options;
 
     if (isEnabledChanged) {
       if (options.enabled) {
@@ -273,7 +272,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   /// Disposes the observer
   @override
   void dispose() {
-    client.queryCache.removeListener(_onQueryUpdated);
+    client.queryCache.removeListener(hashCode);
     _resolver.cancel();
     for (var resolver in _refetchResolvers) {
       resolver.cancel();

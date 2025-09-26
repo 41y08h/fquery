@@ -1,13 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/models/query_result.dart';
-import 'package:fquery/src/observers/observer.dart';
+import 'package:fquery/src/observers/query_observer.dart';
 
 class QueryInstance {
   static QueryResult<TData, TError> of<TData, TError extends Exception>(
       BuildContext context, QueryOptions<TData, TError> options) {
     final client = QueryClient.of(context);
-    final observer = Observer<TData, TError>(
+    final observer = QueryObserver<TData, TError>(
       client: client,
       options: options,
     );

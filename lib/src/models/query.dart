@@ -27,8 +27,15 @@ enum RefetchOnMount {
 }
 
 abstract class BaseQueryOptions<TData, TError> {
+  /// A unique identifier for query in the cache
   final QueryKey queryKey;
+  // Tells whether the query is enabled
   final bool enabled;
+
+  /// Specifies the behavior of the query instance when the widget is first built and the data is already available.
+  /// - `RefetchOnMount.always` - will always re-fetch when the widget is built.
+  /// - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`).
+  /// - `RefetchOnMount.never` - will never re-fetch.
   final RefetchOnMount refetchOnMount;
   final Duration staleDuration;
   final Duration cacheDuration;
@@ -41,7 +48,7 @@ abstract class BaseQueryOptions<TData, TError> {
     this.enabled = true,
     this.refetchOnMount = RefetchOnMount.stale,
     this.staleDuration = Duration.zero,
-    this.cacheDuration = const Duration(minutes: 5),
+    this.cacheDuration = const Duration(seconds: 10),
     this.refetchInterval,
     this.retryCount = 3,
     this.retryDelay = const Duration(seconds: 1, milliseconds: 500),
