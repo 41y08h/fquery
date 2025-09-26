@@ -3,8 +3,6 @@ import 'package:fquery/src/models/query.dart';
 import 'package:fquery/src/models/query_options.dart';
 import 'package:fquery/src/observable.dart';
 import 'package:fquery/src/observers/observer.dart';
-import '../query_client.dart';
-import '../retry_resolver.dart';
 
 /// A function that fetches data for a query.
 typedef QueryFn<TData> = Future<TData> Function();
@@ -14,31 +12,26 @@ typedef QueryFn<TData> = Future<TData> Function();
 /// There can be multiple observers for the same query and hence
 /// sharing the same piece of data throughout the whole application.
 class QueryObserver<TData, TError extends Exception>
-    with Observable, Observer<TData, TError, QueryOptions<TData, TError>> {
-  /// Query to which the observer is subscribed to
+    extends Observer<TData, TError, QueryOptions<TData, TError>>
+    with Observable {
+  @override
   Query<TData, TError> get query {
     return client.queryCache.get(options.queryKey);
   }
 
-  final _resolver = RetryResolver();
-  Timer? _refetchTimer;
-
   /// Creates a new [QueryObserver] instance.
   QueryObserver({
-    required QueryClient client,
-    required QueryOptions<TData, TError> options,
+    required super.client,
+    required super.options,
   }) {
-    this.client = client;
-    this.options = options;
     client.queryCache.build<TData, TError>(
       queryKey: options.queryKey,
       client: client,
       observer: this,
     );
-    client.queryCache.addListener(hashCode, _onQueryUpdated);
   }
 
-  /// Starts the initial fetch routine
+  @override
   void initialize() {
     // Initiate query on mount
     if (options.enabled == false) return;
@@ -64,7 +57,7 @@ class QueryObserver<TData, TError extends Exception>
     }
   }
 
-  /// Updates the options and produces the required side effects
+  @override
   void updateOptions(QueryOptions<TData, TError> options) {
     // Changes for side effects:
     // [options.enabled]
@@ -80,18 +73,17 @@ class QueryObserver<TData, TError extends Exception>
       if (options.enabled) {
         fetch();
       } else {
-        _resolver.cancel();
-        _refetchTimer?.cancel();
+        resolver.cancel();
+        refetchTimer?.cancel();
       }
     }
 
     if (refetchIntervalChanged) {
       // Schedules the next fetch if the [options.refetchInterval] is set.
       if (options.refetchInterval != null) {
-        _scheduleRefetch();
+        scheduleRefetch();
       } else {
-        _refetchTimer?.cancel();
-        _refetchTimer = null;
+        refetchTimer?.cancel();
       }
     }
   }
@@ -107,7 +99,7 @@ class QueryObserver<TData, TError extends Exception>
     client.queryCache.dispatch(query.key, DispatchAction.fetch, null);
     // Important: State change, then any other
     // function invocation in the following callbacks
-    await _resolver.resolve<TData>(
+    await resolver.resolve<TData>(
       options.queryFn,
       retryCount: options.retryCount,
       retryDelay: options.retryDelay,
@@ -125,25 +117,11 @@ class QueryObserver<TData, TError extends Exception>
     );
   }
 
-  void _onQueryUpdated() {
+  @override
+  void onQueryCacheNotification() {
     notifyListeners();
     if (query.isInvalidated) {
       fetch();
     }
-  }
-
-  /// Disposes the observer
-  void dispose() {
-    client.queryCache.removeListener(hashCode);
-    client.queryCache.dismantle(this);
-    _resolver.cancel();
-    _refetchTimer?.cancel();
-  }
-
-  /// Schedules the next fetch if the [options.refetchInterval] is set.
-  void _scheduleRefetch() {
-    if (options.refetchInterval == null) return;
-    _refetchTimer?.cancel();
-    _refetchTimer = Timer(options.refetchInterval as Duration, fetch);
   }
 }
