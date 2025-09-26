@@ -21,11 +21,12 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   InfiniteQueryObserver({
     required super.client,
     required super.options,
+    super.listen = true,
   }) {
     client.queryCache.build<InfiniteQueryData<TData, TPageParam>, TError>(
       queryKey: options.queryKey,
       client: client,
-      observer: this,
+      observer: listen ? this : null,
     );
     _paramFlag = options.initialPageParam;
     _metaFlag = query.fetchMeta ?? FetchMeta(direction: FetchDirection.forward);

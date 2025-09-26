@@ -2,7 +2,6 @@ import 'package:basic/models/post.dart';
 import 'package:basic/models/todos.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:fquery/fquery.dart';
 import '../widgets/home_list_tile.dart';
 
 Future<List<Post>> getPosts() async {

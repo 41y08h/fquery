@@ -13,6 +13,7 @@ class InfiniteQueryInstance {
     final observer = InfiniteQueryObserver<TData, TError, TPageParam>(
       client: client,
       options: options,
+      listen: false,
     );
 
     final isFetchingNextPage = observer.query.isFetching &&

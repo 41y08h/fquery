@@ -15,4 +15,5 @@ final itemsQueryOptions = InfiniteQueryOptions<PageResult, Exception, int>(
     return lastPage.hasMore ? lastPage.page + 1 : null;
   },
   refetchOnMount: RefetchOnMount.never,
+  cacheDuration: Duration(seconds: 5),
 );

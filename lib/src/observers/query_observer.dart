@@ -23,11 +23,12 @@ class QueryObserver<TData, TError extends Exception>
   QueryObserver({
     required super.client,
     required super.options,
+    super.listen = true,
   }) {
     client.queryCache.build<TData, TError>(
       queryKey: options.queryKey,
       client: client,
-      observer: this,
+      observer: listen ? this : null,
     );
   }
 

@@ -10,6 +10,8 @@ abstract class Observer<TData, TError extends Exception,
   /// Query client the observer is subscribed to
   late final QueryClient client;
 
+  final bool listen;
+
   /// Options for the query
   late TOptions options;
 
@@ -24,6 +26,7 @@ abstract class Observer<TData, TError extends Exception,
   Observer({
     required this.client,
     required this.options,
+    required this.listen,
   }) {
     client.queryCache.addListener(hashCode, onQueryCacheNotification);
   }
