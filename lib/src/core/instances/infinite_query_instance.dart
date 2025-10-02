@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
-import 'package:fquery/src/models/infinite_query_options.dart';
+import 'package:fquery/src/core/models/infinite_query_options.dart';
 import 'package:fquery/src/hooks/use_infinite_query.dart';
-import 'package:fquery/src/models/query.dart';
-import 'package:fquery/src/observers/infinite_query_observer.dart';
-import 'package:fquery/src/query_client.dart';
+import 'package:fquery/src/core/models/query.dart';
+import 'package:fquery/src/core/observers/infinite_query_observer.dart';
+import 'package:fquery/src/core/query_client.dart';
 
 class InfiniteQueryInstance {
   static UseInfiniteQueryResult<TData, TError, TPageParam>

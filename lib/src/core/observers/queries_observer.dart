@@ -2,8 +2,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/observable.dart';
-import 'package:fquery/src/observers/query_observer.dart';
+import 'package:fquery/src/core/observable.dart';
+import 'package:fquery/src/core/observers/query_observer.dart';
 
 List<T> _difference<T>(List<T> array1, List<T> array2) {
   return array1.where((x) => !array2.contains(x)).toList();

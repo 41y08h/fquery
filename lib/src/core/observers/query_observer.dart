@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'package:fquery/src/models/query.dart';
-import 'package:fquery/src/models/query_options.dart';
-import 'package:fquery/src/observable.dart';
-import 'package:fquery/src/observers/observer.dart';
-import 'package:fquery/src/retry_resolver.dart';
+import 'package:fquery/src/core/models/query.dart';
+import 'package:fquery/src/core/models/query_options.dart';
+import 'package:fquery/src/core/observable.dart';
+import 'package:fquery/src/core/observers/observer.dart';
+import 'package:fquery/src/core/retry_resolver.dart';
 
 /// A function that fetches data for a query.
 typedef QueryFn<TData> = Future<TData> Function();

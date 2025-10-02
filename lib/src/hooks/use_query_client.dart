@@ -1,5 +1,5 @@
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fquery/src/query_client.dart';
+import 'package:fquery/src/core/query_client.dart';
 import 'package:fquery/src/widgets/query_client_provider.dart';
 
 /// Obtains the provided instance of [QueryClient]

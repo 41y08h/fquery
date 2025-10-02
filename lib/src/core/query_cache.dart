@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:fquery/src/models/query.dart';
-import 'package:fquery/src/observable.dart';
-import 'package:fquery/src/observers/observer.dart';
-import 'package:fquery/src/query_client.dart';
-import 'package:fquery/src/models/query_key.dart';
+import 'package:fquery/src/core/models/query.dart';
+import 'package:fquery/src/core/observable.dart';
+import 'package:fquery/src/core/observers/observer.dart';
+import 'package:fquery/src/core/query_client.dart';
+import 'package:fquery/src/core/models/query_key.dart';
 
 /// A map of query keys to their corresponding queries.
 typedef QueriesMap = Map<QueryKey, Query>;

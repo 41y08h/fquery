@@ -2,7 +2,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/src/hooks/use_query_client.dart';
-import 'package:fquery/src/query_client.dart';
+import 'package:fquery/src/core/query_client.dart';
 
 @Deprecated('Use QueryClient.of(context) instead')
 class QueryClientBuilder<TData, TError> extends HookWidget {

@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/observable.dart';
-import 'package:fquery/src/observers/observer.dart';
-import 'package:fquery/src/retry_resolver.dart';
+import 'package:fquery/src/core/observable.dart';
+import 'package:fquery/src/core/observers/observer.dart';
+import 'package:fquery/src/core/retry_resolver.dart';
 
 /// The function used to fetch a page of data in an infinite query.
 typedef InfiniteQueryFn<TData, TPageParam> = Future<TData> Function(TPageParam);

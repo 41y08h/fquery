@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:fquery/src/models/query.dart';
-import 'package:fquery/src/observable.dart';
-import 'package:fquery/src/query_client.dart';
+import 'package:fquery/src/core/models/query.dart';
+import 'package:fquery/src/core/observable.dart';
+import 'package:fquery/src/core/query_client.dart';
 
 abstract class Observer<TData, TError extends Exception,
     TOptions extends BaseQueryOptions<TData, TError>> with Observable {

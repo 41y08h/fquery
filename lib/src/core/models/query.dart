@@ -1,4 +1,4 @@
-import 'package:fquery/src/models/query_key.dart';
+import 'package:fquery/src/core/models/query_key.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:flutter/foundation.dart';
 

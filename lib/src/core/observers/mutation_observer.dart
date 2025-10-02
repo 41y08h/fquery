@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/mutation.dart';
+import 'package:fquery/src/core/mutation.dart';
 
 /// A [MutationObserver] is a class which holds a [Mutation] and handles its execution.
 class MutationObserver<TData, TError, TVariables, TContext>

@@ -3,8 +3,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/hooks/use_observable.dart';
 import 'package:fquery/src/hooks/use_observable_selector.dart';
-import 'package:fquery/src/models/query_result.dart';
-import 'package:fquery/src/observers/query_observer.dart';
+import 'package:fquery/src/core/models/query_result.dart';
+import 'package:fquery/src/core/observers/query_observer.dart';
 
 /// Builds and subscribes to a query stored in the cache.
 /// Takes a query key and a fetcher function which either resolves or throws an error.

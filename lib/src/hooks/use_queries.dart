@@ -1,10 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/src/hooks/use_observable.dart';
-import 'package:fquery/src/models/query_result.dart';
+import 'package:fquery/src/core/models/query_result.dart';
 import 'package:fquery/src/hooks/use_query_client.dart';
-import 'package:fquery/src/observers/queries_observer.dart';
-import 'package:fquery/src/models/query_options.dart';
+import 'package:fquery/src/core/observers/queries_observer.dart';
+import 'package:fquery/src/core/models/query_options.dart';
 
 List<QueryResult<TData, TError>> useQueries<TData, TError extends Exception>(
   List<QueryOptions<TData, TError>> options,

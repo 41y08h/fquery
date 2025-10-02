@@ -1,5 +1,5 @@
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fquery/src/observable.dart';
+import 'package:fquery/src/core/observable.dart';
 
 T useObservableSelector<T>(Observable observable, T Function() getValue) {
   final state = useState<T>(getValue());

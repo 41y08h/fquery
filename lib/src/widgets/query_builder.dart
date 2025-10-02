@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/models/query_result.dart';
-import 'package:fquery/src/observers/query_observer.dart';
+import 'package:fquery/src/core/models/query_result.dart';
+import 'package:fquery/src/core/observers/query_observer.dart';
 
 /// Builder widget for queries
 class QueryBuilder<TData, TError extends Exception> extends StatefulWidget {

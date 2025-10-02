@@ -4,7 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/hooks/use_observable.dart';
-import 'package:fquery/src/models/query.dart';
+import 'package:fquery/src/core/models/query.dart';
 
 class InfiniteQueryData<TPage, TPageParam> {
   List<TPage> pages;
