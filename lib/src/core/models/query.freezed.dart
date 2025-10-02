@@ -13,8 +13,7 @@ part of 'query.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
-mixin _$Query<TData, TError extends Exception>
-    implements DiagnosticableTreeMixin {
+mixin _$Query<TData, TError extends Exception> {
   QueryKey get key;
   TData? get data;
   TError? get error;
@@ -33,22 +32,6 @@ mixin _$Query<TData, TError extends Exception>
   $QueryCopyWith<TData, TError, Query<TData, TError>> get copyWith =>
       _$QueryCopyWithImpl<TData, TError, Query<TData, TError>>(
           this as Query<TData, TError>, _$identity);
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    properties
-      ..add(DiagnosticsProperty('type', 'Query<$TData, $TError>'))
-      ..add(DiagnosticsProperty('key', key))
-      ..add(DiagnosticsProperty('data', data))
-      ..add(DiagnosticsProperty('error', error))
-      ..add(DiagnosticsProperty('dataUpdatedAt', dataUpdatedAt))
-      ..add(DiagnosticsProperty('errorUpdatedAt', errorUpdatedAt))
-      ..add(DiagnosticsProperty('isFetching', isFetching))
-      ..add(DiagnosticsProperty('status', status))
-      ..add(DiagnosticsProperty('isInvalidated', isInvalidated))
-      ..add(DiagnosticsProperty('fetchMeta', fetchMeta))
-      ..add(DiagnosticsProperty('isRefetchError', isRefetchError));
-  }
 
   @override
   bool operator ==(Object other) {
@@ -88,7 +71,7 @@ mixin _$Query<TData, TError extends Exception>
       isRefetchError);
 
   @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+  String toString() {
     return 'Query<$TData, $TError>(key: $key, data: $data, error: $error, dataUpdatedAt: $dataUpdatedAt, errorUpdatedAt: $errorUpdatedAt, isFetching: $isFetching, status: $status, isInvalidated: $isInvalidated, fetchMeta: $fetchMeta, isRefetchError: $isRefetchError)';
   }
 }
@@ -403,8 +386,7 @@ extension QueryPatterns<TData, TError extends Exception>
 
 /// @nodoc
 
-class _Query<TData, TError extends Exception> extends Query<TData, TError>
-    with DiagnosticableTreeMixin {
+class _Query<TData, TError extends Exception> extends Query<TData, TError> {
   const _Query(this.key,
       {this.data,
       this.error,
@@ -452,22 +434,6 @@ class _Query<TData, TError extends Exception> extends Query<TData, TError>
           this, _$identity);
 
   @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    properties
-      ..add(DiagnosticsProperty('type', 'Query<$TData, $TError>'))
-      ..add(DiagnosticsProperty('key', key))
-      ..add(DiagnosticsProperty('data', data))
-      ..add(DiagnosticsProperty('error', error))
-      ..add(DiagnosticsProperty('dataUpdatedAt', dataUpdatedAt))
-      ..add(DiagnosticsProperty('errorUpdatedAt', errorUpdatedAt))
-      ..add(DiagnosticsProperty('isFetching', isFetching))
-      ..add(DiagnosticsProperty('status', status))
-      ..add(DiagnosticsProperty('isInvalidated', isInvalidated))
-      ..add(DiagnosticsProperty('fetchMeta', fetchMeta))
-      ..add(DiagnosticsProperty('isRefetchError', isRefetchError));
-  }
-
-  @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
@@ -505,7 +471,7 @@ class _Query<TData, TError extends Exception> extends Query<TData, TError>
       isRefetchError);
 
   @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+  String toString() {
     return 'Query<$TData, $TError>(key: $key, data: $data, error: $error, dataUpdatedAt: $dataUpdatedAt, errorUpdatedAt: $errorUpdatedAt, isFetching: $isFetching, status: $status, isInvalidated: $isInvalidated, fetchMeta: $fetchMeta, isRefetchError: $isRefetchError)';
   }
 }

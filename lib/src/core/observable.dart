@@ -13,8 +13,4 @@ mixin Observable {
       listener();
     });
   }
-
-  void clearListeners() {
-    listeners.clear();
-  }
 }
