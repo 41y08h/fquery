@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fquery/src/core/models/query.dart';
 
 /// The result of a query, including the data, error, status flags, and a refetch function.
@@ -30,7 +32,7 @@ class QueryResult<TData, TError> {
   final QueryStatus status;
 
   /// The function to manually refetch the query.
-  final Future<void> Function() refetch;
+  final FutureOr<void> Function() refetch;
 
   /// Tells if the query has been invalidated and needs to be refetched.
   final bool isInvalidated;

@@ -1,12 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
+import 'package:fquery/src/core/models/infinite_query_result.dart';
 
 /// Builder widget for infinite queries
 class InfiniteQueryBuilder<TData, TError extends Exception, TPageParam>
     extends StatefulWidget {
-  /// The builder function which recevies the [UseInfiniteQueryResult] along with the [BuildContext]
+  /// The builder function which recevies the [InfiniteQueryResult] along with the [BuildContext]
   final Widget Function(
-      BuildContext, UseInfiniteQueryResult<TData, TError, TPageParam>) builder;
+      BuildContext, InfiniteQueryResult<TData, TError, TPageParam>) builder;
 
   final InfiniteQueryOptions<TData, TError, TPageParam> options;
 
@@ -96,7 +97,7 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
       hasPreviousPage = previousPageParam != null;
     }
 
-    final infiniteQuery = UseInfiniteQueryResult<TData, TError, TPageParam>(
+    final infiniteQuery = InfiniteQueryResult<TData, TError, TPageParam>(
       fetchNextPage: observer.fetchNextPage,
       fetchPreviousPage: observer.fetchPreviousPage,
       isFetchingNextPage: isFetchingNextPage,

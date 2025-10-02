@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 import 'package:fquery/fquery.dart';
+import 'package:fquery/src/core/models/infinite_query_result.dart';
 import 'package:fquery/src/hooks/use_observable.dart';
 import 'package:fquery/src/core/models/query.dart';
 
@@ -25,60 +26,12 @@ class InfiniteQueryData<TPage, TPageParam> {
   }
 }
 
-class UseInfiniteQueryResult<TData, TError, TPageParam> {
-  final InfiniteQueryData<TData, TPageParam>? data;
-  final DateTime? dataUpdatedAt;
-  final TError? error;
-  final DateTime? errorUpdatedAt;
-  final bool isError;
-  final bool isLoading;
-  final bool isFetching;
-  final bool isSuccess;
-  final QueryStatus status;
-  final Function() refetch;
-  final bool isFetchingNextPage;
-  final bool isFetchingPreviousPage;
-  final void Function() fetchNextPage;
-  final void Function() fetchPreviousPage;
-  final bool hasNextPage;
-  final bool hasPreviousPage;
-  final bool isRefetching;
-  final bool isFetchNextPageError;
-  final bool isFetchPreviousPageError;
-  final bool isInvalidated;
-  final bool isRefetchError;
-
-  UseInfiniteQueryResult({
-    this.data,
-    this.dataUpdatedAt,
-    this.error,
-    this.errorUpdatedAt,
-    required this.isError,
-    required this.isLoading,
-    required this.isFetching,
-    required this.isSuccess,
-    required this.status,
-    required this.refetch,
-    required this.isFetchingNextPage,
-    required this.isFetchingPreviousPage,
-    required this.fetchNextPage,
-    required this.fetchPreviousPage,
-    required this.hasNextPage,
-    required this.hasPreviousPage,
-    required this.isRefetching,
-    required this.isFetchNextPageError,
-    required this.isFetchPreviousPageError,
-    required this.isInvalidated,
-    required this.isRefetchError,
-  });
-}
-
 /// Used for infinite query. In addition to `queryKey` and `queryFn`,
 /// it requires an `initialPageParam` and `getNextPageParam` option.
 /// The query function receives the `pageParam` parameter
 /// that can be used to fetch the current page.
 ///
-/// Returns a [UseInfiniteQueryResult]
+/// Returns a [InfiniteQueryResult]
 ///
 /// Example:
 /// ```dart
@@ -91,7 +44,7 @@ class UseInfiniteQueryResult<TData, TError, TPageParam> {
 ///   }),
 /// );
 /// ```
-UseInfiniteQueryResult<TData, TError, TPageParam>
+InfiniteQueryResult<TData, TError, TPageParam>
     useInfiniteQuery<TData, TError extends Exception, TPageParam>(
   RawQueryKey queryKey,
   InfiniteQueryFn<TData, TPageParam> queryFn, {
@@ -228,7 +181,7 @@ UseInfiniteQueryResult<TData, TError, TPageParam>
     hasPreviousPage = previousPageParam != null;
   }
 
-  return UseInfiniteQueryResult(
+  return InfiniteQueryResult(
     fetchNextPage: observer.fetchNextPage,
     fetchPreviousPage: observer.fetchPreviousPage,
     isFetchingNextPage: isFetchingNextPage,
