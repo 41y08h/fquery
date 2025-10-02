@@ -67,6 +67,15 @@ class _MutationBuilderState<TData, TError, TVariables, TContext>
     setState(() {
       observer = buildObserver();
     });
+    observer.subscribe(hashCode, () {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    observer.dispose();
+    super.dispose();
   }
 
   @override
@@ -87,29 +96,18 @@ class _MutationBuilderState<TData, TError, TVariables, TContext>
   }
 
   @override
-  void dispose() {
-    observer.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: observer,
-      builder: (context, child) {
-        return widget.builder(
-          context,
-          UseMutationResult(
-            data: observer.mutation.state.data,
-            error: observer.mutation.state.error,
-            status: observer.mutation.state.status,
-            mutate: observer.mutate,
-            submittedAt: observer.mutation.state.submittedAt,
-            reset: observer.reset,
-            variables: observer.vars,
-          ),
-        );
-      },
+    return widget.builder(
+      context,
+      UseMutationResult(
+        data: observer.mutation.state.data,
+        error: observer.mutation.state.error,
+        status: observer.mutation.state.status,
+        mutate: observer.mutate,
+        submittedAt: observer.mutation.state.submittedAt,
+        reset: observer.reset,
+        variables: observer.vars,
+      ),
     );
   }
 }

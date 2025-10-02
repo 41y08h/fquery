@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/widgets.dart';
 
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/core/observable.dart';
@@ -76,9 +75,7 @@ class QueriesObserver<TData, TError extends Exception> with Observable {
       observer.subscribe(hashCode, () {
         notifyObservers();
       });
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        observer.initialize();
-      });
+      observer.initialize();
     });
 
     _difference(previousObservers, newObservers).forEach((observer) {

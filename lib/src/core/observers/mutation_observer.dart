@@ -1,10 +1,9 @@
-import 'package:flutter/widgets.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/core/mutation.dart';
+import 'package:fquery/src/core/observable.dart';
 
 /// A [MutationObserver] is a class which holds a [Mutation] and handles its execution.
-class MutationObserver<TData, TError, TVariables, TContext>
-    extends ChangeNotifier {
+class MutationObserver<TData, TError, TVariables, TContext> with Observable {
   /// The query client used to manage the mutation.
   final QueryClient client;
 
@@ -39,6 +38,10 @@ class MutationObserver<TData, TError, TVariables, TContext>
       onSettled: options.onSettled,
       onSuccess: options.onSuccess,
     );
+  }
+
+  void dispose() {
+    disposeSubscribers();
   }
 
   /// This is usually called from the [useMutation] hook
@@ -82,8 +85,6 @@ class MutationObserver<TData, TError, TVariables, TContext>
   /// This is called from the [Mutation] class whenever the mutation state changes.
   /// It notifies the observer about the change and it also nofities the [useMutation] hook.
   void onMutationUpdated() {
-    Future.delayed(Duration.zero, () {
-      notifyListeners();
-    });
+    notifyObservers();
   }
 }

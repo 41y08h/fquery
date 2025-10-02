@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 import 'package:fquery/src/core/mutation.dart';
 import 'package:fquery/src/core/observers/mutation_observer.dart';
+import 'package:fquery/src/hooks/use_observable.dart';
 
 /// The result of a mutation, including the mutate function and status flags.
 class UseMutationResult<TData, TError, TVariables> {
@@ -141,7 +142,7 @@ UseMutationResult<TData, TError, TVariables>
 
   // This subscribes to the observer
   // and rebuilds the widget on updates.
-  useListenable(observer);
+  useObservable(observer);
 
   return UseMutationResult(
     data: observer.mutation.state.data,

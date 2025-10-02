@@ -13,4 +13,8 @@ mixin Observable {
       listener();
     });
   }
+
+  void disposeSubscribers() {
+    listeners.clear();
+  }
 }
