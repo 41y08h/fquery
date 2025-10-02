@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:fquery/fquery.dart';
-import 'package:fquery/src/core/observable.dart';
 import 'package:fquery/src/core/observers/observer.dart';
 import 'package:fquery/src/core/retry_resolver.dart';
 
@@ -12,7 +11,7 @@ typedef InfiniteQueryFn<TData, TPageParam> = Future<TData> Function(TPageParam);
 /// Observer for infinite queries.
 class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     extends Observer<TData, TError,
-        InfiniteQueryOptions<TData, TError, TPageParam>> with Observable {
+        InfiniteQueryOptions<TData, TError, TPageParam>> {
   var _refetchResolvers = <RetryResolver>[];
   final _resolver = RetryResolver();
 

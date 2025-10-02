@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:fquery/src/core/models/query.dart';
 import 'package:fquery/src/core/models/query_options.dart';
-import 'package:fquery/src/core/observable.dart';
 import 'package:fquery/src/core/observers/observer.dart';
 import 'package:fquery/src/core/retry_resolver.dart';
 
@@ -13,8 +12,7 @@ typedef QueryFn<TData> = Future<TData> Function();
 /// There can be multiple observers for the same query and hence
 /// sharing the same piece of data throughout the whole application.
 class QueryObserver<TData, TError extends Exception>
-    extends Observer<TData, TError, QueryOptions<TData, TError>>
-    with Observable {
+    extends Observer<TData, TError, QueryOptions<TData, TError>> {
   final _resolver = RetryResolver();
 
   @override
