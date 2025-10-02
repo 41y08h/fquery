@@ -3,6 +3,7 @@ import 'package:fquery/src/models/query.dart';
 import 'package:fquery/src/models/query_options.dart';
 import 'package:fquery/src/observable.dart';
 import 'package:fquery/src/observers/observer.dart';
+import 'package:fquery/src/retry_resolver.dart';
 
 /// A function that fetches data for a query.
 typedef QueryFn<TData> = Future<TData> Function();
@@ -14,6 +15,8 @@ typedef QueryFn<TData> = Future<TData> Function();
 class QueryObserver<TData, TError extends Exception>
     extends Observer<TData, TError, QueryOptions<TData, TError>>
     with Observable {
+  final _resolver = RetryResolver();
+
   @override
   Query<TData, TError> get query {
     return client.queryCache.get(options.queryKey);
@@ -23,13 +26,15 @@ class QueryObserver<TData, TError extends Exception>
   QueryObserver({
     required super.client,
     required super.options,
-    super.listen = true,
+    super.listenToQueryCache = true,
   }) {
     client.queryCache.build<TData, TError>(
       queryKey: options.queryKey,
       client: client,
-      observer: listen ? this : null,
     );
+    if (listenToQueryCache) {
+      client.queryCache.addListener(hashCode, onQueryCacheNotification);
+    }
   }
 
   @override
@@ -74,8 +79,8 @@ class QueryObserver<TData, TError extends Exception>
       if (options.enabled) {
         fetch();
       } else {
-        resolver.cancel();
-        refetchTimer?.cancel();
+        _resolver.cancel();
+        cancelRefetch();
       }
     }
 
@@ -84,12 +89,12 @@ class QueryObserver<TData, TError extends Exception>
       if (options.refetchInterval != null) {
         scheduleRefetch();
       } else {
-        refetchTimer?.cancel();
+        cancelRefetch();
       }
     }
   }
 
-  /// This is "the" function responsible for fetching the query.
+  @override
   Future<void> fetch() async {
     if (!options.enabled || query.isFetching) {
       return;
@@ -100,7 +105,7 @@ class QueryObserver<TData, TError extends Exception>
     client.queryCache.dispatch(query.key, DispatchAction.fetch, null);
     // Important: State change, then any other
     // function invocation in the following callbacks
-    await resolver.resolve<TData>(
+    await _resolver.resolve<TData, TError>(
       options.queryFn,
       retryCount: options.retryCount,
       retryDelay: options.retryDelay,
@@ -124,5 +129,11 @@ class QueryObserver<TData, TError extends Exception>
     if (query.isInvalidated) {
       fetch();
     }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _resolver.cancel();
   }
 }

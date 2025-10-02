@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
@@ -6,17 +5,18 @@ import 'package:fquery/fquery.dart';
 import 'package:fquery/src/observable.dart';
 import 'package:fquery/src/observers/query_observer.dart';
 
-typedef QueriesOptions<TData, TError extends Exception>
-    = QueryOptions<TData, TError>;
-
-List<T> difference<T>(List<T> array1, List<T> array2) {
+List<T> _difference<T>(List<T> array1, List<T> array2) {
   return array1.where((x) => !array2.contains(x)).toList();
 }
 
-typedef QueriesObserverOptions<TData, TError extends Exception>
-    = List<QueriesOptions<TData, TError>>;
+/// An observer for multiple queries in parallel, uses [QueryObserver] internally
+/// It's different from other observer in two aspects -
+///  - It doesn't inherit from [Observer],
+///  - Tt doesn't subscribe to query cache.
+/// It is nevertheless an [Observable]
 
 class QueriesObserver<TData, TError extends Exception> with Observable {
+  /// Query client the observers of each query is subscribed to
   final QueryClient client;
   List<QueryObserver<TData, TError>> observers = [];
 
@@ -30,7 +30,7 @@ class QueriesObserver<TData, TError extends Exception> with Observable {
     }
   }
 
-  void setOptions(QueriesObserverOptions<TData, TError> options) {
+  void setOptions(List<QueryOptions<TData, TError>> options) {
     final previousObservers = observers;
 
     // Take the queries list and find/build the observer that is associated with the query
@@ -54,26 +54,25 @@ class QueriesObserver<TData, TError extends Exception> with Observable {
               ),
             );
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          observer.updateOptions(
-            QueryOptions(
-              queryKey: option.queryKey,
-              queryFn: option.queryFn,
-              enabled: option.enabled,
-              refetchOnMount: option.refetchOnMount,
-              staleDuration: option.staleDuration,
-              cacheDuration: option.cacheDuration,
-              retryCount: option.retryCount,
-              retryDelay: option.retryDelay,
-              refetchInterval: option.refetchInterval,
-            ),
-          );
-        });
+        observer.updateOptions(
+          QueryOptions(
+            queryKey: option.queryKey,
+            queryFn: option.queryFn,
+            enabled: option.enabled,
+            refetchOnMount: option.refetchOnMount,
+            staleDuration: option.staleDuration,
+            cacheDuration: option.cacheDuration,
+            retryCount: option.retryCount,
+            retryDelay: option.retryDelay,
+            refetchInterval: option.refetchInterval,
+          ),
+        );
+
         return observer;
       },
     ).toList();
 
-    difference(newObservers, previousObservers).forEach((observer) {
+    _difference(newObservers, previousObservers).forEach((observer) {
       observer.addListener(hashCode, () {
         notifyListeners();
       });
@@ -82,13 +81,11 @@ class QueriesObserver<TData, TError extends Exception> with Observable {
       });
     });
 
-    difference(previousObservers, newObservers).forEach((observer) {
+    _difference(previousObservers, newObservers).forEach((observer) {
       observer.dispose();
     });
 
     observers = newObservers;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
+    notifyListeners();
   }
 }

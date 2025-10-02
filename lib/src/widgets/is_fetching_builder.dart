@@ -14,16 +14,24 @@ class IsFetchingBuilder extends StatefulWidget {
 }
 
 class _IsFetchingBuilderState extends State<IsFetchingBuilder> {
+  late QueryClient client;
   @override
-  void initState() {
-    super.initState();
-    final client = QueryClient.of(context);
-    client.queryCache.addListener(hashCode, setState);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    client = QueryClient.of(context);
+    client.queryCache.addListener(hashCode, () {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    client.queryCache.removeListener(hashCode);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final client = QueryClient.of(context);
     final count = client.queryCache.queries.entries
         .where((q) => q.value.isFetching)
         .length;

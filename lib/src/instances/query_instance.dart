@@ -10,7 +10,7 @@ class QueryInstance {
     final observer = QueryObserver<TData, TError>(
       client: client,
       options: options,
-      listen: false,
+      listenToQueryCache: false,
     );
     return QueryResult<TData, TError>(
       data: observer.query.data,

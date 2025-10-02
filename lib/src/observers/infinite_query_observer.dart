@@ -14,6 +14,8 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     extends Observer<TData, TError,
         InfiniteQueryOptions<TData, TError, TPageParam>> with Observable {
   var _refetchResolvers = <RetryResolver>[];
+  final _resolver = RetryResolver();
+
   late TPageParam _paramFlag;
   late FetchMeta _metaFlag;
 
@@ -21,13 +23,15 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   InfiniteQueryObserver({
     required super.client,
     required super.options,
-    super.listen = true,
+    super.listenToQueryCache = true,
   }) {
     client.queryCache.build<InfiniteQueryData<TData, TPageParam>, TError>(
       queryKey: options.queryKey,
       client: client,
-      observer: listen ? this : null,
     );
+    if (listenToQueryCache) {
+      client.queryCache.addListener(hashCode, onQueryCacheNotification);
+    }
     _paramFlag = options.initialPageParam;
     _metaFlag = query.fetchMeta ?? FetchMeta(direction: FetchDirection.forward);
   }
@@ -84,8 +88,8 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
           fetch();
         }
       } else {
-        resolver.cancel();
-        refetchTimer?.cancel();
+        _resolver.cancel();
+        cancelRefetch();
       }
     }
 
@@ -94,7 +98,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
       if (options.refetchInterval != null) {
         scheduleRefetch();
       } else {
-        refetchTimer?.cancel();
+        cancelRefetch();
       }
     }
   }
@@ -165,7 +169,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
       final resolver = RetryResolver();
       _refetchResolvers.add(resolver);
 
-      await resolver.resolve<TData>(
+      await resolver.resolve<TData, TError>(
         () => options.queryFn(param),
         retryCount: options.retryCount,
         retryDelay: options.retryDelay,
@@ -211,7 +215,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     // Important: State change, then any other
     // function invocation in the following callbacks
     DispatchAction actionFlag = DispatchAction.fetch;
-    await resolver.resolve<TData>(
+    await _resolver.resolve<TData, TError>(
       () => options.queryFn(pageParam),
       retryCount: options.retryCount,
       retryDelay: options.retryDelay,
@@ -270,6 +274,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   @override
   void dispose() {
     super.dispose();
+    _resolver.cancel();
     for (var resolver in _refetchResolvers) {
       resolver.cancel();
     }
