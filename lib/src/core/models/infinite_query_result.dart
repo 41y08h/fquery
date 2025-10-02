@@ -31,21 +31,18 @@ class InfiniteQueryResult<TData, TError extends Exception, TPageParam>
   /// Tells if the last `fetchPreviousPage` resulted in an error.
   final bool isFetchPreviousPageError;
 
-  @override
-  final bool isRefetchError;
-
   InfiniteQueryResult({
-    required InfiniteQueryData<TData, TPageParam>? data,
-    required DateTime? dataUpdatedAt,
-    required TError? error,
-    required DateTime? errorUpdatedAt,
-    required bool isError,
-    required bool isLoading,
-    required bool isFetching,
-    required bool isSuccess,
-    required QueryStatus status,
-    required void Function() refetch,
-    required bool isInvalidated,
+    required super.data,
+    required super.dataUpdatedAt,
+    required super.error,
+    required super.errorUpdatedAt,
+    required super.isError,
+    required super.isLoading,
+    required super.isFetching,
+    required super.isSuccess,
+    required super.status,
+    required void Function() super.refetch,
+    required super.isInvalidated,
     required this.isFetchingNextPage,
     required this.isFetchingPreviousPage,
     required this.fetchNextPage,
@@ -55,19 +52,6 @@ class InfiniteQueryResult<TData, TError extends Exception, TPageParam>
     required this.isRefetching,
     required this.isFetchNextPageError,
     required this.isFetchPreviousPageError,
-    required this.isRefetchError,
-  }) : super(
-          data: data,
-          dataUpdatedAt: dataUpdatedAt,
-          error: error,
-          errorUpdatedAt: errorUpdatedAt,
-          isError: isError,
-          isLoading: isLoading,
-          isFetching: isFetching,
-          isSuccess: isSuccess,
-          status: status,
-          refetch: refetch,
-          isInvalidated: isInvalidated,
-          isRefetchError: isRefetchError,
-        );
+    required super.isRefetchError,
+  });
 }
