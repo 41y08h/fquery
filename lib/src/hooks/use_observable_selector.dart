@@ -11,10 +11,10 @@ T useObservableSelector<T>(Observable observable, T Function() getValue) {
       state.value = getValue();
     }
 
-    observable.addListener(id, listener);
+    observable.subscribe(id, listener);
 
     return () {
-      observable.removeListener(id);
+      observable.unsubscribe(id);
     };
   }, [observable]);
 

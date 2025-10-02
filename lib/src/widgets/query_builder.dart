@@ -33,7 +33,7 @@ class _QueryBuilderState<TData, TError extends Exception>
     );
     observer.initialize();
 
-    observer.addListener(hashCode, () {
+    observer.subscribe(hashCode, () {
       setState(() {});
     });
   }

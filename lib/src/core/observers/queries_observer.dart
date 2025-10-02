@@ -73,8 +73,8 @@ class QueriesObserver<TData, TError extends Exception> with Observable {
     ).toList();
 
     _difference(newObservers, previousObservers).forEach((observer) {
-      observer.addListener(hashCode, () {
-        notifyListeners();
+      observer.subscribe(hashCode, () {
+        notifyObservers();
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         observer.initialize();
@@ -86,6 +86,6 @@ class QueriesObserver<TData, TError extends Exception> with Observable {
     });
 
     observers = newObservers;
-    notifyListeners();
+    notifyObservers();
   }
 }

@@ -19,14 +19,14 @@ class _IsFetchingBuilderState extends State<IsFetchingBuilder> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     client = QueryClient.of(context);
-    client.queryCache.addListener(hashCode, () {
+    client.queryCache.subscribe(hashCode, () {
       setState(() {});
     });
   }
 
   @override
   void dispose() {
-    client.queryCache.removeListener(hashCode);
+    client.queryCache.unsubscribe(hashCode);
     super.dispose();
   }
 

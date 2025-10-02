@@ -33,7 +33,7 @@ class _QueriesBuilderState<TData, TError extends Exception>
     client = QueryClient.of(context);
     observer = QueriesObserver<TData, TError>(client: client);
     observer.setOptions(widget.options);
-    observer.addListener(hashCode, () {
+    observer.subscribe(hashCode, () {
       // print('received notification from queries observer');
       setState(() {});
     });

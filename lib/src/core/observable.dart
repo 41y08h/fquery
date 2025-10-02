@@ -1,14 +1,14 @@
 mixin Observable {
   Map<int, Function> listeners = {};
-  void addListener(int observerId, Function listener) {
-    listeners[observerId] = listener;
+  void subscribe(int listenerId, Function listener) {
+    listeners[listenerId] = listener;
   }
 
-  void removeListener(int observerId) {
+  void unsubscribe(int observerId) {
     listeners.remove(observerId);
   }
 
-  void notifyListeners() {
+  void notifyObservers() {
     listeners.forEach((observerId, listener) {
       listener();
     });

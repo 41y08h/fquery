@@ -11,10 +11,10 @@ void useObservable(Observable observable) {
       rebuild.value++; // triggers rebuild
     }
 
-    observable.addListener(id, listener);
+    observable.subscribe(id, listener);
 
     return () {
-      observable.removeListener(id);
+      observable.unsubscribe(id);
     };
   }, [observable]);
 }

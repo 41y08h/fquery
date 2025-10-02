@@ -29,7 +29,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
       client: client,
     );
     if (listenToQueryCache) {
-      client.queryCache.addListener(hashCode, onQueryCacheNotification);
+      client.queryCache.subscribe(hashCode, onQueryCacheNotification);
     }
     _paramFlag = options.initialPageParam;
     _metaFlag = query.fetchMeta ?? FetchMeta(direction: FetchDirection.forward);
@@ -42,7 +42,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
 
   @override
   void onQueryCacheNotification() {
-    notifyListeners();
+    notifyObservers();
     if (query.isInvalidated) {
       refetch();
     }

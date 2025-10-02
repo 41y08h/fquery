@@ -41,7 +41,7 @@ abstract class Observer<TData, TError extends Exception,
 
   /// Disposes the observer
   void dispose() {
-    client.queryCache.removeListener(hashCode);
+    client.queryCache.unsubscribe(hashCode);
     client.queryCache.dismantle(this);
     _refetchTimer?.cancel();
   }

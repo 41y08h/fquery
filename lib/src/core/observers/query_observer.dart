@@ -31,7 +31,7 @@ class QueryObserver<TData, TError extends Exception>
       client: client,
     );
     if (listenToQueryCache) {
-      client.queryCache.addListener(hashCode, onQueryCacheNotification);
+      client.queryCache.subscribe(hashCode, onQueryCacheNotification);
     }
   }
 
@@ -123,7 +123,7 @@ class QueryObserver<TData, TError extends Exception>
 
   @override
   void onQueryCacheNotification() {
-    notifyListeners();
+    notifyObservers();
     if (query.isInvalidated) {
       fetch();
     }

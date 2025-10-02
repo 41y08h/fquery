@@ -175,7 +175,7 @@ class QueryCache with Observable {
       action,
       data,
     );
-    notifyListeners();
+    notifyObservers();
   }
 
   void _gcRoutine() {
