@@ -129,14 +129,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.0"
-  clock:
-    dependency: transitive
-    description:
-      name: clock
-      sha256: fddb70d9b5277016c77a80201021d40a2247104d9f4aa7bab7157b7e3f05b84b
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.2"
   code_builder:
     dependency: transitive
     description:
@@ -177,14 +169,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.6"
-  cupertino_icons:
-    dependency: transitive
-    description:
-      name: cupertino_icons
-      sha256: ba631d1c7f7bef6b729a622b7b752645a2d076dba9976925b8f25725a30e1ee6
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.8"
   dart_style:
     dependency: transitive
     description:
@@ -193,22 +177,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.1"
-  dio:
-    dependency: transitive
-    description:
-      name: dio
-      sha256: "7d328c4d898a61efc3cd93655a0955858e29a0aa647f0f9e02d59b3bb275e2e8"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.0.6"
-  fake_async:
-    dependency: transitive
-    description:
-      name: fake_async
-      sha256: "6a95e56b2449df2273fd8c45a662d6947ce1ebb7aafe80e550a3f68297f3cacc"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.2"
   file:
     dependency: transitive
     description:
@@ -238,11 +206,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.21.2"
-  flutter_test:
-    dependency: transitive
-    description: flutter
-    source: sdk
-    version: "0.0.0"
   freezed:
     dependency: transitive
     description:
@@ -331,30 +294,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.9.0"
-  leak_tracker:
-    dependency: transitive
-    description:
-      name: leak_tracker
-      sha256: c35baad643ba394b40aac41080300150a4f08fd0fd6a10378f8f7c6bc161acec
-      url: "https://pub.dev"
-    source: hosted
-    version: "10.0.8"
-  leak_tracker_flutter_testing:
-    dependency: transitive
-    description:
-      name: leak_tracker_flutter_testing
-      sha256: f8b613e7e6a13ec79cfdc0e97638fddb3ab848452eff057653abd3edba760573
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.9"
-  leak_tracker_testing:
-    dependency: transitive
-    description:
-      name: leak_tracker_testing
-      sha256: "6ba465d5d76e67ddf503e1161d1f4a6bc42306f9d66ca1e8f079a47290fb06d3"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.1"
   lints:
     dependency: transitive
     description:

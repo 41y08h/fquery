@@ -22,6 +22,7 @@ class QueriesObserver<TData, TError extends Exception> with Observable {
   QueriesObserver({required this.cache});
 
   void dispose() {
+    disposeSubscribers();
     for (var observer in observers) {
       observer.dispose();
     }

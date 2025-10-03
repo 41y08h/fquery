@@ -6,4 +6,3 @@ environment:
 workspace:
   - packages/fquery
   - packages/fquery_core
-  - packages/example
