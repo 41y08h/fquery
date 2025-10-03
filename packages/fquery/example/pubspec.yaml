@@ -1,0 +1,25 @@
+name: basic
+description: A simple demonstration of the FQuery package.
+publish_to: "none"
+version: 1.0.0+1
+environment:
+  sdk: ">=3.6.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.5
+  flutter_hooks: ^0.21.2
+  dio: ^4.0.6
+  fquery:
+    path: ../
+  fquery_core:
+    path: ../../fquery_core
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
