@@ -15,17 +15,14 @@ class _InfinityPageState extends State<InfinityPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final itemsQuery = InfiniteQueryInstance.of(
+    InfiniteQueryInstance.of(
       context,
       itemsQueryOptions,
     );
 
-    scrollController.addListener(() {
-      if (scrollController.position.pixels ==
-          scrollController.position.maxScrollExtent) {
-        itemsQuery.fetchNextPage();
-      }
-    });
+    scrollController.removeListener(onScroll);
+    scrollController.addListener(onScroll);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (scrollController.hasClients) {
         scrollController.animateTo(
@@ -36,6 +33,17 @@ class _InfinityPageState extends State<InfinityPage> {
         );
       }
     });
+  }
+
+  void onScroll() {
+    if (scrollController.position.pixels ==
+        scrollController.position.maxScrollExtent) {
+      final itemsQuery = InfiniteQueryInstance.of(
+        context,
+        itemsQueryOptions,
+      );
+      itemsQuery.fetchNextPage();
+    }
   }
 
   @override

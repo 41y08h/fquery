@@ -1,11 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:fquery_core/models/query.dart';
 
 import 'use_observable.dart';
 import '../widgets/cache_provider.dart';
 import 'package:fquery_core/fquery_core.dart';
-import 'package:fquery_core/models/query.dart';
 
 class InfiniteQueryData<TPage, TPageParam> {
   List<TPage> pages;
@@ -26,7 +26,7 @@ class InfiniteQueryData<TPage, TPageParam> {
   }
 }
 
-/// Used for infinite query. In addition to `queryKey` and `queryFn`,
+/// Used for infinite query!. In addition to `queryKey` and `queryFn`,
 /// it requires an `initialPageParam` and `getNextPageParam` option.
 /// The query function receives the `pageParam` parameter
 /// that can be used to fetch the current page.

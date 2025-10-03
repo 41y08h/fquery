@@ -40,7 +40,6 @@ abstract class Observer<TData, TError extends Exception,
 
   /// Disposes the observer
   void dispose() {
-    disposeSubscribers();
     _refetchTimer?.cancel();
   }
 

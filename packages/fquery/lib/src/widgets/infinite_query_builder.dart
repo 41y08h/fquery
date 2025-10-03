@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import '../../fquery.dart';
+import 'package:fquery/fquery.dart';
 import 'package:fquery_core/fquery_core.dart';
 import 'package:fquery_core/models/query.dart';
 
@@ -33,11 +33,12 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
       cache: cache,
       options: widget.options,
     );
-    observer.initialize();
 
     observer.subscribe(hashCode, () {
       setState(() {});
     });
+
+    observer.initialize();
   }
 
   @override

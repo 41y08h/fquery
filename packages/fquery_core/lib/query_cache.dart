@@ -165,11 +165,15 @@ class QueryCache with Observable {
     DispatchAction action,
     Object? data,
   ) {
-    queries[queryKey] = _reducer<TData, TError>(
-      get<TData, TError>(queryKey),
-      action,
-      data,
-    );
+    try {
+      queries[queryKey] = _reducer<TData, TError>(
+        get<TData, TError>(queryKey),
+        action,
+        data,
+      );
+    } on QueryNotFoundException {
+      return;
+    }
     notifyObservers();
   }
 
@@ -177,8 +181,10 @@ class QueryCache with Observable {
     _maxCacheDurations.forEach((queryKey, cacheDuration) {
       final observers = _observers[queryKey] ?? [];
       if (observers.isEmpty) {
+        print('scheduled gc');
         _scheduleGc(queryKey, cacheDuration);
       } else {
+        print('cancelled gc');
         _cancleGc(queryKey);
       }
     });
@@ -193,6 +199,7 @@ class QueryCache with Observable {
     _cancleGc(queryKey);
 
     void onGc() {
+      print('gc triggered');
       _queries.removeWhere((key, value) => key == queryKey);
       _observers.remove(queryKey);
       _maxCacheDurations.remove(queryKey);

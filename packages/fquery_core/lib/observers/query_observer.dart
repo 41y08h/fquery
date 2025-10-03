@@ -17,7 +17,7 @@ class QueryObserver<TData, TError extends Exception>
 
   @override
   Query<TData, TError> get query {
-    return cache.get(options.queryKey);
+    return cache.build<TData, TError>(queryKey: options.queryKey);
   }
 
   /// Creates a new [QueryObserver] instance.

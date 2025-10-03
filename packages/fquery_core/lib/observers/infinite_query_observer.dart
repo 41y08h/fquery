@@ -38,7 +38,9 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
 
   @override
   Query<InfiniteQueryData<TData, TPageParam>, TError> get query {
-    return cache.get(options.queryKey);
+    return cache.build<InfiniteQueryData<TData, TPageParam>, TError>(
+      queryKey: options.queryKey,
+    );
   }
 
   @override

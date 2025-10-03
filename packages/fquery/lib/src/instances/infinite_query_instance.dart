@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import '../../fquery.dart';
+import 'package:fquery/fquery.dart';
 import 'package:fquery_core/fquery_core.dart';
 import 'package:fquery_core/models/query.dart';
 

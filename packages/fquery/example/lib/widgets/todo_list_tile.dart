@@ -138,9 +138,6 @@ class TodoListTile extends HookWidget {
                   checkColor: markMutation.isPending
                       ? CupertinoColors.inactiveGray
                       : CupertinoColors.white,
-                  inactiveColor: markMutation.isPending
-                      ? CupertinoColors.inactiveGray
-                      : CupertinoColors.black,
                   value: markMutation.isPending
                       ? markMutation.variables as bool
                       : todo.isDone,
@@ -149,6 +146,23 @@ class TodoListTile extends HookWidget {
 
                     markMutation.mutate(value);
                   },
+                  fillColor: WidgetStateProperty.resolveWith<Color>(
+                      (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.disabled)) {
+                      return CupertinoColors.white.withOpacity(0.5);
+                    }
+                    if (states.contains(WidgetState.selected)) {
+                      return CupertinoDynamicColor.resolve(
+                          CupertinoDynamicColor.withBrightness(
+                            color: CupertinoColors.activeBlue,
+                            darkColor: Color.fromARGB(255, 50, 100, 215),
+                          ),
+                          context);
+                    }
+                    return markMutation.isPending
+                        ? CupertinoColors.inactiveGray
+                        : CupertinoColors.black;
+                  }),
                 ),
                 MutationBuilder(
                   (id) async {

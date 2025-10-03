@@ -7,10 +7,10 @@ class HomeListTile extends StatelessWidget {
   final String title;
   final String route;
   const HomeListTile({
-    Key? key,
+    super.key,
     required this.title,
     required this.route,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

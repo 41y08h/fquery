@@ -31,11 +31,12 @@ class _QueryBuilderState<TData, TError extends Exception>
       cache: cache,
       options: widget.options,
     );
-    observer.initialize();
 
     observer.subscribe(hashCode, () {
       setState(() {});
     });
+
+    observer.initialize();
   }
 
   @override
