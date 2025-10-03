@@ -129,6 +129,8 @@ class QueryObserver<TData, TError extends Exception>
   @override
   void dispose() {
     super.dispose();
+    cache.unsubscribe(hashCode);
+    cache.dismantle(this);
     _resolver.cancel();
   }
 }

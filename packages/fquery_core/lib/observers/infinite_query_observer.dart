@@ -272,6 +272,8 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   @override
   void dispose() {
     super.dispose();
+    cache.unsubscribe(hashCode);
+    cache.dismantle(this);
     _resolver.cancel();
     for (var resolver in _refetchResolvers) {
       resolver.cancel();
