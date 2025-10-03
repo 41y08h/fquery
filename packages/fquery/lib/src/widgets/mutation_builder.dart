@@ -82,16 +82,15 @@ class _MutationBuilderState<TData, TError, TVariables, TContext>
       covariant MutationBuilder<TData, TError, TVariables, TContext>
           oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    observer.updateOptions(
-      MutationOptions(
+    if (widget != oldWidget) {
+      observer.options = MutationOptions(
         mutationFn: widget.mutationFn,
         onMutate: widget.onMutate,
         onSuccess: widget.onSuccess,
         onError: widget.onError,
         onSettled: widget.onSettled,
-      ),
-    );
+      );
+    }
   }
 
   @override
@@ -99,11 +98,11 @@ class _MutationBuilderState<TData, TError, TVariables, TContext>
     return widget.builder(
       context,
       MutationResult(
-        data: observer.mutation.state.data,
-        error: observer.mutation.state.error,
-        status: observer.mutation.state.status,
+        data: observer.mutation.data,
+        error: observer.mutation.error,
+        status: observer.mutation.status,
         mutate: observer.mutate,
-        submittedAt: observer.mutation.state.submittedAt,
+        submittedAt: observer.mutation.submittedAt,
         reset: observer.reset,
         variables: observer.vars,
       ),

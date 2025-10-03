@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:fquery_core/fquery_core.dart';
-import 'package:fquery_core/mutation.dart';
+import 'package:fquery_core/models/mutation.dart';
 
 /// A [MutationObserver] is a class which holds a [Mutation] and handles its execution.
 class MutationObserver<TData, TError, TVariables, TContext> with Observable {
@@ -9,52 +9,29 @@ class MutationObserver<TData, TError, TVariables, TContext> with Observable {
   late MutationOptions<TData, TError, TVariables, TContext> options;
 
   /// The mutation instance managed by this observer.
-  late Mutation<TData, TError, TVariables, TContext> mutation;
+  late Mutation<TData, TError> mutation;
 
   /// The variables used in the last mutation.
   TVariables? vars;
 
-  /// Creates a new [MutationObserver] instance.
   MutationObserver({
-    required MutationOptions<TData, TError, TVariables, TContext> options,
+    required this.options,
   }) {
-    mutation = Mutation<TData, TError, TVariables, TContext>(observer: this);
-    _setOptions(options);
-  }
-
-  /// Takes a [MutationOptions] and sets the [options] field.
-  void _setOptions(
-    MutationOptions<TData, TError, TVariables, TContext> options,
-  ) {
-    this.options = MutationOptions<TData, TError, TVariables, TContext>(
-      mutationFn: options.mutationFn,
-      onError: options.onError,
-      onMutate: options.onMutate,
-      onSettled: options.onSettled,
-      onSuccess: options.onSuccess,
-    );
+    mutation = Mutation<TData, TError>();
   }
 
   void dispose() {
     disposeSubscribers();
   }
 
-  /// This is usually called from the [useMutation] hook
-  /// whenever there is any change in the options
-  void updateOptions(
-    MutationOptions<TData, TError, TVariables, TContext> options,
-  ) {
-    _setOptions(options);
-  }
-
   /// This is "the" function responsible for the mutation.
   Future<void> mutate(TVariables variables) async {
-    if (mutation.state.isPending) return;
+    if (mutation.isPending) return;
 
     this.vars = variables;
     onMutationUpdated();
 
-    mutation.dispatch(MutationDispatchAction.mutate, null);
+    dispatch(MutationDispatchAction.mutate, null);
     final ctx = await options.onMutate?.call(variables);
 
     TData? data;
@@ -62,12 +39,12 @@ class MutationObserver<TData, TError, TVariables, TContext> with Observable {
     try {
       error = null;
       data = await options.mutationFn(variables);
-      mutation.dispatch(MutationDispatchAction.success, data);
+      dispatch(MutationDispatchAction.success, data);
       options.onSuccess?.call(data as TData, variables, ctx);
     } catch (err) {
       data = null;
       error = err as TError;
-      mutation.dispatch(MutationDispatchAction.error, error);
+      dispatch(MutationDispatchAction.error, error);
       options.onError?.call(error as TError, variables, ctx);
     }
     options.onSettled?.call(data, error, variables, ctx);
@@ -75,12 +52,37 @@ class MutationObserver<TData, TError, TVariables, TContext> with Observable {
 
   /// Resets the mutation to its initial state.
   void reset() {
-    mutation.dispatch(MutationDispatchAction.reset, null);
+    dispatch(MutationDispatchAction.reset, null);
   }
 
   /// This is called from the [Mutation] class whenever the mutation state changes.
   /// It notifies the observer about the change and it also nofities the [useMutation] hook.
   void onMutationUpdated() {
+    notifyObservers();
+  }
+
+  Mutation<TData, TError> _reducer(
+    Mutation<TData, TError> state,
+    MutationDispatchAction action,
+    dynamic data,
+  ) {
+    switch (action) {
+      case MutationDispatchAction.reset:
+        return Mutation();
+      case MutationDispatchAction.mutate:
+        return state.copyWith(
+          status: MutationStatus.pending,
+          submittedAt: DateTime.now(),
+        );
+      case MutationDispatchAction.error:
+        return state.copyWith(error: data, status: MutationStatus.error);
+      case MutationDispatchAction.success:
+        return state.copyWith(data: data, status: MutationStatus.success);
+    }
+  }
+
+  void dispatch(MutationDispatchAction action, dynamic data) {
+    mutation = _reducer(mutation, action, data);
     notifyObservers();
   }
 }

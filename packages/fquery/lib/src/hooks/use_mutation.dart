@@ -54,7 +54,7 @@ MutationResult<TData, TError, TVariables>
 
   useEffect(() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      observer.updateOptions(options);
+      observer.options = options;
     });
     return null;
   }, [observer, options]);
@@ -64,11 +64,11 @@ MutationResult<TData, TError, TVariables>
   useObservable(observer);
 
   return MutationResult(
-    data: observer.mutation.state.data,
-    error: observer.mutation.state.error,
-    status: observer.mutation.state.status,
+    data: observer.mutation.data,
+    error: observer.mutation.error,
+    status: observer.mutation.status,
     mutate: observer.mutate,
-    submittedAt: observer.mutation.state.submittedAt,
+    submittedAt: observer.mutation.submittedAt,
     reset: observer.reset,
     variables: observer.vars,
   );
