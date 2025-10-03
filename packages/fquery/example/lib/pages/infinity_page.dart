@@ -15,10 +15,6 @@ class _InfinityPageState extends State<InfinityPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    InfiniteQueryInstance.of(
-      context,
-      itemsQueryOptions,
-    );
 
     scrollController.removeListener(onScroll);
     scrollController.addListener(onScroll);
@@ -36,12 +32,12 @@ class _InfinityPageState extends State<InfinityPage> {
   }
 
   void onScroll() {
+    final itemsQuery = InfiniteQueryInstance.of(
+      context,
+      itemsQueryOptions,
+    );
     if (scrollController.position.pixels ==
         scrollController.position.maxScrollExtent) {
-      final itemsQuery = InfiniteQueryInstance.of(
-        context,
-        itemsQueryOptions,
-      );
       itemsQuery.fetchNextPage();
     }
   }
