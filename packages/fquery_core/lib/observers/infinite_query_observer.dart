@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:fquery_core/models/infinite_query_data.dart';
-import 'package:fquery_core/models/infinite_query_options.dart';
+import 'package:fquery_core/fquery_core.dart';
 import 'package:fquery_core/models/query.dart';
 import 'package:fquery_core/observers/observer.dart';
 import 'package:fquery_core/retry_resolver.dart';
@@ -20,26 +19,80 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   late TPageParam _paramFlag;
   late FetchMeta _metaFlag;
 
+  late InfiniteQueryFn<TData, TPageParam> queryFn;
+  late TPageParam initialPageParam;
+  late TPageParam? Function(TData, List<TData>, TPageParam, List<TPageParam>)
+      getNextPageParam;
+  late TPageParam? Function(TData, List<TData>, TPageParam, List<TPageParam>)?
+      getPreviousPageParam;
+  late int? maxPages;
+
   /// Creates a new instance of [InfiniteQueryObserver].
   InfiniteQueryObserver({
-    required super.options,
     required super.cache,
+    required QueryKey queryKey,
+    required InfiniteQueryFn<TData, TPageParam> queryFn,
+    bool? enabled,
+    RefetchOnMount? refetchOnMount,
+    Duration? staleDuration,
+    Duration? cacheDuration,
+    Duration? refetchInterval,
+    int? retryCount,
+    Duration? retryDelay,
     super.listenToQueryCache = true,
-  }) {
+    required TPageParam initialPageParam,
+    required TPageParam? Function(
+            TData, List<TData>, TPageParam, List<TPageParam>)
+        getNextPageParam,
+    TPageParam? Function(TData, List<TData>, TPageParam, List<TPageParam>)?
+        getPreviousPageParam,
+    int? maxPages,
+  }) : super(
+          queryKey: queryKey,
+          enabled: enabled ?? cache.defaultQueryOptions.enabled,
+          refetchOnMount:
+              refetchOnMount ?? cache.defaultQueryOptions.refetchOnMount,
+          staleDuration:
+              staleDuration ?? cache.defaultQueryOptions.staleDuration,
+          cacheDuration:
+              cacheDuration ?? cache.defaultQueryOptions.cacheDuration,
+          refetchInterval:
+              refetchInterval ?? cache.defaultQueryOptions.refetchInterval,
+          retryCount: retryCount ?? cache.defaultQueryOptions.retryCount,
+          retryDelay: retryDelay ?? cache.defaultQueryOptions.retryDelay,
+        ) {
+    setOptions(
+      InfiniteQueryOptions(
+        queryFn: queryFn,
+        queryKey: queryKey,
+        enabled: enabled ?? cache.defaultQueryOptions.enabled,
+        refetchOnMount:
+            refetchOnMount ?? cache.defaultQueryOptions.refetchOnMount,
+        staleDuration: staleDuration ?? cache.defaultQueryOptions.staleDuration,
+        cacheDuration: cacheDuration ?? cache.defaultQueryOptions.cacheDuration,
+        refetchInterval:
+            refetchInterval ?? cache.defaultQueryOptions.refetchInterval,
+        retryCount: retryCount ?? cache.defaultQueryOptions.retryCount,
+        retryDelay: retryDelay ?? cache.defaultQueryOptions.retryDelay,
+        initialPageParam: initialPageParam,
+        getNextPageParam: getNextPageParam,
+        getPreviousPageParam: getPreviousPageParam,
+      ),
+    );
     cache.build<InfiniteQueryData<TData, TPageParam>, TError>(
-      queryKey: options.queryKey,
+      queryKey: queryKey,
     );
     if (listenToQueryCache) {
       cache.subscribe(hashCode, onQueryCacheNotification);
     }
-    _paramFlag = options.initialPageParam;
+    _paramFlag = initialPageParam;
     _metaFlag = query.fetchMeta ?? FetchMeta(direction: FetchDirection.forward);
   }
 
   @override
   Query<InfiniteQueryData<TData, TPageParam>, TError> get query {
     return cache.build<InfiniteQueryData<TData, TPageParam>, TError>(
-      queryKey: options.queryKey,
+      queryKey: queryKey,
     );
   }
 
@@ -54,18 +107,18 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   @override
   void initialize() {
     // Initiate query on mount
-    if (options.enabled == false) return;
+    if (enabled == false) return;
     final isRefetching = !query.isLoading;
     final isInvalidated = query.isInvalidated;
 
     // [RefetchOnMount] behavior is specified here
     if (isRefetching && !isInvalidated) {
-      switch (options.refetchOnMount) {
+      switch (refetchOnMount) {
         case RefetchOnMount.always:
           refetch();
           break;
         case RefetchOnMount.stale:
-          DateTime? staleAt = query.dataUpdatedAt?.add(options.staleDuration);
+          DateTime? staleAt = query.dataUpdatedAt?.add(staleDuration);
           final isStale = staleAt?.isBefore(DateTime.now()) ?? true;
           if (isStale) refetch();
           break;
@@ -78,14 +131,22 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   }
 
   @override
+  void setOptions(InfiniteQueryOptions<TData, TError, TPageParam> options) {
+    super.setOptions(options);
+    queryFn = options.queryFn;
+    initialPageParam = options.initialPageParam;
+    getNextPageParam = options.getNextPageParam;
+    getPreviousPageParam = options.getPreviousPageParam;
+  }
+
+  @override
   void updateOptions(InfiniteQueryOptions<TData, TError, TPageParam> options) {
-    final refetchIntervalChanged =
-        this.options.refetchInterval != options.refetchInterval;
-    final isEnabledChanged = this.options.enabled != options.enabled;
-    this.options = options;
+    final refetchIntervalChanged = options.refetchInterval != refetchInterval;
+    final isEnabledChanged = options.enabled != enabled;
+    setOptions(options);
 
     if (isEnabledChanged) {
-      if (options.enabled) {
+      if (enabled) {
         if (query.isLoading) {
           fetch();
         }
@@ -96,8 +157,8 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     }
 
     if (refetchIntervalChanged) {
-      // Schedules the next fetch if the [options.refetchInterval] is set.
-      if (options.refetchInterval != null) {
+      // Schedules the next fetch if the [refetchInterval] is set.
+      if (refetchInterval != null) {
         scheduleRefetch();
       } else {
         cancelRefetch();
@@ -115,7 +176,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     final lastPage = pages.last;
     final lastPageParam = pageParams.last;
 
-    final nextPageParam = options.getNextPageParam(
+    final nextPageParam = getNextPageParam(
       lastPage,
       pages,
       lastPageParam,
@@ -139,7 +200,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     final firstPage = pages.first;
     final firstPageParam = pageParams.first;
 
-    final previousParam = options.getPreviousPageParam?.call(
+    final previousParam = getPreviousPageParam?.call(
       firstPage,
       pages,
       firstPageParam,
@@ -155,7 +216,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
 
   /// Used to refetch query, it fetches all the pages sequentially.
   void refetch() {
-    if (!options.enabled || query.isFetching) {
+    if (!enabled || query.isFetching) {
       return;
     }
 
@@ -172,9 +233,9 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
       _refetchResolvers.add(resolver);
 
       await resolver.resolve<TData, TError>(
-        () => options.queryFn(param),
-        retryCount: options.retryCount,
-        retryDelay: options.retryDelay,
+        () => queryFn(param),
+        retryCount: retryCount,
+        retryDelay: retryDelay,
         onResolve: (refetchedData) {
           // Make a copy of pages to replace with refetched
           // data without directly mutataing the old `pages`
@@ -190,6 +251,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
 
           final newData = data.copyWith(pages: [...newPages]);
           cache.dispatch(query.key, action, newData);
+          scheduleRefetch();
         },
         onError: (error) {
           cache.dispatch(query.key, DispatchAction.refetchError, error);
@@ -207,7 +269,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     final pageParam = _paramFlag;
     final meta = _metaFlag;
 
-    if (!options.enabled || query.isFetching) {
+    if (!enabled || query.isFetching) {
       return;
     }
 
@@ -216,15 +278,15 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     // function invocation in the following callbacks
     DispatchAction actionFlag = DispatchAction.fetch;
     await _resolver.resolve<TData, TError>(
-      () => options.queryFn(pageParam),
-      retryCount: options.retryCount,
-      retryDelay: options.retryDelay,
+      () => queryFn(pageParam),
+      retryCount: retryCount,
+      retryDelay: retryDelay,
       onResolve: (data) {
         final pages = [...(query.data?.pages ?? [])];
         final pageParams = [...(query.data?.pageParams ?? [])];
 
         // `maxPages` option's behaviour is defined here
-        if (pages.length == options.maxPages) {
+        if (pages.length == maxPages) {
           if (meta.direction == FetchDirection.forward) {
             // Remove the first page
             pages.removeAt(0);

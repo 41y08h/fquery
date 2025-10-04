@@ -34,7 +34,7 @@ import 'package:fquery_core/models/query.dart';
 
 QueryResult<TData, TError> useQuery<TData, TError extends Exception>(
   RawQueryKey queryKey,
-  QueryFn<TData> fetcher, {
+  QueryFn<TData> queryFn, {
   required BuildContext context,
   // These options must match with the `UseQueryOptions`
   bool enabled = true,
@@ -48,19 +48,18 @@ QueryResult<TData, TError> useQuery<TData, TError extends Exception>(
   final cache = CacheProvider.get(context);
   final observerRef = useRef<QueryObserver<TData, TError>?>(null);
   useEffect(() {
-    observerRef.value = QueryObserver(
+    observerRef.value = QueryObserver<TData, TError>(
+      listenToQueryCache: false,
       cache: cache,
-      options: QueryOptions(
-        queryKey: QueryKey(queryKey),
-        queryFn: fetcher,
-        enabled: enabled,
-        refetchInterval: refetchInterval,
-        refetchOnMount: refetchOnMount ?? DefaultQueryOptions().refetchOnMount,
-        staleDuration: staleDuration ?? DefaultQueryOptions().staleDuration,
-        cacheDuration: cacheDuration ?? DefaultQueryOptions().cacheDuration,
-        retryCount: retryCount ?? DefaultQueryOptions().retryCount,
-        retryDelay: retryDelay ?? DefaultQueryOptions().retryDelay,
-      ),
+      queryFn: queryFn,
+      queryKey: QueryKey(queryKey),
+      cacheDuration: cacheDuration,
+      enabled: enabled,
+      refetchInterval: refetchInterval,
+      refetchOnMount: refetchOnMount,
+      retryCount: retryCount,
+      retryDelay: retryDelay,
+      staleDuration: staleDuration,
     );
     return;
   }, [QueryKey(queryKey)]);
@@ -75,17 +74,16 @@ QueryResult<TData, TError> useQuery<TData, TError extends Exception>(
     if (query == null) {
       observerRef.value = QueryObserver(
         cache: cache,
-        options: QueryOptions(
-          queryKey: QueryKey(queryKey),
-          queryFn: fetcher,
-          enabled: enabled,
-          refetchOnMount:
-              refetchOnMount ?? DefaultQueryOptions().refetchOnMount,
-          staleDuration: staleDuration ?? DefaultQueryOptions().staleDuration,
-          cacheDuration: cacheDuration ?? DefaultQueryOptions().cacheDuration,
-          retryCount: retryCount ?? DefaultQueryOptions().retryCount,
-          retryDelay: retryDelay ?? DefaultQueryOptions().retryDelay,
-        ),
+        queryFn: queryFn,
+        queryKey: QueryKey(queryKey),
+        cacheDuration: cacheDuration,
+        enabled: enabled,
+        listenToQueryCache: true,
+        refetchInterval: refetchInterval,
+        refetchOnMount: refetchOnMount,
+        retryCount: retryCount,
+        retryDelay: retryDelay,
+        staleDuration: staleDuration,
       );
     }
     return;
@@ -101,13 +99,14 @@ QueryResult<TData, TError> useQuery<TData, TError extends Exception>(
     WidgetsBinding.instance.addPostFrameCallback((_) {
       observer.updateOptions(QueryOptions(
         queryKey: QueryKey(queryKey),
-        queryFn: fetcher,
+        queryFn: queryFn,
         enabled: enabled,
-        refetchOnMount: refetchOnMount ?? DefaultQueryOptions().refetchOnMount,
-        staleDuration: staleDuration ?? DefaultQueryOptions().staleDuration,
-        cacheDuration: cacheDuration ?? DefaultQueryOptions().cacheDuration,
-        retryCount: retryCount ?? DefaultQueryOptions().retryCount,
-        retryDelay: retryDelay ?? DefaultQueryOptions().retryDelay,
+        refetchOnMount:
+            refetchOnMount ?? cache.defaultQueryOptions.refetchOnMount,
+        staleDuration: staleDuration ?? cache.defaultQueryOptions.staleDuration,
+        cacheDuration: cacheDuration ?? cache.defaultQueryOptions.cacheDuration,
+        retryCount: retryCount ?? cache.defaultQueryOptions.retryCount,
+        retryDelay: retryDelay ?? cache.defaultQueryOptions.retryDelay,
       ));
     });
     return;

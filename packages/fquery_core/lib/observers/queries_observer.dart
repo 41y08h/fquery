@@ -34,21 +34,19 @@ class QueriesObserver<TData, TError extends Exception> with Observable {
     // Take the queries list and find/build the observer that is associated with the query
     final newObservers = options.map((option) {
       final observer = previousObservers.firstWhereOrNull(
-            (observer) => observer.options.queryKey == option.queryKey,
+            (observer) => observer.queryKey == option.queryKey,
           ) ??
           QueryObserver(
             cache: cache,
-            options: QueryOptions(
-              queryKey: option.queryKey,
-              queryFn: option.queryFn,
-              enabled: option.enabled,
-              refetchOnMount: option.refetchOnMount,
-              staleDuration: option.staleDuration,
-              cacheDuration: option.cacheDuration,
-              retryCount: option.retryCount,
-              retryDelay: option.retryDelay,
-              refetchInterval: option.refetchInterval,
-            ),
+            queryKey: option.queryKey,
+            queryFn: option.queryFn,
+            enabled: option.enabled,
+            refetchOnMount: option.refetchOnMount,
+            staleDuration: option.staleDuration,
+            cacheDuration: option.cacheDuration,
+            retryCount: option.retryCount,
+            retryDelay: option.retryDelay,
+            refetchInterval: option.refetchInterval,
           );
 
       observer.updateOptions(

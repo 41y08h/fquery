@@ -31,7 +31,20 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
     cache = CacheProvider.get(context);
     observer = InfiniteQueryObserver(
       cache: cache,
-      options: widget.options,
+      queryFn: widget.options.queryFn,
+      queryKey: widget.options.queryKey,
+      cacheDuration: widget.options.cacheDuration,
+      enabled: widget.options.enabled,
+      listenToQueryCache: true,
+      refetchInterval: widget.options.refetchInterval,
+      refetchOnMount: widget.options.refetchOnMount,
+      retryCount: widget.options.retryCount,
+      retryDelay: widget.options.retryDelay,
+      staleDuration: widget.options.staleDuration,
+      getNextPageParam: widget.options.getNextPageParam,
+      initialPageParam: widget.options.initialPageParam,
+      getPreviousPageParam: widget.options.getPreviousPageParam,
+      maxPages: widget.options.maxPages,
     );
 
     observer.subscribe(hashCode, () {

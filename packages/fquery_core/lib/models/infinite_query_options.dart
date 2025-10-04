@@ -2,8 +2,7 @@ import 'package:fquery_core/models/query.dart';
 import 'package:fquery_core/observers/infinite_query_observer.dart';
 
 /// The result of an infinite query, including the pages, page parameters, error, status flags, and functions to fetch more pages.
-class InfiniteQueryOptions<TData, TError, TPageParam>
-    extends BaseQueryOptions<TData, TError> {
+class InfiniteQueryOptions<TData, TError, TPageParam> extends BaseQueryOptions {
   /// The query function responsible for fetching the query
   final InfiniteQueryFn<TData, TPageParam> queryFn;
 

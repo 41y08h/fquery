@@ -34,7 +34,6 @@ class _QueriesBuilderState<TData, TError extends Exception>
     observer = QueriesObserver<TData, TError>(cache: cache);
     observer.setOptions(widget.options);
     observer.subscribe(hashCode, () {
-      // print('received notification from queries observer');
       setState(() {});
     });
   }

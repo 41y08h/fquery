@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'package:fquery_core/fquery_core.dart';
 import 'package:fquery_core/models/query.dart';
-import 'package:fquery_core/models/query_options.dart';
 import 'package:fquery_core/observers/observer.dart';
 import 'package:fquery_core/retry_resolver.dart';
 
@@ -15,40 +15,82 @@ class QueryObserver<TData, TError extends Exception>
     extends Observer<TData, TError, QueryOptions<TData, TError>> {
   final _resolver = RetryResolver();
 
+  late QueryFn<TData> queryFn;
+
   @override
   Query<TData, TError> get query {
-    return cache.build<TData, TError>(queryKey: options.queryKey);
+    return cache.build<TData, TError>(queryKey: queryKey);
   }
 
   /// Creates a new [QueryObserver] instance.
   QueryObserver({
-    required super.options,
-    super.listenToQueryCache = true,
     required super.cache,
-  }) {
-    cache.build<TData, TError>(queryKey: options.queryKey);
+    required QueryKey queryKey,
+    required QueryFn<TData> queryFn,
+    bool? enabled,
+    RefetchOnMount? refetchOnMount,
+    Duration? staleDuration,
+    Duration? cacheDuration,
+    Duration? refetchInterval,
+    int? retryCount,
+    Duration? retryDelay,
+    super.listenToQueryCache = true,
+  }) : super(
+          queryKey: queryKey,
+          enabled: enabled ?? cache.defaultQueryOptions.enabled,
+          refetchOnMount:
+              refetchOnMount ?? cache.defaultQueryOptions.refetchOnMount,
+          staleDuration:
+              staleDuration ?? cache.defaultQueryOptions.staleDuration,
+          cacheDuration:
+              cacheDuration ?? cache.defaultQueryOptions.cacheDuration,
+          refetchInterval:
+              refetchInterval ?? cache.defaultQueryOptions.refetchInterval,
+          retryCount: retryCount ?? cache.defaultQueryOptions.retryCount,
+          retryDelay: retryDelay ?? cache.defaultQueryOptions.retryDelay,
+        ) {
+    setOptions(
+      QueryOptions(
+        queryFn: queryFn,
+        queryKey: queryKey,
+        enabled: enabled ?? cache.defaultQueryOptions.enabled,
+        refetchOnMount:
+            refetchOnMount ?? cache.defaultQueryOptions.refetchOnMount,
+        staleDuration: staleDuration ?? cache.defaultQueryOptions.staleDuration,
+        cacheDuration: cacheDuration ?? cache.defaultQueryOptions.cacheDuration,
+        refetchInterval:
+            refetchInterval ?? cache.defaultQueryOptions.refetchInterval,
+        retryCount: retryCount ?? cache.defaultQueryOptions.retryCount,
+        retryDelay: retryDelay ?? cache.defaultQueryOptions.retryDelay,
+      ),
+    );
+    cache.build<TData, TError>(queryKey: queryKey);
     if (listenToQueryCache) {
       cache.subscribe(hashCode, onQueryCacheNotification);
     }
   }
 
   @override
+  void setOptions(QueryOptions<TData, TError> options) {
+    queryFn = options.queryFn;
+    super.setOptions(options);
+  }
+
+  @override
   void initialize() {
     // Initiate query on mount
-    if (options.enabled == false) return;
+    if (enabled == false) return;
     final isRefetching = !query.isLoading;
     final isInvalidated = query.isInvalidated;
 
     // [RefetchOnMount] behaviour is specified here
     if (isRefetching && !isInvalidated) {
-      switch (options.refetchOnMount) {
+      switch (refetchOnMount) {
         case RefetchOnMount.always:
           fetch();
           break;
         case RefetchOnMount.stale:
-          DateTime? staleAt = query.dataUpdatedAt?.add(options.staleDuration);
-          final isStale = staleAt?.isBefore(DateTime.now()) ?? true;
-          if (isStale) fetch();
+          if (isQueryStale) fetch();
           break;
         case RefetchOnMount.never:
           break;
@@ -58,21 +100,25 @@ class QueryObserver<TData, TError extends Exception>
     }
   }
 
+  bool get isQueryStale {
+    DateTime? staleAt = query.dataUpdatedAt?.add(staleDuration);
+    return staleAt?.isBefore(DateTime.now()) ?? true;
+  }
+
   @override
   void updateOptions(QueryOptions<TData, TError> options) {
     // Changes for side effects:
-    // [options.enabled]
-    // [options.refetchInterval]
+    // [enabled]
+    // [refetchInterval]
 
-    final refetchIntervalChanged =
-        this.options.refetchInterval != options.refetchInterval;
-    final isEnabledChanged = this.options.enabled != options.enabled;
+    final refetchIntervalChanged = options.refetchInterval != refetchInterval;
+    final isEnabledChanged = options.enabled != enabled;
 
-    this.options = options;
+    setOptions(options);
 
     if (isEnabledChanged) {
-      if (options.enabled) {
-        fetch();
+      if (enabled) {
+        if (isQueryStale) fetch();
       } else {
         _resolver.cancel();
         cancelRefetch();
@@ -80,8 +126,8 @@ class QueryObserver<TData, TError extends Exception>
     }
 
     if (refetchIntervalChanged) {
-      // Schedules the next fetch if the [options.refetchInterval] is set.
-      if (options.refetchInterval != null) {
+      // Schedules the next fetch if the [refetchInterval] is set.
+      if (refetchInterval != null) {
         scheduleRefetch();
       } else {
         cancelRefetch();
@@ -91,7 +137,7 @@ class QueryObserver<TData, TError extends Exception>
 
   @override
   Future<void> fetch() async {
-    if (!options.enabled || query.isFetching) {
+    if (!enabled || query.isFetching) {
       return;
     }
 
@@ -100,22 +146,36 @@ class QueryObserver<TData, TError extends Exception>
     cache.dispatch(query.key, DispatchAction.fetch, null);
     // Important: State change, then any other
     // function invocation in the following callbacks
+    DispatchAction actionFlag = DispatchAction.fetch;
+
     await _resolver.resolve<TData, TError>(
-      options.queryFn,
-      retryCount: options.retryCount,
-      retryDelay: options.retryDelay,
+      queryFn,
+      retryCount: retryCount,
+      retryDelay: retryDelay,
       onResolve: (data) {
         cache.dispatch(query.key, DispatchAction.success, data);
+        actionFlag = DispatchAction.success;
       },
       onError: (error) {
         final action =
             isRefetching ? DispatchAction.refetchError : DispatchAction.error;
         cache.dispatch(query.key, action, error);
+        actionFlag = DispatchAction.error;
       },
       onCancel: () {
         cache.dispatch(query.key, DispatchAction.cancelFetch, null);
+        actionFlag = DispatchAction.cancelFetch;
       },
     );
+
+    // Refetching is scheduled here after success or error
+    final scheduleRefetchActions = [
+      DispatchAction.success,
+      DispatchAction.error,
+    ];
+    if (scheduleRefetchActions.contains(actionFlag)) {
+      scheduleRefetch();
+    }
   }
 
   @override

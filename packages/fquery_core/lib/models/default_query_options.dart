@@ -2,6 +2,8 @@ import 'package:fquery_core/models/query.dart';
 
 /// Default options for all queries.
 class DefaultQueryOptions {
+  final bool enabled;
+
   /// The behavior of the query when the widget is first built and the data is already available.
   final RefetchOnMount refetchOnMount;
 
@@ -22,6 +24,7 @@ class DefaultQueryOptions {
 
   /// Creates a new [DefaultQueryOptions] instance.
   DefaultQueryOptions({
+    this.enabled = true,
     this.refetchOnMount = RefetchOnMount.stale,
     this.staleDuration = Duration.zero,
     this.cacheDuration = const Duration(seconds: 5),

@@ -18,4 +18,5 @@ final itemsQueryOptions = InfiniteQueryOptions<PageResult, Exception, int>(
   },
   refetchOnMount: RefetchOnMount.never,
   cacheDuration: Duration(seconds: 5),
+  refetchInterval: Duration(seconds: 4),
 );

@@ -29,7 +29,16 @@ class _QueryBuilderState<TData, TError extends Exception>
 
     observer = QueryObserver(
       cache: cache,
-      options: widget.options,
+      queryFn: widget.options.queryFn,
+      queryKey: widget.options.queryKey,
+      cacheDuration: widget.options.cacheDuration,
+      enabled: widget.options.enabled,
+      listenToQueryCache: true,
+      refetchInterval: widget.options.refetchInterval,
+      refetchOnMount: widget.options.refetchOnMount,
+      retryCount: widget.options.retryCount,
+      retryDelay: widget.options.retryDelay,
+      staleDuration: widget.options.staleDuration,
     );
 
     observer.subscribe(hashCode, () {

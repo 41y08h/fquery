@@ -31,10 +31,9 @@ class RetryResolver {
         if (!_isRunning) return;
         onResolve(value);
         break;
-      } on TError {
-        // print(TError);
+      } on TError catch (e) {
         if (isLastAttempt) {
-          // onError(TError);
+          onError(e);
           break;
         }
         await Future.delayed(retryDelay);

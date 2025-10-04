@@ -2,8 +2,7 @@ import 'package:fquery_core/models/query.dart';
 import 'package:fquery_core/observers/query_observer.dart';
 
 /// Query options
-class QueryOptions<TData, TError extends Exception>
-    extends BaseQueryOptions<TData, TError> {
+class QueryOptions<TData, TError extends Exception> extends BaseQueryOptions {
   /// The query function used to fetch the data
   final QueryFn<TData> queryFn;
 

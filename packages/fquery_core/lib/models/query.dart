@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:fquery_core/models/query_key.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -17,32 +18,43 @@ enum QueryStatus { loading, success, error }
 
 enum RefetchOnMount { stale, always, never }
 
-abstract class BaseQueryOptions<TData, TError> {
-  /// A unique identifier for query in the cache
-  final QueryKey queryKey;
+class QueryOptionsConfigParams {
   // Tells whether the query is enabled
-  final bool enabled;
+  final bool? enabled;
 
   /// Specifies the behavior of the query instance when the widget is first built and the data is already available.
   /// - `RefetchOnMount.always` - will always re-fetch when the widget is built.
   /// - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`).
   /// - `RefetchOnMount.never` - will never re-fetch.
-  final RefetchOnMount refetchOnMount;
-  final Duration staleDuration;
-  final Duration cacheDuration;
+  final RefetchOnMount? refetchOnMount;
+  final Duration? staleDuration;
+  final Duration? cacheDuration;
   final Duration? refetchInterval;
-  final int retryCount;
-  final Duration retryDelay;
+  final int? retryCount;
+  final Duration? retryDelay;
 
+  QueryOptionsConfigParams({
+    this.enabled,
+    this.refetchOnMount,
+    this.staleDuration,
+    this.cacheDuration,
+    this.refetchInterval,
+    this.retryCount,
+    this.retryDelay,
+  });
+}
+
+class BaseQueryOptions extends QueryOptionsConfigParams {
+  final QueryKey queryKey;
   BaseQueryOptions({
     required this.queryKey,
-    this.enabled = true,
-    this.refetchOnMount = RefetchOnMount.stale,
-    this.staleDuration = Duration.zero,
-    this.cacheDuration = const Duration(seconds: 10),
-    this.refetchInterval,
-    this.retryCount = 3,
-    this.retryDelay = const Duration(seconds: 1, milliseconds: 500),
+    super.cacheDuration,
+    super.enabled,
+    super.refetchInterval,
+    super.refetchOnMount,
+    super.retryCount,
+    super.retryDelay,
+    super.staleDuration,
   });
 }
 

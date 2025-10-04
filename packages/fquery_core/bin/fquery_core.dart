@@ -7,28 +7,28 @@ import 'todos.dart';
 final cache = QueryCache();
 
 void main() {
-  final todos = TodosAPI.getInstance();
+  // final todos = TodosAPI.getInstance();
 
-  final todosObserver = QueryObserver(
-    cache: cache,
-    options: QueryOptions(
-      queryKey: QueryKey(['todos']),
-      enabled: false,
-      queryFn: todos.getAll,
-    ),
-  );
+  // final todosObserver = QueryObserver(
+  //   cache: cache,
+  //   options: QueryOptions(
+  //     queryKey: QueryKey(['todos']),
+  //     enabled: false,
+  //     queryFn: todos.getAll,
+  //   ),
+  // );
 
-  todosObserver.subscribe(1, () {
-    print(todosObserver.query.status);
-  });
+  // todosObserver.subscribe(1, () {
+  //   print(todosObserver.query.status);
+  // });
 
-  todosObserver.updateOptions(
-    QueryOptions(
-      queryKey: QueryKey(['todos']),
-      queryFn: todos.getAll,
-      enabled: true,
-    ),
-  );
+  // todosObserver.updateOptions(
+  //   QueryOptions(
+  //     queryKey: QueryKey(['todos']),
+  //     queryFn: todos.getAll,
+  //     enabled: true,
+  //   ),
+  // );
 
-  todosObserver.initialize();
+  // todosObserver.initialize();
 }

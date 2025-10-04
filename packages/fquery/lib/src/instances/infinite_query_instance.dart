@@ -10,8 +10,20 @@ class InfiniteQueryInstance {
     final cache = CacheProvider.get(context);
     final observer = InfiniteQueryObserver<TData, TError, TPageParam>(
       cache: cache,
-      options: options,
       listenToQueryCache: false,
+      queryFn: options.queryFn,
+      queryKey: options.queryKey,
+      cacheDuration: options.cacheDuration,
+      enabled: options.enabled,
+      refetchInterval: options.refetchInterval,
+      refetchOnMount: options.refetchOnMount,
+      retryCount: options.retryCount,
+      retryDelay: options.retryDelay,
+      staleDuration: options.staleDuration,
+      getNextPageParam: options.getNextPageParam,
+      initialPageParam: options.initialPageParam,
+      getPreviousPageParam: options.getPreviousPageParam,
+      maxPages: options.maxPages,
     );
 
     final isFetchingNextPage = observer.query.isFetching &&

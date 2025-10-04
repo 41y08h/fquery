@@ -2,7 +2,6 @@ export 'observers/query_observer.dart';
 export 'observers/infinite_query_observer.dart';
 export 'observers/queries_observer.dart';
 export 'observers/mutation_observer.dart';
-export 'models/default_query_options.dart';
 export 'models/infinite_query_data.dart';
 export 'models/infinite_query_options.dart';
 export 'models/infinite_query_result.dart';

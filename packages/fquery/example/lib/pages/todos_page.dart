@@ -38,7 +38,6 @@ class _TodosPageState extends State<TodosPage> {
         queryKey: QueryKey(['todos']),
         queryFn: todosAPI.getAll,
         refetchOnMount: RefetchOnMount.never,
-        refetchInterval: null,
         enabled: isEnabled,
         staleDuration: Duration(seconds: 3),
         cacheDuration: Duration(seconds: 5),

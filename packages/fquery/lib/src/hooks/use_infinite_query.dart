@@ -75,23 +75,24 @@ InfiniteQueryResult<TData, TError, TPageParam>
   final observerRef =
       useRef<InfiniteQueryObserver<TData, TError, TPageParam>?>(null);
   useEffect(() {
-    observerRef.value = InfiniteQueryObserver(
+    observerRef.value = InfiniteQueryObserver<TData, TError, TPageParam>(
       cache: cache,
-      options: InfiniteQueryOptions(
-        queryKey: QueryKey(queryKey),
-        queryFn: queryFn,
-        enabled: enabled,
-        getNextPageParam: getNextPageParam,
-        initialPageParam: initialPageParam,
-        getPreviousPageParam: getPreviousPageParam,
-        refetchInterval: refetchInterval,
-        refetchOnMount: refetchOnMount ?? DefaultQueryOptions().refetchOnMount,
-        staleDuration: staleDuration ?? DefaultQueryOptions().staleDuration,
-        cacheDuration: cacheDuration ?? DefaultQueryOptions().cacheDuration,
-        retryCount: retryCount ?? DefaultQueryOptions().retryCount,
-        retryDelay: retryDelay ?? DefaultQueryOptions().retryDelay,
-      ),
+      listenToQueryCache: false,
+      queryFn: queryFn,
+      queryKey: QueryKey(queryKey),
+      cacheDuration: cacheDuration,
+      enabled: enabled,
+      refetchInterval: refetchInterval,
+      refetchOnMount: refetchOnMount,
+      retryCount: retryCount,
+      retryDelay: retryDelay,
+      staleDuration: staleDuration,
+      getNextPageParam: getNextPageParam,
+      initialPageParam: initialPageParam,
+      getPreviousPageParam: getPreviousPageParam,
+      maxPages: maxPages,
     );
+
     return;
   }, [QueryKey(queryKey)]);
 
@@ -113,12 +114,11 @@ InfiniteQueryResult<TData, TError, TPageParam>
           initialPageParam: initialPageParam,
           getPreviousPageParam: getPreviousPageParam,
           refetchInterval: refetchInterval,
-          refetchOnMount:
-              refetchOnMount ?? DefaultQueryOptions().refetchOnMount,
-          staleDuration: staleDuration ?? DefaultQueryOptions().staleDuration,
-          cacheDuration: cacheDuration ?? DefaultQueryOptions().cacheDuration,
-          retryCount: retryCount ?? DefaultQueryOptions().retryCount,
-          retryDelay: retryDelay ?? DefaultQueryOptions().retryDelay,
+          refetchOnMount: refetchOnMount,
+          staleDuration: staleDuration,
+          cacheDuration: cacheDuration,
+          retryCount: retryCount,
+          retryDelay: retryDelay,
         ),
       );
     });

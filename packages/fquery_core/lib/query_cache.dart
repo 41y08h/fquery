@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:fquery_core/fquery_core.dart';
+import 'package:fquery_core/models/default_query_options.dart';
 import 'package:fquery_core/models/query.dart';
-import 'package:fquery_core/observable.dart';
 import 'package:fquery_core/observers/observer.dart';
-import 'package:fquery_core/models/query_key.dart';
 
 /// A map of query keys to their corresponding queries.
 typedef QueriesMap = Map<QueryKey, Query>;
@@ -31,9 +31,22 @@ class QueryCache with Observable {
   final Map<QueryKey, List<Observer>> _observers = {};
   final Map<QueryKey, Timer> _gcTimers = {};
   final Map<QueryKey, Duration> _maxCacheDurations = {};
+  final DefaultQueryOptions defaultQueryOptions;
 
   /// Returns an unmodifiable view of the queries in the cache.
   QueriesMap get queries => _queries;
+
+  QueryCache({DefaultQueryOptions? defaultQueryOptions})
+      : defaultQueryOptions = defaultQueryOptions ??
+            DefaultQueryOptions(
+              enabled: true,
+              refetchOnMount: RefetchOnMount.stale,
+              staleDuration: Duration.zero,
+              cacheDuration: const Duration(minutes: 5),
+              refetchInterval: null,
+              retryCount: 3,
+              retryDelay: const Duration(seconds: 1, milliseconds: 500),
+            );
 
   /// The single source of truth for how the cache data changes.
   Query<TData, TError> _reducer<TData, TError extends Exception>(
@@ -135,20 +148,20 @@ class QueryCache with Observable {
   }
 
   void _addObserver(Observer observer) {
-    _observers.putIfAbsent(observer.options.queryKey, () => []).add(observer);
+    _observers.putIfAbsent(observer.queryKey, () => []).add(observer);
     _gcRoutine();
   }
 
   /// This is called when an observer is disposed
   void dismantle(Observer observer) {
     // Set max cache duration before removing the observer
-    final queryKey = observer.options.queryKey;
+    final queryKey = observer.queryKey;
     final currentMaxCacheDuration =
         _maxCacheDurations[queryKey] ?? Duration.zero;
 
     _maxCacheDurations[queryKey] = Duration(
       milliseconds: max(
-        observer.options.cacheDuration.inMilliseconds,
+        observer.cacheDuration.inMilliseconds,
         currentMaxCacheDuration.inMilliseconds,
       ),
     );
@@ -181,10 +194,8 @@ class QueryCache with Observable {
     _maxCacheDurations.forEach((queryKey, cacheDuration) {
       final observers = _observers[queryKey] ?? [];
       if (observers.isEmpty) {
-        print('scheduled gc');
         _scheduleGc(queryKey, cacheDuration);
       } else {
-        print('cancelled gc');
         _cancleGc(queryKey);
       }
     });
@@ -199,7 +210,6 @@ class QueryCache with Observable {
     _cancleGc(queryKey);
 
     void onGc() {
-      print('gc triggered');
       _queries.removeWhere((key, value) => key == queryKey);
       _observers.remove(queryKey);
       _maxCacheDurations.remove(queryKey);
