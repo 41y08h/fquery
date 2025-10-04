@@ -1,7 +1,10 @@
 import 'package:basic/items_query_options.dart';
+import 'package:basic/models/infinity.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:fquery/instances/infinite_query_instance.dart';
+import 'package:fquery/widgets/cache_provider.dart';
 import 'package:fquery/widgets/infinite_query_builder.dart';
+import 'package:fquery_core/fquery_core.dart';
 
 class InfinityPage extends StatefulWidget {
   const InfinityPage({super.key});
@@ -45,60 +48,77 @@ class _InfinityPageState extends State<InfinityPage> {
 
   @override
   Widget build(BuildContext context) {
-    return InfiniteQueryBuilder(itemsQueryOptions, builder: (context, items) {
-      return CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          middle: const Text("Infinity"),
-          trailing: items.isFetching
-              ? const CupertinoActivityIndicator()
-              : CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: items.refetch,
-                  child: const Icon(CupertinoIcons.refresh),
-                ),
-        ),
-        child: SafeArea(
-          child: Builder(
-            builder: (context) {
-              if (items.isLoading) {
-                return const Center(child: CupertinoActivityIndicator());
-              }
-              if (items.isError) return Text(items.error.toString());
-              final contents = items.data?.pages
-                      .map((page) => page.content)
-                      .expand((element) => element)
-                      .toList() ??
-                  [];
-
-              return Column(
-                children: [
-                  if (items.isFetchingPreviousPage)
-                    const SizedBox(
-                      height: 100,
-                      width: double.maxFinite,
-                      child: CupertinoActivityIndicator(),
-                    ),
-                  Expanded(
-                    child: ListView.builder(
-                        controller: scrollController,
-                        itemCount: contents.length,
-                        itemBuilder: ((context, index) {
-                          return CupertinoListTile(
-                              title: Text(contents[index]));
-                        })),
+    return InfiniteQueryBuilder(
+      InfiniteQueryOptions<PageResult, Exception, int>(
+        queryKey: QueryKey([
+          'infinity',
+          {'type': 'scroll'}
+        ]),
+        queryFn: (page) {
+          final infinityAPI = Infinity.getInstance();
+          return infinityAPI.get(page);
+        },
+        initialPageParam: 1,
+        getNextPageParam: (lastPage, allPages, lastPageParam, allPageParam) {
+          return lastPage.hasMore ? lastPage.page + 1 : null;
+        },
+        refetchOnMount: RefetchOnMount.never,
+      ),
+      builder: (context, items) {
+        return CupertinoPageScaffold(
+          navigationBar: CupertinoNavigationBar(
+            middle: const Text("Infinity"),
+            trailing: items.isFetching
+                ? const CupertinoActivityIndicator()
+                : CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: items.refetch,
+                    child: const Icon(CupertinoIcons.refresh),
                   ),
-                  if (items.isFetchingNextPage)
-                    const SizedBox(
-                      height: 100,
-                      width: double.maxFinite,
-                      child: CupertinoActivityIndicator(),
-                    ),
-                ],
-              );
-            },
           ),
-        ),
-      );
-    });
+          child: SafeArea(
+            child: Builder(
+              builder: (context) {
+                if (items.isLoading) {
+                  return const Center(child: CupertinoActivityIndicator());
+                }
+                if (items.isError) return Text(items.error.toString());
+                final contents = items.data?.pages
+                        .map((page) => page.content)
+                        .expand((element) => element)
+                        .toList() ??
+                    [];
+
+                return Column(
+                  children: [
+                    if (items.isFetchingPreviousPage)
+                      const SizedBox(
+                        height: 100,
+                        width: double.maxFinite,
+                        child: CupertinoActivityIndicator(),
+                      ),
+                    Expanded(
+                      child: ListView.builder(
+                          controller: scrollController,
+                          itemCount: contents.length,
+                          itemBuilder: ((context, index) {
+                            return CupertinoListTile(
+                                title: Text(contents[index]));
+                          })),
+                    ),
+                    if (items.isFetchingNextPage)
+                      const SizedBox(
+                        height: 100,
+                        width: double.maxFinite,
+                        child: CupertinoActivityIndicator(),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
   }
 }
