@@ -11,9 +11,10 @@ import 'package:fquery_core/query_cache.dart';
 import 'pages/todos_page.dart';
 
 final queryCache = QueryCache(
-    defaultQueryOptions: DefaultQueryOptions(
-  refetchInterval: Duration(seconds: 2),
-));
+  defaultQueryOptions: DefaultQueryOptions(
+    enabled: false,
+  ),
+);
 
 void main() {
   runApp(const App());

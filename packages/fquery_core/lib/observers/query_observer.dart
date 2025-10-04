@@ -53,15 +53,13 @@ class QueryObserver<TData, TError extends Exception>
       QueryOptions(
         queryFn: queryFn,
         queryKey: queryKey,
-        enabled: enabled ?? cache.defaultQueryOptions.enabled,
-        refetchOnMount:
-            refetchOnMount ?? cache.defaultQueryOptions.refetchOnMount,
-        staleDuration: staleDuration ?? cache.defaultQueryOptions.staleDuration,
-        cacheDuration: cacheDuration ?? cache.defaultQueryOptions.cacheDuration,
-        refetchInterval:
-            refetchInterval ?? cache.defaultQueryOptions.refetchInterval,
-        retryCount: retryCount ?? cache.defaultQueryOptions.retryCount,
-        retryDelay: retryDelay ?? cache.defaultQueryOptions.retryDelay,
+        enabled: enabled,
+        refetchOnMount: refetchOnMount,
+        staleDuration: staleDuration,
+        cacheDuration: cacheDuration,
+        refetchInterval: refetchInterval,
+        retryCount: retryCount,
+        retryDelay: retryDelay,
       ),
     );
     cache.build<TData, TError>(queryKey: queryKey);

@@ -61,19 +61,18 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
           retryCount: retryCount ?? cache.defaultQueryOptions.retryCount,
           retryDelay: retryDelay ?? cache.defaultQueryOptions.retryDelay,
         ) {
+    print('enable is ${enabled}');
     setOptions(
       InfiniteQueryOptions(
         queryFn: queryFn,
         queryKey: queryKey,
-        enabled: enabled ?? cache.defaultQueryOptions.enabled,
-        refetchOnMount:
-            refetchOnMount ?? cache.defaultQueryOptions.refetchOnMount,
-        staleDuration: staleDuration ?? cache.defaultQueryOptions.staleDuration,
-        cacheDuration: cacheDuration ?? cache.defaultQueryOptions.cacheDuration,
-        refetchInterval:
-            refetchInterval ?? cache.defaultQueryOptions.refetchInterval,
-        retryCount: retryCount ?? cache.defaultQueryOptions.retryCount,
-        retryDelay: retryDelay ?? cache.defaultQueryOptions.retryDelay,
+        enabled: enabled,
+        refetchOnMount: refetchOnMount,
+        staleDuration: staleDuration,
+        cacheDuration: cacheDuration,
+        refetchInterval: refetchInterval,
+        retryCount: retryCount,
+        retryDelay: retryDelay,
         initialPageParam: initialPageParam,
         getNextPageParam: getNextPageParam,
         getPreviousPageParam: getPreviousPageParam,
@@ -137,6 +136,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     initialPageParam = options.initialPageParam;
     getNextPageParam = options.getNextPageParam;
     getPreviousPageParam = options.getPreviousPageParam;
+    maxPages = options.maxPages;
   }
 
   @override
