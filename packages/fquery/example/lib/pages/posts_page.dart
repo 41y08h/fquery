@@ -3,9 +3,11 @@ import 'package:basic/models/todos.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fquery/fquery.dart';
-import 'package:fquery_core/fquery_core.dart';
+import 'package:fquery/widgets/is_fetching_builder.dart';
+import 'package:fquery/widgets/queries_builder.dart';
 import 'package:fquery_core/models/query.dart';
+import 'package:fquery_core/models/query_key.dart';
+import 'package:fquery_core/models/query_options.dart';
 
 Future<Post> getPost(int id) async {
   final res = await Dio().get('https://dummyjson.com/posts/$id');

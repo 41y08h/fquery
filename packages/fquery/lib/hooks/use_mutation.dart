@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:fquery_core/models/mutation_options.dart';
+import 'package:fquery_core/models/mutation_result.dart';
+import 'package:fquery_core/observers/mutation_observer.dart';
 import 'use_observable.dart';
-import 'package:fquery_core/fquery_core.dart';
 
 /// Builds a mutation and subscribes to it.
 /// Takes a mutation function which either resolves or throws an error.

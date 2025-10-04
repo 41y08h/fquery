@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'package:fquery_core/fquery_core.dart';
 import 'package:fquery_core/models/query.dart';
+import 'package:fquery_core/models/query_key.dart';
+import 'package:fquery_core/models/query_options.dart';
 import 'package:fquery_core/observers/observer.dart';
 import 'package:fquery_core/retry_resolver.dart';
 

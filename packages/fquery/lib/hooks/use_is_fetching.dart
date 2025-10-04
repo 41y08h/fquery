@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import '../../fquery.dart';
+import 'package:fquery/widgets/cache_provider.dart';
 import 'use_observable_selector.dart';
 
 /// Hook to get the number of active fetches across all queries.

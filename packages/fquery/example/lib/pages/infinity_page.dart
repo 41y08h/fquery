@@ -1,6 +1,7 @@
 import 'package:basic/items_query_options.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:fquery/fquery.dart';
+import 'package:fquery/instances/infinite_query_instance.dart';
+import 'package:fquery/widgets/infinite_query_builder.dart';
 
 class InfinityPage extends StatefulWidget {
   const InfinityPage({super.key});

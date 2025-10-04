@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:fquery_core/fquery_core.dart';
+import 'package:fquery_core/models/infinite_query_data.dart';
+import 'package:fquery_core/models/infinite_query_options.dart';
 import 'package:fquery_core/models/query.dart';
+import 'package:fquery_core/models/query_key.dart';
 import 'package:fquery_core/observers/observer.dart';
 import 'package:fquery_core/retry_resolver.dart';
 

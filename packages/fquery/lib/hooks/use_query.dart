@@ -1,10 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import '../../fquery.dart';
+import 'package:fquery/widgets/cache_provider.dart';
+import 'package:fquery_core/models/query_key.dart';
+import 'package:fquery_core/models/query_options.dart';
+import 'package:fquery_core/observers/query_observer.dart';
 import 'use_observable.dart';
 import 'use_observable_selector.dart';
-import 'package:fquery_core/fquery_core.dart';
 import 'package:fquery_core/models/query.dart';
+import 'package:fquery_core/models/query_result.dart';
 
 /// Builds and subscribes to a query stored in the cache.
 /// Takes a query key and a fetcher function which either resolves or throws an error.

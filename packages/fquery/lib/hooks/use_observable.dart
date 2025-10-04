@@ -1,5 +1,5 @@
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fquery_core/fquery_core.dart';
+import 'package:fquery_core/observable.dart';
 
 void useObservable(Observable observable) {
   final rebuild = useState(0);
