@@ -1,9 +1,8 @@
 import 'package:collection/collection.dart';
-import 'package:fquery_core/models/query_options.dart';
 
-import 'package:fquery_core/observable.dart';
-import 'package:fquery_core/observers/query_observer.dart';
-import 'package:fquery_core/query_cache.dart';
+import 'package:fquery_core/src/observer.dart';
+import 'package:fquery_core/src/query.dart';
+import 'package:fquery_core/src/query_cache.dart';
 
 List<T> _difference<T>(List<T> array1, List<T> array2) {
   return array1.where((x) => !array2.contains(x)).toList();

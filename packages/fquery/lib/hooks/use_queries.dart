@@ -2,9 +2,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/widgets/cache_provider.dart';
-import 'package:fquery_core/models/query_options.dart';
-import 'package:fquery_core/models/query_result.dart';
-import 'package:fquery_core/observers/queries_observer.dart';
+import 'package:fquery_core/fquery_core.dart';
 import 'use_observable.dart';
 
 List<QueryResult<TData, TError>> useQueries<TData, TError extends Exception>(

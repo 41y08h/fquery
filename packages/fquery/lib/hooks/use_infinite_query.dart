@@ -2,12 +2,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/widgets/cache_provider.dart';
-import 'package:fquery_core/models/infinite_query_options.dart';
-import 'package:fquery_core/models/query.dart';
-import 'package:fquery_core/models/infinite_query_result.dart';
-import 'package:fquery_core/models/query_key.dart';
-import 'package:fquery_core/observers/infinite_query_observer.dart';
 import 'use_observable.dart';
+import 'package:fquery_core/fquery_core.dart';
 
 class InfiniteQueryData<TPage, TPageParam> {
   List<TPage> pages;

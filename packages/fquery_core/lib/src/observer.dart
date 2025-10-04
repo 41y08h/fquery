@@ -1,15 +1,301 @@
 import 'dart:async';
 
+import 'package:fquery_core/src/query_cache.dart';
+import 'package:fquery_core/src/query.dart';
+import 'package:fquery_core/src/retry_resolver.dart';
 import 'package:collection/collection.dart';
-import 'package:fquery_core/models/infinite_query_data.dart';
-import 'package:fquery_core/models/infinite_query_options.dart';
-import 'package:fquery_core/models/query.dart';
-import 'package:fquery_core/models/query_key.dart';
-import 'package:fquery_core/observers/observer.dart';
-import 'package:fquery_core/retry_resolver.dart';
 
-/// The function used to fetch a page of data in an infinite query.
-typedef InfiniteQueryFn<TData, TPageParam> = Future<TData> Function(TPageParam);
+mixin Observable {
+  final Map<int, Function> _listeners = {};
+  void subscribe(int listenerId, Function listener) {
+    _listeners[listenerId] = listener;
+  }
+
+  void unsubscribe(int observerId) {
+    _listeners.remove(observerId);
+  }
+
+  void notifyObservers() {
+    _listeners.forEach((observerId, listener) {
+      listener();
+    });
+  }
+
+  void disposeSubscribers() {
+    _listeners.clear();
+  }
+}
+
+abstract class Observer<TData, TError extends Exception,
+    TOptions extends BaseQueryOptions> with Observable {
+  late final bool _listenToQueryCache;
+  late final QueryCache cache;
+  Timer? _refetchTimer;
+
+  final QueryKey queryKey;
+  // Tells whether the query is enabled
+  late bool enabled;
+
+  /// Specifies the behavior of the query instance when the widget is first built and the data is already available.
+  /// - `RefetchOnMount.always` - will always re-fetch when the widget is built.
+  /// - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`).
+  /// - `RefetchOnMount.never` - will never re-fetch.
+  late RefetchOnMount refetchOnMount;
+  late Duration staleDuration;
+  late Duration cacheDuration;
+  late Duration? refetchInterval;
+  late int retryCount;
+  late Duration retryDelay;
+
+  /// Query to which the observer is subscribed to
+  Query get query;
+
+  Observer({
+    required this.cache,
+    required this.queryKey,
+    required this.enabled,
+    required this.refetchOnMount,
+    required this.staleDuration,
+    required this.cacheDuration,
+    required this.refetchInterval,
+    required this.retryCount,
+    required this.retryDelay,
+    required bool listenToQueryCache,
+  }) : _listenToQueryCache = listenToQueryCache;
+
+  void _setOptions(TOptions options) {
+    enabled = options.enabled ?? cache.defaultQueryOptions.enabled;
+    refetchOnMount =
+        options.refetchOnMount ?? cache.defaultQueryOptions.refetchOnMount;
+    staleDuration =
+        options.staleDuration ?? cache.defaultQueryOptions.staleDuration;
+    cacheDuration =
+        options.cacheDuration ?? cache.defaultQueryOptions.cacheDuration;
+    refetchInterval =
+        options.refetchInterval ?? cache.defaultQueryOptions.refetchInterval;
+    retryCount = options.retryCount ?? cache.defaultQueryOptions.retryCount;
+    retryDelay = options.retryDelay ?? cache.defaultQueryOptions.retryDelay;
+  }
+
+  /// Callback function for receiving notifications
+  /// from the query cache, typically when query is updated
+  // ignore: unused_element
+  void _onQueryCacheNotification();
+
+  /// Schedules the next fetch if the [refetchInterval] is set.
+  void _scheduleRefetch() {
+    if (refetchInterval == null) return;
+    _refetchTimer?.cancel();
+    _refetchTimer = Timer(refetchInterval as Duration, fetch);
+  }
+
+  /// Cancels any scheduled refetch
+  void _cancelRefetch() {
+    _refetchTimer?.cancel();
+  }
+
+  /// The function responsible for fetching the data
+  Future<void> fetch();
+
+  /// Updates the options and produces any side effects required
+  void updateOptions(TOptions newOptions);
+
+  /// Starts the initial fetch routine
+  void initialize();
+
+  /// Disposes the observer
+  void dispose() {
+    _refetchTimer?.cancel();
+  }
+}
+
+/// A function that fetches data for a query.
+typedef QueryFn<TData> = Future<TData> Function();
+
+/// An observer is a class which subscribes to a query and updates its state when the query changes.
+/// It is responsible for fetching the query and updating the cache.
+/// There can be multiple observers for the same query and hence
+/// sharing the same piece of data throughout the whole application.
+class QueryObserver<TData, TError extends Exception>
+    extends Observer<TData, TError, QueryOptions<TData, TError>> {
+  final _resolver = RetryResolver();
+  late QueryFn<TData> queryFn;
+
+  @override
+  Query<TData, TError> get query {
+    return cache.build<TData, TError>(queryKey: queryKey);
+  }
+
+  /// Creates a new [QueryObserver] instance.
+  QueryObserver({
+    required super.cache,
+    required QueryKey queryKey,
+    required QueryFn<TData> queryFn,
+    bool? enabled,
+    RefetchOnMount? refetchOnMount,
+    Duration? staleDuration,
+    Duration? cacheDuration,
+    Duration? refetchInterval,
+    int? retryCount,
+    Duration? retryDelay,
+    super.listenToQueryCache = true,
+  }) : super(
+          queryKey: queryKey,
+          enabled: enabled ?? cache.defaultQueryOptions.enabled,
+          refetchOnMount:
+              refetchOnMount ?? cache.defaultQueryOptions.refetchOnMount,
+          staleDuration:
+              staleDuration ?? cache.defaultQueryOptions.staleDuration,
+          cacheDuration:
+              cacheDuration ?? cache.defaultQueryOptions.cacheDuration,
+          refetchInterval:
+              refetchInterval ?? cache.defaultQueryOptions.refetchInterval,
+          retryCount: retryCount ?? cache.defaultQueryOptions.retryCount,
+          retryDelay: retryDelay ?? cache.defaultQueryOptions.retryDelay,
+        ) {
+    _setOptions(
+      QueryOptions(
+        queryFn: queryFn,
+        queryKey: queryKey,
+        enabled: enabled,
+        refetchOnMount: refetchOnMount,
+        staleDuration: staleDuration,
+        cacheDuration: cacheDuration,
+        refetchInterval: refetchInterval,
+        retryCount: retryCount,
+        retryDelay: retryDelay,
+      ),
+    );
+    cache.build<TData, TError>(queryKey: queryKey);
+    if (_listenToQueryCache) {
+      cache.subscribe(hashCode, _onQueryCacheNotification);
+    }
+  }
+
+  @override
+  void _setOptions(QueryOptions<TData, TError> options) {
+    queryFn = options.queryFn;
+    super._setOptions(options);
+  }
+
+  @override
+  void initialize() {
+    // Initiate query on mount
+    if (enabled == false) return;
+    final isRefetching = !query.isLoading;
+    final isInvalidated = query.isInvalidated;
+
+    // [RefetchOnMount] behaviour is specified here
+    if (isRefetching && !isInvalidated) {
+      switch (refetchOnMount) {
+        case RefetchOnMount.always:
+          fetch();
+          break;
+        case RefetchOnMount.stale:
+          if (_isQueryStale) fetch();
+          break;
+        case RefetchOnMount.never:
+          break;
+      }
+    } else {
+      fetch();
+    }
+  }
+
+  bool get _isQueryStale {
+    DateTime? staleAt = query.dataUpdatedAt?.add(staleDuration);
+    return staleAt?.isBefore(DateTime.now()) ?? true;
+  }
+
+  @override
+  void updateOptions(QueryOptions<TData, TError> options) {
+    // Changes for side effects:
+    // [enabled]
+    // [refetchInterval]
+
+    final refetchIntervalChanged = options.refetchInterval != refetchInterval;
+    final isEnabledChanged = options.enabled != enabled;
+
+    _setOptions(options);
+
+    if (isEnabledChanged) {
+      if (enabled) {
+        if (_isQueryStale) fetch();
+      } else {
+        _resolver.cancel();
+        _cancelRefetch();
+      }
+    }
+
+    if (refetchIntervalChanged) {
+      // Schedules the next fetch if the [refetchInterval] is set.
+      if (refetchInterval != null) {
+        _scheduleRefetch();
+      } else {
+        _cancelRefetch();
+      }
+    }
+  }
+
+  @override
+  Future<void> fetch() async {
+    if (!enabled || query.isFetching) {
+      return;
+    }
+
+    final isRefetching = !query.isLoading;
+
+    cache.dispatch(query.key, DispatchAction.fetch, null);
+    // Important: State change, then any other
+    // function invocation in the following callbacks
+    DispatchAction actionFlag = DispatchAction.fetch;
+
+    await _resolver.resolve<TData, TError>(
+      queryFn,
+      retryCount: retryCount,
+      retryDelay: retryDelay,
+      onResolve: (data) {
+        cache.dispatch(query.key, DispatchAction.success, data);
+        actionFlag = DispatchAction.success;
+      },
+      onError: (error) {
+        final action =
+            isRefetching ? DispatchAction.refetchError : DispatchAction.error;
+        cache.dispatch(query.key, action, error);
+        actionFlag = DispatchAction.error;
+      },
+      onCancel: () {
+        cache.dispatch(query.key, DispatchAction.cancelFetch, null);
+        actionFlag = DispatchAction.cancelFetch;
+      },
+    );
+
+    // Refetching is scheduled here after success or error
+    final scheduleRefetchActions = [
+      DispatchAction.success,
+      DispatchAction.error,
+    ];
+    if (scheduleRefetchActions.contains(actionFlag)) {
+      _scheduleRefetch();
+    }
+  }
+
+  @override
+  void _onQueryCacheNotification() {
+    notifyObservers();
+    if (query.isInvalidated) {
+      fetch();
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    cache.unsubscribe(hashCode);
+    cache.dismantle(this);
+    _resolver.cancel();
+  }
+}
 
 /// Observer for infinite queries.
 class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
@@ -28,6 +314,14 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   late TPageParam? Function(TData, List<TData>, TPageParam, List<TPageParam>)?
       getPreviousPageParam;
   late int? maxPages;
+
+  @override
+  void _onQueryCacheNotification() {
+    notifyObservers();
+    if (query.isInvalidated) {
+      refetch();
+    }
+  }
 
   /// Creates a new instance of [InfiniteQueryObserver].
   InfiniteQueryObserver({
@@ -63,7 +357,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
           retryCount: retryCount ?? cache.defaultQueryOptions.retryCount,
           retryDelay: retryDelay ?? cache.defaultQueryOptions.retryDelay,
         ) {
-    setOptions(
+    _setOptions(
       InfiniteQueryOptions(
         queryFn: queryFn,
         queryKey: queryKey,
@@ -82,8 +376,8 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     cache.build<InfiniteQueryData<TData, TPageParam>, TError>(
       queryKey: queryKey,
     );
-    if (listenToQueryCache) {
-      cache.subscribe(hashCode, onQueryCacheNotification);
+    if (_listenToQueryCache) {
+      cache.subscribe(hashCode, _onQueryCacheNotification);
     }
     _paramFlag = initialPageParam;
     _metaFlag = query.fetchMeta ?? FetchMeta(direction: FetchDirection.forward);
@@ -94,14 +388,6 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     return cache.build<InfiniteQueryData<TData, TPageParam>, TError>(
       queryKey: queryKey,
     );
-  }
-
-  @override
-  void onQueryCacheNotification() {
-    notifyObservers();
-    if (query.isInvalidated) {
-      refetch();
-    }
   }
 
   @override
@@ -131,8 +417,8 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   }
 
   @override
-  void setOptions(InfiniteQueryOptions<TData, TError, TPageParam> options) {
-    super.setOptions(options);
+  void _setOptions(InfiniteQueryOptions<TData, TError, TPageParam> options) {
+    super._setOptions(options);
     queryFn = options.queryFn;
     initialPageParam = options.initialPageParam;
     getNextPageParam = options.getNextPageParam;
@@ -144,7 +430,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   void updateOptions(InfiniteQueryOptions<TData, TError, TPageParam> options) {
     final refetchIntervalChanged = options.refetchInterval != refetchInterval;
     final isEnabledChanged = options.enabled != enabled;
-    setOptions(options);
+    _setOptions(options);
 
     if (isEnabledChanged) {
       if (enabled) {
@@ -153,16 +439,16 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
         }
       } else {
         _resolver.cancel();
-        cancelRefetch();
+        _cancelRefetch();
       }
     }
 
     if (refetchIntervalChanged) {
       // Schedules the next fetch if the [refetchInterval] is set.
       if (refetchInterval != null) {
-        scheduleRefetch();
+        _scheduleRefetch();
       } else {
-        cancelRefetch();
+        _cancelRefetch();
       }
     }
   }
@@ -252,7 +538,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
 
           final newData = data.copyWith(pages: [...newPages]);
           cache.dispatch(query.key, action, newData);
-          scheduleRefetch();
+          _scheduleRefetch();
         },
         onError: (error) {
           cache.dispatch(query.key, DispatchAction.refetchError, error);
@@ -329,7 +615,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
       DispatchAction.error,
     ];
     if (scheduleRefetchActions.contains(actionFlag)) {
-      scheduleRefetch();
+      _scheduleRefetch();
     }
   }
 

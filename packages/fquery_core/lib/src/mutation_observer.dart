@@ -1,9 +1,7 @@
 import 'dart:async';
 
-import 'package:fquery_core/models/mutation.dart';
-import 'package:fquery_core/models/mutation_options.dart';
-import 'package:fquery_core/models/mutation_result.dart';
-import 'package:fquery_core/observable.dart';
+import 'package:fquery_core/src/mutation.dart';
+import 'package:fquery_core/src/observer.dart';
 
 /// A [MutationObserver] is a class which holds a [Mutation] and handles its execution.
 class MutationObserver<TData, TError, TVariables, TContext> with Observable {

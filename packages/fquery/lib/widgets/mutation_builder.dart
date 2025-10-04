@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
-import 'package:fquery_core/models/mutation_options.dart';
-import 'package:fquery_core/models/mutation_result.dart';
-import 'package:fquery_core/observers/mutation_observer.dart';
+import 'package:fquery_core/fquery_core.dart';
 import 'cache_provider.dart';
 
 /// Builder widget for mutations

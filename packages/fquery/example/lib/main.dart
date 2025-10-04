@@ -5,8 +5,7 @@ import 'package:basic/pages/infinity_page.dart';
 import 'package:basic/pages/posts_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:fquery/widgets/cache_provider.dart';
-import 'package:fquery_core/models/default_query_options.dart';
-import 'package:fquery_core/query_cache.dart';
+import 'package:fquery_core/fquery_core.dart';
 import 'pages/todos_page.dart';
 
 final queryCache = QueryCache(

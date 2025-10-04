@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/widgets/cache_provider.dart';
-import 'package:fquery_core/query_cache.dart';
+import 'package:fquery_core/src/query_cache.dart';
 
 /// Builder widget that provides the number of active fetches across all queries.
 class IsFetchingBuilder extends StatefulWidget {
