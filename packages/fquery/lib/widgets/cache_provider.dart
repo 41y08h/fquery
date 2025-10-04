@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:fquery_core/src/query_cache.dart';
+import 'package:fquery_core/fquery_core.dart';
 
 /// This can be used to provide a [QueryCache] throughout the application.
 class CacheProvider extends InheritedWidget {
