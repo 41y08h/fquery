@@ -61,7 +61,6 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
           retryCount: retryCount ?? cache.defaultQueryOptions.retryCount,
           retryDelay: retryDelay ?? cache.defaultQueryOptions.retryDelay,
         ) {
-    print('enable is ${enabled}');
     setOptions(
       InfiniteQueryOptions(
         queryFn: queryFn,
