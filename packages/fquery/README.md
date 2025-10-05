@@ -1,4 +1,7 @@
-![Banner](https://github.com/41y08h/fquery/blob/main/media/Banner.png?raw=true)
+<p align="center">
+  <img src="https://github.com/41y08h/fquery/blob/main/media/Banner.png?raw=true" height="300px" alt="fquery logo" />
+</p>
+<br/>
 
 ⚡Are you ready to supercharge your Flutter app development?
 

@@ -3,8 +3,8 @@ import 'package:basic/models/todos.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fquery/widgets/is_fetching_builder.dart';
-import 'package:fquery/widgets/queries_builder.dart';
+import 'package:fquery/fquery.dart';
+
 import 'package:fquery_core/fquery_core.dart';
 
 Future<Post> getPost(int id) async {

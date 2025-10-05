@@ -3,9 +3,7 @@
 import 'package:basic/models/todos.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fquery/hooks/use_mutation.dart';
-import 'package:fquery/widgets/cache_provider.dart';
-import 'package:fquery/widgets/mutation_builder.dart';
+import 'package:fquery/fquery.dart';
 
 class TodoListTile extends HookWidget {
   const TodoListTile({

@@ -2,7 +2,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/src/use_observable.dart';
-import 'package:fquery/widgets/cache_provider.dart';
+import 'package:fquery/src/widgets/cache_provider.dart';
 import 'package:fquery_core/fquery_core.dart';
 
 class InfiniteQueryData<TPage, TPageParam> {

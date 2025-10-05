@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:fquery/widgets/cache_provider.dart';
-import '../src/use_observable.dart';
-import '../src/use_observable_selector.dart';
+import 'package:fquery/src/widgets/cache_provider.dart';
+import '../use_observable.dart';
+import '../use_observable_selector.dart';
 import 'package:fquery_core/fquery_core.dart';
 
 /// Builds and subscribes to a query stored in the cache.

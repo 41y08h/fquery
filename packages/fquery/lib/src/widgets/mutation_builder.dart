@@ -43,11 +43,16 @@ class MutationBuilder<TData, TError, TVariables, TContext>
 
 class _MutationBuilderState<TData, TError, TVariables, TContext>
     extends State<MutationBuilder<TData, TError, TVariables, TContext>> {
-  late final cache = CacheProvider.get(context);
+  late final QueryCache cache;
   late MutationObserver<TData, TError, TVariables, TContext> observer;
 
-  MutationObserver<TData, TError, TVariables, TContext> buildObserver() {
-    return MutationObserver<TData, TError, TVariables, TContext>(
+  // Initialization of the observer
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    cache = CacheProvider.get(context);
+
+    observer = MutationObserver<TData, TError, TVariables, TContext>(
       options: MutationOptions(
         mutationFn: widget.mutationFn,
         onMutate: widget.onMutate,
@@ -56,18 +61,11 @@ class _MutationBuilderState<TData, TError, TVariables, TContext>
         onSettled: widget.onSettled,
       ),
     );
-  }
 
-  // Initialization of the observer
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    setState(() {
-      observer = buildObserver();
-    });
     observer.subscribe(hashCode, () {
-      setState(() {});
+      Future.delayed(Duration.zero, () {
+        setState(() {});
+      });
     });
   }
 
