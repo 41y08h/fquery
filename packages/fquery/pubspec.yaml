@@ -1,11 +1,10 @@
 name: fquery
-description: simple yet powerful async state management with in-built caching
+description: Simple yet powerful async state management solution with in-built caching
 version: 3.0.0
 repository: https://github.com/41y08h/fquery
-publish_to: none
 
 environment:
-  sdk: ">=3.6.0"
+  sdk: ">=3.6.0 <4.0.0"
 resolution: workspace
 
 dependencies:

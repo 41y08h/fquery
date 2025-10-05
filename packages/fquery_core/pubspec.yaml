@@ -1,14 +1,12 @@
 name: fquery_core
-description: A sample command-line application.
+description: Core library used by fquery
 version: 3.0.0
-publish_to: none
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/41y08h/fquery
 resolution: workspace
 
 environment:
-  sdk: ">=3.6.0"
+  sdk: ">=3.6.0 <4.0.0"
 
-# Add regular dependencies here.
 dependencies:
   collection: ^1.18.0
   freezed: ^3.0.5
