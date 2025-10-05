@@ -112,15 +112,32 @@ Similarly, **refetching** can be done through `refetchInterval` parameter. It be
 A dependent query is a query that depends on another variable for execution, or even any other query. Probably you want to run a query only after some other query, or data in a query that you don't have, e.g. a `Future`, or to fetch data only when a variable takes a certain value, e.g. a `bool` like `isAuthenticated`, for all of this or similar, dependent query can ease your load. To use this, simply pass the `enabled` option.
 
 ```dart
-final user = useQuery(['users', email], getUserByEmail);
-
-// This query will not execute until the above is successful and the username is available
-final username = user.data?.username;
-final posts = useQuery(['posts', ], getPosts, enabled: !username);
-
-
-final isAuthenticated = session != null;
-final keys = useQuery(['keys', session.id], enabled: isAuthenticated)
+QueryBuilder(
+  options: QueryOptions(
+    queryKey: QueryKey(['users', email]),
+    queryFn: getUserByEmail,
+  ),
+  builder: (context, user) {
+    return QueryBuilder(
+      options: QueryOptions(
+        enabled: user.data?.username,
+        queryKey: QueryKey(['posts', email]),
+        queryFn: () {
+          return getPostsByUsername(user.data.username);
+        },
+      ),
+      builder: (context, posts) {
+        if(posts.isFetching) {
+          return Text('Waiting to start fetch');
+        }
+        if(posts.isLoading) {
+          return Text('Loading...');
+        }
+        return Text('foo bar');
+      }
+    )
+  }
+)
 ```
 
 ### InfiniteQueryBuilder
@@ -154,12 +171,25 @@ InfiniteQueryBuilder(
 ### Parallel queries
 
 Parallel queries are queries that are executed in parallel.
-When the number of parallel queries does not change, there is **no extra effort** to use parallel queries.
+When the number of parallel queries does not change, there is **no extra effort** to use parallel queries. You can nest builder widgets or put them in a widget like `Column`.
 
 ```dart
-// These will execute in parallel
-final posts = useQuery(['posts'], getProfile)
-final comments = useQuery(['comments'], getProfile)
+Column(
+  children: [
+    QueryBuilder(
+      options: QueryOptions(...),
+      builder: (context, assets) {
+        ...
+      },
+    ),
+    QueryBuilder(
+      options: QueryOptions(...),
+      builder: (context, profile) {
+
+      },
+    ),
+  ],
+)
 ```
 
 ### QueriesBuilder
