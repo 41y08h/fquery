@@ -100,3 +100,10 @@
 ## 2.0.1
 
 - Fix `QueryClient.removeQueries()`
+
+## 3.0.0
+
+- `QueryClientProvider` changed to `CacheProvider`
+- The methods in the `QueryClient` has been housed inside `QueryCache` and `QueryClient` has been removed.
+- New instance readers - `QueryInstance`, `InfiniteQueryInstance`, `QueriesInstance`
+- There are other breaking changes in builder as the core code now recides in `fquery_core` package.
