@@ -8,7 +8,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'query.freezed.dart';
 
 /// The function used to fetch a page of data in an infinite query.
-typedef InfiniteQueryFn<TData, TPageParam> = Future<TData> Function(TPageParam);
+typedef InfiniteQueryFn<TData, TPageParam> = FutureOr<TData> Function(
+    TPageParam);
 
 /// Query options
 class QueryOptions<TData, TError extends Exception> extends BaseQueryOptions {

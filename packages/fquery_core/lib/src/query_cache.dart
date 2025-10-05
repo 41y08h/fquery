@@ -182,10 +182,10 @@ class QueryCache with Observable {
         action,
         data,
       );
+      notifyObservers();
     } on QueryNotFoundException {
       return;
     }
-    notifyObservers();
   }
 
   void _gcRoutine() {

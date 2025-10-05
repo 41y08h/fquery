@@ -8,10 +8,7 @@ import 'package:fquery/widgets/cache_provider.dart';
 import 'package:fquery_core/fquery_core.dart';
 import 'pages/todos_page.dart';
 
-final queryCache = QueryCache(
-  defaultQueryOptions:
-      DefaultQueryOptions(enabled: true, refetchInterval: Duration(seconds: 5)),
-);
+final queryCache = QueryCache();
 
 void main() {
   runApp(const App());

@@ -34,7 +34,9 @@ class _QueriesBuilderState<TData, TError extends Exception>
     observer = QueriesObserver<TData, TError>(cache: cache);
     observer.setOptions(widget.options);
     observer.subscribe(hashCode, () {
-      setState(() {});
+      Future.delayed(Duration.zero, () {
+        setState(() {});
+      });
     });
   }
 

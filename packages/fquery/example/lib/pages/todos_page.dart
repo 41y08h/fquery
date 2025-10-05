@@ -40,8 +40,6 @@ class _TodosPageState extends State<TodosPage> {
         queryFn: todosAPI.getAll,
         refetchOnMount: RefetchOnMount.never,
         enabled: isEnabled,
-        staleDuration: Duration(seconds: 3),
-        cacheDuration: Duration(seconds: 5),
       ),
       builder: (context, todos) {
         return CupertinoPageScaffold(
@@ -56,10 +54,22 @@ class _TodosPageState extends State<TodosPage> {
                       CupertinoIcons.chevron_back,
                       size: 25,
                     )),
-                const Text(
-                  'Todos',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                )
+                QueryBuilder(
+                  options: QueryOptions(
+                    enabled: todos.data != null,
+                    queryKey: QueryKey(['wow']),
+                    queryFn: () async {
+                      await MockServer.delay();
+                      return 'wow, ${todos.data!.length} todos';
+                    },
+                  ),
+                  builder: (context, wow) {
+                    return Text(
+                      wow.status.toString(),
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    );
+                  },
+                ),
               ],
             ),
             trailing: Row(

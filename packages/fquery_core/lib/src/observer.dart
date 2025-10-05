@@ -110,7 +110,7 @@ abstract class Observer<TData, TError extends Exception,
 }
 
 /// A function that fetches data for a query.
-typedef QueryFn<TData> = Future<TData> Function();
+typedef QueryFn<TData> = FutureOr<TData> Function();
 
 /// An observer is a class which subscribes to a query and updates its state when the query changes.
 /// It is responsible for fetching the query and updating the cache.
@@ -220,7 +220,7 @@ class QueryObserver<TData, TError extends Exception>
 
     if (isEnabledChanged) {
       if (enabled) {
-        if (_isQueryStale) fetch();
+        initialize();
       } else {
         _resolver.cancel();
         _cancelRefetch();

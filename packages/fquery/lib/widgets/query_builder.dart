@@ -42,7 +42,9 @@ class _QueryBuilderState<TData, TError extends Exception>
     );
 
     observer.subscribe(hashCode, () {
-      setState(() {});
+      Future.delayed(Duration.zero, () {
+        setState(() {});
+      });
     });
 
     observer.initialize();
@@ -51,7 +53,9 @@ class _QueryBuilderState<TData, TError extends Exception>
   @override
   void didUpdateWidget(covariant QueryBuilder<TData, TError> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget != oldWidget) observer.updateOptions(widget.options);
+    if (widget.options != oldWidget.options) {
+      observer.updateOptions(widget.options);
+    }
   }
 
   @override

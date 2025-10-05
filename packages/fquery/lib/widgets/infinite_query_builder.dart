@@ -47,7 +47,9 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
     );
 
     observer.subscribe(hashCode, () {
-      setState(() {});
+      Future.delayed(Duration.zero, () {
+        setState(() {});
+      });
     });
 
     observer.initialize();
