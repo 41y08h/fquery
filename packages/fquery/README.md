@@ -360,6 +360,53 @@ If you plan on using this package with `flutter_hooks`, you can have a seamless 
 - `useMutation` (for mutations)
 - `useIsFetching` (to know the number of queries that are currently being fetched)
 
+### Reading queries outside of builder
+
+If you want to read the value of any query in any part of your code where you have access to the `BuildContext` then you can make use of instance class which only contains a single static method called `of`. Please note that accessing results this way won't trigger any updates to the widget.
+
+Here's an example that makes use of `QueryInstance.of` to `fetchNextPage` of an infinite query.
+
+```dart
+class _InfinityPageState extends State<InfinityPage> {
+  final ScrollController scrollController = ScrollController();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    scrollController.removeListener(onScroll);
+    scrollController.addListener(onScroll);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (scrollController.hasClients) {
+        scrollController.animateTo(
+          // Subtract 1 pixels to stop fetching the next page automatically
+          scrollController.position.maxScrollExtent - 1,
+          duration: const Duration(seconds: 2),
+          curve: Curves.fastOutSlowIn,
+        );
+      }
+    });
+  }
+
+  void onScroll() {
+    final itemsQuery = InfiniteQueryInstance.of(
+      context,
+      itemsQueryOptions,
+    );
+    if (scrollController.position.pixels ==
+        scrollController.position.maxScrollExtent) {
+      itemsQuery.fetchNextPage();
+    }
+  }
+```
+
+The available instance accessors are -
+
+- `QueryInstance`
+- `InfiniteQueryInstance`
+- `QueriesInstance`
+
 ## Contributing
 
 If you've ever wanted to contribute to open source, and a great cause, now is your chance ✨, feel free to open an issue or submit a PR at the [GitHub repo](https://github.com/41y08h/fquery). See [Contribution guide](CONTRIBUTING.md) for more details.
