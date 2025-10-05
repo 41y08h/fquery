@@ -76,7 +76,7 @@ class TodoWidget extends StatelessWidget {
 ## 🧑‍💻 Usage
 
 You can use this library by widgets exposed by this library.
-If you plan on using `flutter_hooks` then it can work super will with it because it comes with ready-to-use hooks.
+If you plan on using `flutter_hooks` then it can work super will with it because it comes with ready-to-use hooks. Refer to the section on [using with `flutter_hooks`](#using-with-flutter_hooks).
 
 Before you start using the magic, you need to wrap you entire app or the widget tree inside which you plan on using this library.
 
@@ -336,7 +336,7 @@ MutationBuilder<Todo, Exception, String, List<Todo>>(
 
 To use mutations, you need a mutation function that will receive a variable parameter when you call the `mutate` function. Here in the example, it's the `text` parameter that we're using as a variable that the mutation function will receive.
 
-The `useMutation` hook takes 4 type arguments -
+Type parameters -
 
 - `TData` - type of data that'll be returned from the mutation function.
 - `TError` - type of error that'll be thrown when the mutation fails.
@@ -349,6 +349,16 @@ You can also pass callback functions like `onSuccess` or `onError` -
 - `onSuccess` - this callback will be called if the mutation was successful and receives the result of the mutation as an argument (in addition to the passed variables in the mutation function).
 - `onError` - this callback will be called if the mutation wasn't successful and receives the error as an argument (in addition to the passed variables in the mutation function).
 - `onSettled` - this callback will be called after the mutation has been executed and will receive both the result (if successful) and error(if unsuccessful), in case of success the error will be null and vice-versa.
+
+## Using with `flutter_hooks`
+
+If you plan on using this package with `flutter_hooks`, you can have a seamless experience as this package comes with ready-to-use hooks that include -
+
+- `useQuery`
+- `useInfiniteQuery`
+- `useQueries`
+- `useMutation` (for mutations)
+- `useIsFetching` (to know the number of queries that are currently being fetched)
 
 ## Contributing
 
