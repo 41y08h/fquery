@@ -64,7 +64,7 @@ class _TodosPageState extends State<TodosPage> {
                   ),
                   builder: (context, wow) {
                     return Text(
-                      wow.status.toString(),
+                      'wow: ${wow.status.toString()}',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     );
                   },

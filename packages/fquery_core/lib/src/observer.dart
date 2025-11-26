@@ -28,7 +28,6 @@ mixin Observable {
 
 abstract class Observer<TData, TError extends Exception,
     TOptions extends BaseQueryOptions> with Observable {
-  late final bool _listenToQueryCache;
   late final QueryCache cache;
   Timer? _refetchTimer;
 
@@ -60,8 +59,7 @@ abstract class Observer<TData, TError extends Exception,
     required this.refetchInterval,
     required this.retryCount,
     required this.retryDelay,
-    required bool listenToQueryCache,
-  }) : _listenToQueryCache = listenToQueryCache;
+  });
 
   void _setOptions(TOptions options) {
     enabled = options.enabled ?? cache.defaultQueryOptions.enabled;
@@ -138,7 +136,6 @@ class QueryObserver<TData, TError extends Exception>
     Duration? refetchInterval,
     int? retryCount,
     Duration? retryDelay,
-    super.listenToQueryCache = true,
   }) : super(
           queryKey: queryKey,
           enabled: enabled ?? cache.defaultQueryOptions.enabled,
@@ -167,9 +164,7 @@ class QueryObserver<TData, TError extends Exception>
       ),
     );
     cache.build<TData, TError>(queryKey: queryKey);
-    if (_listenToQueryCache) {
-      cache.subscribe(hashCode, _onQueryCacheNotification);
-    }
+    cache.subscribe(hashCode, _onQueryCacheNotification);
   }
 
   @override
@@ -335,7 +330,6 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     Duration? refetchInterval,
     int? retryCount,
     Duration? retryDelay,
-    super.listenToQueryCache = true,
     required TPageParam initialPageParam,
     required TPageParam? Function(
             TData, List<TData>, TPageParam, List<TPageParam>)
@@ -376,9 +370,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     cache.build<InfiniteQueryData<TData, TPageParam>, TError>(
       queryKey: queryKey,
     );
-    if (_listenToQueryCache) {
-      cache.subscribe(hashCode, _onQueryCacheNotification);
-    }
+    cache.subscribe(hashCode, _onQueryCacheNotification);
     _paramFlag = initialPageParam;
     _metaFlag = query.fetchMeta ?? FetchMeta(direction: FetchDirection.forward);
   }

@@ -23,7 +23,7 @@ class QueriesBuilder<TData, TError extends Exception> extends StatefulWidget {
 
 class _QueriesBuilderState<TData, TError extends Exception>
     extends State<QueriesBuilder<TData, TError>> {
-  late final QueryCache cache;
+  late QueryCache cache;
   late QueriesObserver<TData, TError> observer;
 
   @override

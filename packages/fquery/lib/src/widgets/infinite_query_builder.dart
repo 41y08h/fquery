@@ -34,7 +34,6 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
       queryKey: widget.options.queryKey,
       cacheDuration: widget.options.cacheDuration,
       enabled: widget.options.enabled,
-      listenToQueryCache: true,
       refetchInterval: widget.options.refetchInterval,
       refetchOnMount: widget.options.refetchOnMount,
       retryCount: widget.options.retryCount,

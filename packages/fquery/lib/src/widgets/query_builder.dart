@@ -19,7 +19,7 @@ class QueryBuilder<TData, TError extends Exception> extends StatefulWidget {
 
 class _QueryBuilderState<TData, TError extends Exception>
     extends State<QueryBuilder<TData, TError>> {
-  late final QueryCache cache;
+  late QueryCache cache;
   late QueryObserver<TData, TError> observer;
 
   @override
@@ -33,7 +33,6 @@ class _QueryBuilderState<TData, TError extends Exception>
       queryKey: widget.options.queryKey,
       cacheDuration: widget.options.cacheDuration,
       enabled: widget.options.enabled,
-      listenToQueryCache: true,
       refetchInterval: widget.options.refetchInterval,
       refetchOnMount: widget.options.refetchOnMount,
       retryCount: widget.options.retryCount,
@@ -43,7 +42,9 @@ class _QueryBuilderState<TData, TError extends Exception>
 
     observer.subscribe(hashCode, () {
       Future.delayed(Duration.zero, () {
-        setState(() {});
+        if (mounted) {
+          setState(() {});
+        }
       });
     });
 

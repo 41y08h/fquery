@@ -48,7 +48,6 @@ QueryResult<TData, TError> useQuery<TData, TError extends Exception>(
   final observerRef = useRef<QueryObserver<TData, TError>?>(null);
   useEffect(() {
     observerRef.value = QueryObserver<TData, TError>(
-      listenToQueryCache: false,
       cache: cache,
       queryFn: queryFn,
       queryKey: QueryKey(queryKey),
@@ -77,7 +76,6 @@ QueryResult<TData, TError> useQuery<TData, TError extends Exception>(
         queryKey: QueryKey(queryKey),
         cacheDuration: cacheDuration,
         enabled: enabled,
-        listenToQueryCache: true,
         refetchInterval: refetchInterval,
         refetchOnMount: refetchOnMount,
         retryCount: retryCount,
@@ -100,12 +98,11 @@ QueryResult<TData, TError> useQuery<TData, TError extends Exception>(
         queryKey: QueryKey(queryKey),
         queryFn: queryFn,
         enabled: enabled,
-        refetchOnMount:
-            refetchOnMount ?? cache.defaultQueryOptions.refetchOnMount,
-        staleDuration: staleDuration ?? cache.defaultQueryOptions.staleDuration,
-        cacheDuration: cacheDuration ?? cache.defaultQueryOptions.cacheDuration,
-        retryCount: retryCount ?? cache.defaultQueryOptions.retryCount,
-        retryDelay: retryDelay ?? cache.defaultQueryOptions.retryDelay,
+        refetchOnMount: refetchOnMount,
+        staleDuration: staleDuration,
+        cacheDuration: cacheDuration,
+        retryCount: retryCount,
+        retryDelay: retryDelay,
       ));
     });
     return;

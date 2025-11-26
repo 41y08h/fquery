@@ -75,7 +75,6 @@ InfiniteQueryResult<TData, TError, TPageParam>
   useEffect(() {
     observerRef.value = InfiniteQueryObserver<TData, TError, TPageParam>(
       cache: cache,
-      listenToQueryCache: false,
       queryFn: queryFn,
       queryKey: QueryKey(queryKey),
       cacheDuration: cacheDuration,
