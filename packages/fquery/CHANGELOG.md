@@ -107,3 +107,7 @@
 - The methods in the `QueryClient` has been housed inside `QueryCache` and `QueryClient` has been removed.
 - New instance readers - `QueryInstance`, `InfiniteQueryInstance`, `QueriesInstance`
 - There are other breaking changes in builder as the core code now recides in `fquery_core` package.
+
+## 3.0.1
+
+- Fix query cache notifications
