@@ -6,20 +6,19 @@ import 'package:fquery_core/fquery_core.dart';
 
 class TestObservable with Observable {}
 
-// Test widget that uses the actual useObservable hook
-class TestWidgetWithUseObservable extends HookWidget {
+class TestWidget extends HookWidget {
   final TestObservable observable;
-  final void Function(String) log;
+  final void Function()? onBuild;
 
-  const TestWidgetWithUseObservable({
+  const TestWidget({
     super.key,
     required this.observable,
-    required this.log,
+    this.onBuild,
   });
 
   @override
   Widget build(BuildContext context) {
-    log('Build');
+    onBuild?.call();
     useObservable(observable);
     return const SizedBox();
   }
@@ -27,104 +26,63 @@ class TestWidgetWithUseObservable extends HookWidget {
 
 void main() {
   group('useObservable', () {
-    testWidgets(
-      'should not crash when observable notifies after widget is disposed',
-      (tester) async {
-        final observable = TestObservable();
-        final logs = <String>[];
-        void log(String msg) {
-          debugPrint(msg);
-          logs.add(msg);
-        }
+    testWidgets('should rebuild widget when observable notifies',
+        (tester) async {
+      final observable = TestObservable();
+      var buildCount = 0;
 
-        // Show the widget
-        await tester.pumpWidget(
-          MaterialApp(
-            home: TestWidgetWithUseObservable(
-              observable: observable,
-              log: log,
-            ),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: TestWidget(
+            observable: observable,
+            onBuild: () => buildCount++,
           ),
-        );
+        ),
+      );
 
-        log('--- Removing widget ---');
-        // Remove the widget (dispose)
-        await tester.pumpWidget(
-          const MaterialApp(
-            home: SizedBox(),
-          ),
-        );
+      expect(buildCount, 1);
 
-        log('--- Notifying observers after dispose ---');
-        // This should NOT crash even though widget is disposed
-        observable.notifyObservers();
+      observable.notifyObservers();
+      await tester.pump();
 
-        await tester.pump();
-
-        log('--- Test completed without error ---');
-        expect(logs, contains('--- Test completed without error ---'));
-      },
-    );
+      expect(buildCount, 2);
+    });
 
     testWidgets(
-      'should not crash when listener is called but widget is already unmounted',
-      (tester) async {
-        var listenerCallCount = 0;
+        'should not rebuild widget when observable notifies after widget is disposed',
+        (tester) async {
+      final observable = TestObservable();
+      var buildCount = 0;
 
-        // Custom observable that keeps listener even after unsubscribe
-        // to simulate race condition
-        final listeners = <Function>[];
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: HookBuilder(
-              builder: (context) {
-                final rebuild = useState(0);
-                final mounted = useRef(true);
-
-                useEffect(() {
-                  mounted.value = true;
-
-                  void listener() {
-                    listenerCallCount++;
-                    debugPrint('Listener called, mounted: ${mounted.value}');
-                    if (mounted.value) {
-                      rebuild.value++;
-                    }
-                  }
-
-                  listeners.add(listener);
-
-                  return () {
-                    mounted.value = false;
-                    // Note: we intentionally don't remove from listeners
-                    // to simulate race condition
-                  };
-                }, []);
-
-                return const SizedBox();
-              },
-            ),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: TestWidget(
+            observable: observable,
+            onBuild: () => buildCount++,
           ),
-        );
+        ),
+      );
 
-        // Remove widget
-        await tester.pumpWidget(
-          const MaterialApp(home: SizedBox()),
-        );
+      expect(buildCount, 1);
 
-        // Call listener directly (simulating race condition)
-        debugPrint('Calling listener after dispose...');
-        for (final listener in listeners) {
-          listener();
-        }
+      // Remove the widget (dispose)
+      await tester.pumpWidget(
+        const MaterialApp(home: SizedBox()),
+      );
 
-        await tester.pump();
+      // Notify after dispose - should be ignored without error
+      final errors = <FlutterErrorDetails>[];
+      FlutterError.onError = (details) => errors.add(details);
 
-        // Listener was called but should not crash
-        expect(listenerCallCount, 1);
-        debugPrint('Test completed without error');
-      },
-    );
+      observable.notifyObservers();
+      await tester.pump();
+
+      FlutterError.onError = FlutterError.dumpErrorToConsole;
+
+      // Should not have triggered any Flutter errors
+      expect(errors, isEmpty);
+      // Build count should remain 1 (no rebuild after dispose)
+      expect(buildCount, 1);
+    });
   });
 }
