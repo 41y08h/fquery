@@ -84,5 +84,34 @@ void main() {
       // Build count should remain 1 (no rebuild after dispose)
       expect(buildCount, 1);
     });
+
+    testWidgets(
+        'should not crash when observable notifies during build (setState called during build)',
+        (tester) async {
+      final observable = TestObservable();
+
+      final errors = <FlutterErrorDetails>[];
+      FlutterError.onError = (details) => errors.add(details);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Column(
+            children: [
+              TestWidget(observable: observable),
+              Builder(builder: (context) {
+                observable.notifyObservers();
+                return const SizedBox();
+              }),
+            ],
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      FlutterError.onError = FlutterError.dumpErrorToConsole;
+
+      expect(errors, isEmpty);
+    });
   });
 }
