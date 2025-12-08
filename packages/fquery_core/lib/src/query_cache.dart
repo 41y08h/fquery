@@ -281,29 +281,27 @@ class QueryCache with Observable {
     // No concurrent modification error is probable
     // because we are not removing from the map
     // but just consistency with `removeQueries`
+    final toInvalidate = <Query<TData, TError>>[];
+
     queries.forEach((queryKey, query) {
-      final toInvalidate = <Query<TData, TError>>[];
-
-      queries.forEach((queryKey, query) {
-        if (exact) {
-          if (queryKey.serialized == QueryKey(key).serialized &&
-              query is Query<TData, TError>) {
-            toInvalidate.add(query);
-          }
-        } else {
-          final isPartialMatch = queryKey.raw.length >= key.length &&
-              QueryKey(queryKey.raw.sublist(0, key.length)) == QueryKey(key);
-
-          if (isPartialMatch && query is Query<TData, TError>) {
-            toInvalidate.add(query);
-          }
+      if (exact) {
+        if (queryKey.serialized == QueryKey(key).serialized &&
+            query is Query<TData, TError>) {
+          toInvalidate.add(query);
         }
-      });
+      } else {
+        final isPartialMatch = queryKey.raw.length >= key.length &&
+            QueryKey(queryKey.raw.sublist(0, key.length)) == QueryKey(key);
 
-      for (final query in toInvalidate) {
-        dispatch(query.key, DispatchAction.invalidate, null);
+        if (isPartialMatch && query is Query<TData, TError>) {
+          toInvalidate.add(query);
+        }
       }
     });
+
+    for (final query in toInvalidate) {
+      dispatch(query.key, DispatchAction.invalidate, null);
+    }
   }
 
   /// Removes queries from the cache.
