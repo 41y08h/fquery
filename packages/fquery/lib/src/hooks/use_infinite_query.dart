@@ -153,7 +153,7 @@ InfiniteQueryResult<TData, TError, TPageParam>
     final firstPage = pages.first;
     final lastPage = pages.last;
     final pageParams = data.pageParams;
-    final firstPageParam = pageParams.last;
+    final firstPageParam = pageParams.first;
     final lastPageParam = pageParams.last;
 
     final nextPageParam = getNextPageParam(
@@ -163,7 +163,7 @@ InfiniteQueryResult<TData, TError, TPageParam>
       pageParams,
     );
 
-    final previousPageParam = getNextPageParam(
+    final previousPageParam = getPreviousPageParam?.call(
       firstPage,
       pages,
       firstPageParam,
