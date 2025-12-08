@@ -26,7 +26,7 @@ class TestWidgetWithUseObservable extends HookWidget {
 }
 
 void main() {
-  group('useObservable dispose issue', () {
+  group('useObservable', () {
     testWidgets(
       'should not crash when observable notifies after widget is disposed',
       (tester) async {
