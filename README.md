@@ -13,5 +13,9 @@ The goal of this library is to make async state management as easy as instantiat
 
 # Packages
 
-- `fquery`
-- `fquery_core`
+These are the packages hosted in this repository:
+
+| Package | Pub | Points | Usage | Issues | Pull requests |
+|---------|-----|--------|-------|--------|---------------|
+| [fquery](./packages/fquery/) | [![pub package](https://img.shields.io/pub/v/fquery.svg)](https://pub.dev/packages/fquery) | [![pub points](https://img.shields.io/pub/points/fquery)](https://pub.dev/packages/fquery/score) | [![downloads](https://img.shields.io/pub/dm/fquery)](https://pub.dev/packages/fquery/score) | [![GitHub issues by-label](https://img.shields.io/github/issues/41y08h/fquery/p%3Afquery?label=)](https://github.com/41y08h/fquery/labels/p%3Afquery) | [![GitHub pull requests by-label](https://img.shields.io/github/issues-pr/41y08h/fquery/p%3Afquery?label=)](https://github.com/41y08h/fquery/labels/p%3Afquery) |
+| [fquery_core](./packages/fquery_core/) | [![pub package](https://img.shields.io/pub/v/fquery_core.svg)](https://pub.dev/packages/fquery_core) | [![pub points](https://img.shields.io/pub/points/fquery_core)](https://pub.dev/packages/fquery_core/score) | [![downloads](https://img.shields.io/pub/dm/fquery_core)](https://pub.dev/packages/fquery_core/score) | [![GitHub issues by-label](https://img.shields.io/github/issues/41y08h/fquery/p%3Afquery_core?label=)](https://github.com/41y08h/fquery/labels/p%3Afquery_core) | [![GitHub pull requests by-label](https://img.shields.io/github/issues-pr/41y08h/fquery/p%3Afquery_core?label=)](https://github.com/41y08h/fquery/labels/p%3Afquery_core) |
