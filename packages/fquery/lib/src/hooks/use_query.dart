@@ -106,7 +106,7 @@ QueryResult<TData, TError> useQuery<TData, TError extends Exception>(
       ));
     });
     return;
-  }, [observer]);
+  }, [observer, enabled]);
 
   useEffect(() {
     WidgetsBinding.instance.addPostFrameCallback((_) {

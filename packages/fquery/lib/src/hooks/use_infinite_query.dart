@@ -120,7 +120,7 @@ InfiniteQueryResult<TData, TError, TPageParam>
       );
     });
     return null;
-  }, [observer]);
+  }, [observer, enabled]);
 
   useEffect(() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
