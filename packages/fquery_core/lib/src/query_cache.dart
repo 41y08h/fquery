@@ -281,7 +281,6 @@ class QueryCache with Observable {
     // No concurrent modification error is probable
     // because we are not removing from the map
     // but just consistency with `removeQueries`
-    queries.forEach((queryKey, query) {
       final toInvalidate = <Query<TData, TError>>[];
 
       queries.forEach((queryKey, query) {
@@ -303,7 +302,6 @@ class QueryCache with Observable {
       for (final query in toInvalidate) {
         dispatch(query.key, DispatchAction.invalidate, null);
       }
-    });
   }
 
   /// Removes queries from the cache.
