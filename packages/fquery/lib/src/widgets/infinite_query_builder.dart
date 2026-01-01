@@ -47,7 +47,9 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
 
     observer.subscribe(hashCode, () {
       Future.delayed(Duration.zero, () {
-        setState(() {});
+        if (mounted) {
+          setState(() {});
+        }
       });
     });
 
@@ -91,7 +93,7 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
       final firstPage = pages.first;
       final lastPage = pages.last;
       final pageParams = data.pageParams;
-      final firstPageParam = pageParams.last;
+      final firstPageParam = pageParams.first;
       final lastPageParam = pageParams.last;
 
       final nextPageParam = widget.options.getNextPageParam(
@@ -101,7 +103,7 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
         pageParams,
       );
 
-      final previousPageParam = widget.options.getNextPageParam(
+      final previousPageParam = widget.options.getPreviousPageParam?.call(
         firstPage,
         pages,
         firstPageParam,
