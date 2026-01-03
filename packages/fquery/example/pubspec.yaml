@@ -14,6 +14,7 @@ dependencies:
   fquery:
     path: ../
   fquery_core:
+    # ^3.0.1
     path: ../../fquery_core
 
 dev_dependencies:
