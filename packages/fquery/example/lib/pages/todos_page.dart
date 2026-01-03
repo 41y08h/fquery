@@ -176,9 +176,15 @@ class _TodosPageState extends State<TodosPage> {
                                     color: CupertinoColors.systemBlue,
                                     onPressed: addTodoMutation.isPending
                                         ? null
-                                        : () {
-                                            addTodoMutation.mutate(
-                                                todoInputController.text);
+                                        : () async {
+                                            // addTodoMutation.mutate(
+                                            //     todoInputController.text);
+
+                                            final todo = await addTodoMutation
+                                                .mutateAsync(
+                                                    todoInputController.text);
+
+                                            print(todo?.text);
                                           },
                                     child: const Text("Add"),
                                   ),

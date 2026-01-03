@@ -4,7 +4,8 @@ import 'package:fquery_core/src/mutation.dart';
 import 'package:fquery_core/src/observer.dart';
 
 /// A [MutationObserver] is a class which holds a [Mutation] and handles its execution.
-class MutationObserver<TData, TError, TVariables, TContext> with Observable {
+class MutationObserver<TData, TError extends Exception, TVariables, TContext>
+    with Observable {
   /// The options used to configure the mutation.
   late MutationOptions<TData, TError, TVariables, TContext> options;
 
@@ -45,9 +46,39 @@ class MutationObserver<TData, TError, TVariables, TContext> with Observable {
       data = null;
       error = err as TError;
       dispatch(MutationDispatchAction.error, error);
-      options.onError?.call(error as TError, variables, ctx);
+      options.onError?.call(error, variables, ctx);
     }
     options.onSettled?.call(data, error, variables, ctx);
+  }
+
+  Future<TData?> mutateAsync(TVariables variables) async {
+    if (mutation.isPending) return null;
+
+    this.vars = variables;
+    onMutationUpdated();
+
+    dispatch(MutationDispatchAction.mutate, null);
+
+    final ctx = await options.onMutate?.call(variables);
+    TData? data;
+    TError? error;
+
+    return options.mutationFn(variables).then((TData td) {
+      error = null;
+      data = td;
+      dispatch(MutationDispatchAction.success, data);
+      options.onSuccess?.call(td, variables, ctx);
+    }).onError((TError err, stack) async {
+      data = null;
+      error = err;
+      dispatch(MutationDispatchAction.error, error);
+      options.onError?.call(err, variables, ctx);
+      throw err;
+    }).whenComplete(() {
+      options.onSettled?.call(data, error, variables, ctx);
+    }).then((_) {
+      return data;
+    });
   }
 
   /// Resets the mutation to its initial state.

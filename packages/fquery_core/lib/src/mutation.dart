@@ -34,6 +34,9 @@ class MutationResult<TData, TError, TVariables> {
   /// The mutate function to trigger the mutation.
   final Future<void> Function(TVariables) mutate;
 
+  /// The async version of the [mutate] function, it throws the error if mutation fails.
+  final Future<TData?> Function(TVariables) mutateAsync;
+
   /// The time the mutation was last submitted.
   final DateTime? submittedAt;
 
@@ -52,6 +55,7 @@ class MutationResult<TData, TError, TVariables> {
     this.error,
     this.submittedAt,
     this.variables,
+    required this.mutateAsync,
   })  : isIdle = status == MutationStatus.idle,
         isPending = status == MutationStatus.pending,
         isSuccess = status == MutationStatus.success,

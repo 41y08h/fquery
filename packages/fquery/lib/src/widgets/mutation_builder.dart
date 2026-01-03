@@ -4,7 +4,7 @@ import 'package:fquery_core/fquery_core.dart';
 import 'cache_provider.dart';
 
 /// Builder widget for mutations
-class MutationBuilder<TData, TError, TVariables, TContext>
+class MutationBuilder<TData, TError extends Exception, TVariables, TContext>
     extends StatefulWidget {
   /// The builder function which receives the [BuildContext] along with the [MutationResult]
   final Widget Function(BuildContext, MutationResult<TData, TError, TVariables>)
@@ -41,7 +41,8 @@ class MutationBuilder<TData, TError, TVariables, TContext>
       _MutationBuilderState<TData, TError, TVariables, TContext>();
 }
 
-class _MutationBuilderState<TData, TError, TVariables, TContext>
+class _MutationBuilderState<TData, TError extends Exception, TVariables,
+        TContext>
     extends State<MutationBuilder<TData, TError, TVariables, TContext>> {
   late final QueryCache cache;
   late MutationObserver<TData, TError, TVariables, TContext> observer;
@@ -100,6 +101,7 @@ class _MutationBuilderState<TData, TError, TVariables, TContext>
         error: observer.mutation.error,
         status: observer.mutation.status,
         mutate: observer.mutate,
+        mutateAsync: observer.mutateAsync,
         submittedAt: observer.mutation.submittedAt,
         reset: observer.reset,
         variables: observer.vars,

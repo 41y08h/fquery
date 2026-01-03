@@ -23,7 +23,7 @@ import '../use_observable.dart';
 /// - `onSettled` - this callback will be called after the mutation has been executed and will receive both the result (if successful) and error(if unsuccessful), in case of success, error will be null and vice-versa.
 
 MutationResult<TData, TError, TVariables>
-    useMutation<TData, TError, TVariables, TContext>(
+    useMutation<TData, TError extends Exception, TVariables, TContext>(
   Future<TData> Function(TVariables) mutationFn, {
   final FutureOr<TContext>? Function(TVariables)? onMutate,
   final void Function(TData, TVariables, TContext?)? onSuccess,
@@ -68,6 +68,7 @@ MutationResult<TData, TError, TVariables>
     error: observer.mutation.error,
     status: observer.mutation.status,
     mutate: observer.mutate,
+    mutateAsync: observer.mutateAsync,
     submittedAt: observer.mutation.submittedAt,
     reset: observer.reset,
     variables: observer.vars,
