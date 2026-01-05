@@ -115,3 +115,7 @@
 ## 3.0.2
 
 - Fix useInfiniteQuery result vars, etc.
+
+## 3.0.2+1
+
+- bump `fquery_core` version

@@ -1,6 +1,6 @@
 name: fquery
 description: Simple yet powerful async state management solution with in-built caching
-version: 3.0.2
+version: 3.0.2+1
 repository: https://github.com/41y08h/fquery
 
 environment:
@@ -14,7 +14,7 @@ dependencies:
   flutter_hooks: ^0.21.2
   freezed: ^3.0.5
   freezed_annotation: ^3.0.0
-  fquery_core: ^3.0.1
+  fquery_core: ^3.0.2
 
 dev_dependencies:
   build_runner: ^2.4.9
