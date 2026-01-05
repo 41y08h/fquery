@@ -1,6 +1,6 @@
 name: fquery_core
 description: Core library used by fquery
-version: 3.0.1
+version: 3.0.2
 repository: https://github.com/41y08h/fquery
 resolution: workspace
 
