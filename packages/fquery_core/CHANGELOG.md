@@ -5,3 +5,7 @@
 ## 3.0.1
 
 - Fix query cache notifications
+
+## 3.0.1
+
+- Fix `invalidateQueries` method to remove redundant loop

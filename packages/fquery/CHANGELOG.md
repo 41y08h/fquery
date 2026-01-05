@@ -111,3 +111,7 @@
 ## 3.0.1
 
 - Fix query cache notifications
+
+## 3.0.2
+
+- Fix useInfiniteQuery result vars, etc.
