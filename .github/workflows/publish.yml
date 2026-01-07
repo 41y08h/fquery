@@ -22,3 +22,8 @@ jobs:
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
     with:
       working-directory: packages/fquery_core
+
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "The tag pushed was ${{ github.ref_name }}"
