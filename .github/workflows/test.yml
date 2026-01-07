@@ -1,0 +1,19 @@
+name: logger
+
+on:
+  push:
+    tags:
+    # must align with the tag-pattern configured on pub.dev, often just replace
+      # {{version}} with [0-9]+.[0-9]+.[0-9]+
+    - 'v[0-9]+.[0-9]+.[0-9]+' # tag-pattern on pub.dev: 'v{{version}}'
+    # If you prefer tags like '1.2.3', without the 'v' prefix, then use:
+    # - '[0-9]+.[0-9]+.[0-9]+' # tag-pattern on pub.dev: '{{version}}'
+    # If your repository contains multiple packages consider a pattern like:
+    # - 'my_package_name-v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  print-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Greet the user
+        run: echo "Hello, ${{ github.actor }}! This workflow is running on a ${{ runner.os }} server."
