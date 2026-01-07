@@ -8,7 +8,7 @@ on:
 
 jobs:
   publish-fquery:
-    if: startsWith(github.ref_name, 'fquery-v')
+    if: ${{ startsWith(github.ref_name, 'fquery-v') }}
     permissions:
       id-token: write
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
@@ -16,7 +16,7 @@ jobs:
       working-directory: packages/fquery
 
   publish-fquery-core:
-    if: startsWith(github.ref_name, 'fquery_core-v')
+    if: ${{ startsWith(github.ref_name, 'fquery_core-v') }}
     permissions:
       id-token: write
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
