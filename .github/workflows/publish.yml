@@ -3,12 +3,24 @@ name: Publish to pub.dev
 on:
   push:
     tags:
-      - 'fquery-v[0-9]*.[0-9]*.[0-9]*'
-      - 'fquery_core-v[0-9]*.[0-9]*.[0-9]*'
+      # Using '**' ensures the trigger ALWAYS fires for these prefixes
+      # regardless of complex digit/dot logic.
+      - 'fquery-v**'
+      - 'fquery_core-v**'
 
 jobs:
+  # This job will always run if a tag is pushed, helping you see what happened
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Tag pushed: ${{ github.ref_name }}"
+          echo "Evaluating fquery-v: ${{ startsWith(github.ref_name, 'fquery-v') }}"
+          echo "Evaluating fquery_core-v: ${{ startsWith(github.ref_name, 'fquery_core-v') }}"
+
   publish-fquery:
-    if: ${{ startsWith(github.ref_name, 'fquery-v') }}
+    # Use single quotes for the startsWith string
+    if: startsWith(github.ref_name, 'fquery-v')
     permissions:
       id-token: write
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
@@ -16,14 +28,9 @@ jobs:
       working-directory: packages/fquery
 
   publish-fquery-core:
-    if: ${{ startsWith(github.ref_name, 'fquery_core-v') }}
+    if: startsWith(github.ref_name, 'fquery_core-v')
     permissions:
       id-token: write
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
     with:
       working-directory: packages/fquery_core
-
-  debug:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "The tag pushed was ${{ github.ref_name }}"
