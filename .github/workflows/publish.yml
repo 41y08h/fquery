@@ -3,7 +3,7 @@ name: Publish fquery
 on:
   push:
     tags:
-      - 'fquery-v[0-9]+.[0-9]+.[0-9]+*'
+      - 'fquery-v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   publish:
