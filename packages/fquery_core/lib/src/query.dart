@@ -215,6 +215,7 @@ class InfiniteQueryOptions<TData, TError, TPageParam> extends BaseQueryOptions {
     super.retryCount,
     super.retryDelay,
     super.staleDuration,
+    this.maxPages,
   });
 }
 

@@ -365,6 +365,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
         initialPageParam: initialPageParam,
         getNextPageParam: getNextPageParam,
         getPreviousPageParam: getPreviousPageParam,
+        maxPages: maxPages,
       ),
     );
     cache.build<InfiniteQueryData<TData, TPageParam>, TError>(
@@ -564,7 +565,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
         final pages = [...(query.data?.pages ?? [])];
         final pageParams = [...(query.data?.pageParams ?? [])];
 
-        // `maxPages` option's behaviour is defined here
+        // `maxPages` optionmaxPagesour is defined here
         if (pages.length == maxPages) {
           if (meta.direction == FetchDirection.forward) {
             // Remove the first page
