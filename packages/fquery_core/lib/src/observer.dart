@@ -479,6 +479,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
         initialPageParam: initialPageParam,
         getNextPageParam: getNextPageParam,
         getPreviousPageParam: getPreviousPageParam,
+        maxPages: maxPages,
       ),
     );
     cache.build<InfiniteQueryData<TData, TPageParam>, TError>(

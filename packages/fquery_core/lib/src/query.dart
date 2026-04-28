@@ -234,7 +234,7 @@ class InfiniteQueryOptions<TData, TError, TPageParam> extends BaseQueryOptions {
   ///
   /// When this limit is reached, fetching a new forward page removes the first
   /// page, and fetching a new backward page removes the last page.
-  int? maxPages;
+  final int? maxPages;
 
   /// Creates a new instance of [InfiniteQueryOptions].
   InfiniteQueryOptions({
@@ -250,6 +250,7 @@ class InfiniteQueryOptions<TData, TError, TPageParam> extends BaseQueryOptions {
     super.retryCount,
     super.retryDelay,
     super.staleDuration,
+    this.maxPages,
   });
 }
 
