@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:math';
+import 'dart:collection';
 
 import 'package:fquery_core/src/observer.dart';
 import 'package:fquery_core/src/query.dart';
@@ -32,13 +32,12 @@ class QueryCache with Observable {
   final QueriesMap _queries = {};
   final Map<QueryKey, List<Observer>> _observers = {};
   final Map<QueryKey, Timer> _gcTimers = {};
-  final Map<QueryKey, Duration> _maxCacheDurations = {};
 
   /// Defaults applied to query observers when an option is omitted.
   final DefaultQueryOptions defaultQueryOptions;
 
   /// The queries currently stored in the cache.
-  QueriesMap get queries => _queries;
+  QueriesMap get queries => UnmodifiableMapView(_queries);
 
   /// Creates a query cache with optional [defaultQueryOptions].
   QueryCache({DefaultQueryOptions? defaultQueryOptions})
@@ -76,7 +75,7 @@ class QueryCache with Observable {
           errorUpdatedAt: DateTime.now(),
           isFetching: false,
           isInvalidated: false,
-          fetchMeta: state.fetchMeta,
+          fetchMeta: null,
         );
       case DispatchAction.success:
         return state.copyWith(
@@ -112,7 +111,8 @@ class QueryCache with Observable {
   }
 
   /// Returns a query identified by the query key.
-  Query<TData, TError> get<TData, TError extends Exception>(QueryKey queryKey) {
+  Query<TData, TError> get<TData, TError extends Exception>(
+      QueryKey<TData, TError> queryKey) {
     final query = _queries[queryKey];
     if (query == null) {
       throw QueryNotFoundException(queryKey);
@@ -129,62 +129,53 @@ class QueryCache with Observable {
 
   /// Removes a query from the cache.
   void _remove<TData, TError extends Exception>(Query<TData, TError> query) {
-    _queries.removeWhere((key, value) => value == query);
+    _queries.remove(query.key);
   }
 
   /// Returns a query identified by the query key.
   /// If it doesn't exist already,
   /// creates a new one and adds it to the cache.
   Query<TData, TError> build<TData, TError extends Exception>({
-    required QueryKey queryKey,
+    required QueryKey<TData, TError> queryKey,
     Observer? observer,
   }) {
     late final Query<TData, TError> query;
     try {
-      query = get<TData, TError>(queryKey);
+      query = get(queryKey);
     } on QueryNotFoundException {
       query = Query(queryKey);
     }
 
     _add(queryKey, query);
-    if (observer != null) _addObserver(observer);
+    if (observer != null) {
+      _addObserver(observer);
+    }
 
     return query;
   }
 
   void _addObserver(Observer observer) {
     _observers.putIfAbsent(observer.queryKey, () => []).add(observer);
-    _gcRoutine();
+    _gcRoutine(observer.queryKey);
   }
 
   /// Detaches [observer] and schedules garbage collection if it was the last one.
   void dismantle(Observer observer) {
-    // Set max cache duration before removing the observer
-    final queryKey = observer.queryKey;
-    final currentMaxCacheDuration =
-        _maxCacheDurations[queryKey] ?? Duration.zero;
+    // Call before removing to preserv cacheDuration
+    _gcRoutine(observer.queryKey, isDisposed: true);
 
-    _maxCacheDurations[queryKey] = Duration(
-      milliseconds: max(
-        observer.cacheDuration.inMilliseconds,
-        currentMaxCacheDuration.inMilliseconds,
-      ),
-    );
-
-    final observers = _observers[queryKey];
+    final observers = _observers[observer.queryKey];
     observers?.remove(observer);
-
-    _gcRoutine();
   }
 
   /// Dispatches an action to the reducer and notifies observers.
   void dispatch<TData, TError extends Exception>(
-    QueryKey queryKey,
+    QueryKey<TData, TError> queryKey,
     DispatchAction action,
     Object? data,
   ) {
     try {
-      queries[queryKey] = _reducer<TData, TError>(
+      _queries[queryKey] = _reducer<TData, TError>(
         get<TData, TError>(queryKey),
         action,
         data,
@@ -195,29 +186,36 @@ class QueryCache with Observable {
     }
   }
 
-  void _gcRoutine() {
-    _maxCacheDurations.forEach((queryKey, cacheDuration) {
-      final observers = _observers[queryKey] ?? [];
-      if (observers.isEmpty) {
-        _scheduleGc(queryKey, cacheDuration);
-      } else {
-        _cancleGc(queryKey);
-      }
-    });
+  void _gcRoutine<TData, TError extends Exception>(
+      QueryKey<TData, TError> queryKey,
+      {bool isDisposed = false}) {
+    final observers = _observers[queryKey] ?? [];
+
+    final cacheDuration = observers.isEmpty
+        ? Duration.zero
+        : observers.map((o) => o.cacheDuration).reduce((a, b) => a > b ? a : b);
+
+    if (observers.isEmpty || isDisposed) {
+      _scheduleGc(queryKey, cacheDuration);
+    } else {
+      _cancelGc(queryKey);
+    }
   }
 
-  void _cancleGc(QueryKey queryKey) {
+  void _cancelGc(QueryKey queryKey) {
     _gcTimers[queryKey]?.cancel();
     _gcTimers.remove(queryKey);
   }
 
   void _scheduleGc(QueryKey queryKey, Duration cacheDuration) {
-    _cancleGc(queryKey);
+    _cancelGc(queryKey);
+    final query = _queries[queryKey];
 
     void onGc() {
-      _queries.removeWhere((key, value) => key == queryKey);
+      if (query != null) {
+        _remove(query);
+      }
       _observers.remove(queryKey);
-      _maxCacheDurations.remove(queryKey);
       _gcTimers.remove(queryKey);
     }
 
@@ -245,7 +243,8 @@ class QueryCache with Observable {
     RawQueryKey queryKey,
     TData Function(TData? previous) updater,
   ) {
-    final query = build<TData, TError>(queryKey: QueryKey(queryKey));
+    final query =
+        build<TData, TError>(queryKey: QueryKey<TData, TError>(queryKey));
     dispatch(query.key, DispatchAction.success, updater(query.data));
   }
 
@@ -255,7 +254,7 @@ class QueryCache with Observable {
       final query = get<TData, TError>(QueryKey(queryKey));
       return query.data;
     } on QueryNotFoundException {
-      return null as TData?;
+      return null;
     }
   }
 
@@ -285,7 +284,7 @@ class QueryCache with Observable {
     RawQueryKey key, {
     bool exact = false,
   }) {
-    // No concurrent modification error is probable
+    // "No concurrent modification" error is probable
     // because we are not removing from the map
     // but just consistency with `removeQueries`
     final toInvalidate = <Query<TData, TError>>[];
@@ -339,6 +338,8 @@ class QueryCache with Observable {
     for (final query in toRemove) {
       _remove(query);
     }
+    _observers.remove(QueryKey(key));
+    _gcTimers.remove(QueryKey(key));
   }
 
   /// The number of queries that are currently fetching.

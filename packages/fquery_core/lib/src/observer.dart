@@ -65,7 +65,7 @@ mixin Observable {
 /// - `TError`: The type of error that can occur
 /// - `TOptions`: The type of options for configuring the observer
 abstract class Observer<TData, TError extends Exception,
-    TOptions extends BaseQueryOptions> with Observable {
+    TOptions extends BaseQueryOptions<TData, TError>> with Observable {
   /// The query cache this observer is connected to.
   late final QueryCache cache;
 
@@ -73,7 +73,7 @@ abstract class Observer<TData, TError extends Exception,
   Timer? _refetchTimer;
 
   /// The key that uniquely identifies this query.
-  final QueryKey queryKey;
+  final QueryKey<TData, TError> queryKey;
 
   /// Whether this observer is enabled.
   ///
@@ -109,7 +109,7 @@ abstract class Observer<TData, TError extends Exception,
   late Duration retryDelay;
 
   /// The query being managed by this observer.
-  Query get query;
+  Query<TData, TError> get query;
 
   /// Creates a new observer instance.
   Observer({
@@ -228,7 +228,7 @@ class QueryObserver<TData, TError extends Exception>
   /// Creates a new [QueryObserver] instance.
   QueryObserver({
     required super.cache,
-    required QueryKey queryKey,
+    required QueryKey<TData, TError> queryKey,
     required QueryFn<TData> queryFn,
     bool? enabled,
     RefetchOnMount? refetchOnMount,
@@ -399,7 +399,7 @@ class QueryObserver<TData, TError extends Exception>
 /// It supports fetching forward and backward, refetching all cached pages, and
 /// trimming cached pages with [maxPages].
 class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
-    extends Observer<TData, TError,
+    extends Observer<InfiniteQueryData<TData, TPageParam>, TError,
         InfiniteQueryOptions<TData, TError, TPageParam>> {
   var _refetchResolvers = <RetryResolver>[];
   final _resolver = RetryResolver();
@@ -435,7 +435,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   /// Creates a new instance of [InfiniteQueryObserver].
   InfiniteQueryObserver({
     required super.cache,
-    required QueryKey queryKey,
+    required QueryKey<InfiniteQueryData<TData, TPageParam>, TError> queryKey,
     required InfiniteQueryFn<TData, TPageParam> queryFn,
     bool? enabled,
     RefetchOnMount? refetchOnMount,
@@ -679,7 +679,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
         final pages = [...(query.data?.pages ?? [])];
         final pageParams = [...(query.data?.pageParams ?? [])];
 
-        // `maxPages` option's behaviour is defined here
+        // `maxPages` optionmaxPagesour is defined here
         if (pages.length == maxPages) {
           if (meta.direction == FetchDirection.forward) {
             // Remove the first page

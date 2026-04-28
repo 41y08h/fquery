@@ -43,7 +43,8 @@ void main() {
       observer.dispose();
     });
 
-    test('should cancel fetch when enabled changes from true to false', () async {
+    test('should cancel fetch when enabled changes from true to false',
+        () async {
       final queryCache = QueryCache(
         defaultQueryOptions: DefaultQueryOptions(
           cacheDuration: Duration.zero,
@@ -78,7 +79,8 @@ void main() {
       observer.dispose();
     });
 
-    test('should call initialize when enabled changes from false to true', () async {
+    test('should call initialize when enabled changes from false to true',
+        () async {
       final queryCache = QueryCache(
         defaultQueryOptions: DefaultQueryOptions(
           cacheDuration: Duration.zero,

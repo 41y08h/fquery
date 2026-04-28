@@ -15,7 +15,8 @@ typedef InfiniteQueryFn<TData, TPageParam> = FutureOr<TData> Function(
 ///
 /// Values left as `null` fall back to the [DefaultQueryOptions] configured on
 /// the query cache.
-class QueryOptions<TData, TError extends Exception> extends BaseQueryOptions {
+class QueryOptions<TData, TError extends Exception>
+    extends BaseQueryOptions<TData, TError> {
   /// The function used to fetch the query data.
   final QueryFn<TData> queryFn;
 
@@ -119,7 +120,7 @@ typedef RawQueryKey = List<Object?>;
 ///
 /// Uses `DeepCollectionEquality` for equality and hashing,
 /// and `jsonEncode` only for debugging/serialization purposes.
-class QueryKey {
+class QueryKey<TData, TError extends Exception> {
   /// The original, user-defined query key.
   final RawQueryKey raw;
 
@@ -209,7 +210,8 @@ class InfiniteQueryResult<TData, TError extends Exception, TPageParam>
 ///
 /// Infinite queries store data as ordered pages and use page parameters to
 /// decide how to fetch the next or previous page.
-class InfiniteQueryOptions<TData, TError, TPageParam> extends BaseQueryOptions {
+class InfiniteQueryOptions<TData, TError extends Exception, TPageParam>
+    extends BaseQueryOptions<InfiniteQueryData<TData, TPageParam>, TError> {
   /// The query function responsible for fetching the query
   final InfiniteQueryFn<TData, TPageParam> queryFn;
 
@@ -340,9 +342,9 @@ enum RefetchOnMount {
 }
 
 /// Shared query options used by single and infinite query observers.
-abstract class BaseQueryOptions {
+abstract class BaseQueryOptions<TData, TError extends Exception> {
   /// The key that identifies the query in the cache.
-  final QueryKey queryKey;
+  final QueryKey<TData, TError> queryKey;
 
   /// Whether the query is allowed to fetch.
   final bool? enabled;
