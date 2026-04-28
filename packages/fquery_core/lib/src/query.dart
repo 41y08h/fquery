@@ -1,4 +1,4 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
+// ignore_for_file: sort_constructors_first
 import 'dart:async';
 import 'dart:convert';
 
@@ -11,9 +11,12 @@ part 'query.freezed.dart';
 typedef InfiniteQueryFn<TData, TPageParam> = FutureOr<TData> Function(
     TPageParam);
 
-/// Query options
+/// Options used to create or update a single query observer.
+///
+/// Values left as `null` fall back to the [DefaultQueryOptions] configured on
+/// the query cache.
 class QueryOptions<TData, TError extends Exception> extends BaseQueryOptions {
-  /// The query function used to fetch the data
+  /// The function used to fetch the query data.
   final QueryFn<TData> queryFn;
 
   /// Creates a new [QueryOptions] instance.
@@ -30,13 +33,27 @@ class QueryOptions<TData, TError extends Exception> extends BaseQueryOptions {
   });
 }
 
+/// Actions used internally to transition query state.
 enum DispatchAction {
+  /// Marks a query as fetching.
   fetch,
+
+  /// Stores an initial-load error.
   error,
+
+  /// Stores successful query data.
   success,
+
+  /// Cancels the current fetch.
   cancelFetch,
+
+  /// Marks a query as invalidated.
   invalidate,
+
+  /// Stores a page while an infinite query refetch sequence is still running.
   refetchSequence,
+
+  /// Stores an error from a background refetch.
   refetchError,
 }
 
@@ -95,6 +112,7 @@ class QueryResult<TData, TError> {
   });
 }
 
+/// The user-facing representation of a query key.
 typedef RawQueryKey = List<Object?>;
 
 /// A serializable, deeply comparable query key.
@@ -105,7 +123,7 @@ class QueryKey {
   /// The original, user-defined query key.
   final RawQueryKey raw;
 
-  /// Creates a query key from a list of values.
+  /// Creates a query key from a list of JSON-encodable values.
   QueryKey(this.raw);
 
   static final _equality = DeepCollectionEquality();
@@ -128,7 +146,10 @@ class QueryKey {
   String toString() => 'QueryKey($serialized)';
 }
 
-/// The result of an infinite query, including the data, error, status flags, and a refetch function.
+/// The result of an infinite query.
+///
+/// Extends [QueryResult] with page navigation helpers and status flags for
+/// forward and backward page fetches.
 class InfiniteQueryResult<TData, TError extends Exception, TPageParam>
     extends QueryResult<InfiniteQueryData<TData, TPageParam>, TError> {
   /// Tells if the query is currently fetching the next page.
@@ -158,6 +179,7 @@ class InfiniteQueryResult<TData, TError extends Exception, TPageParam>
   /// Tells if the last `fetchPreviousPage` resulted in an error.
   final bool isFetchPreviousPageError;
 
+  /// Creates a new [InfiniteQueryResult] instance.
   InfiniteQueryResult({
     required super.data,
     required super.dataUpdatedAt,
@@ -183,6 +205,10 @@ class InfiniteQueryResult<TData, TError extends Exception, TPageParam>
   });
 }
 
+/// Options used to create or update an infinite query observer.
+///
+/// Infinite queries store data as ordered pages and use page parameters to
+/// decide how to fetch the next or previous page.
 class InfiniteQueryOptions<TData, TError, TPageParam> extends BaseQueryOptions {
   /// The query function responsible for fetching the query
   final InfiniteQueryFn<TData, TPageParam> queryFn;
@@ -190,15 +216,24 @@ class InfiniteQueryOptions<TData, TError, TPageParam> extends BaseQueryOptions {
   /// The initial page parameter to start fetching from.
   final TPageParam initialPageParam;
 
-  /// Function to get the next page parameter based on the last page, all pages, last page parameter, and all page parameters.
+  /// Function that returns the next page parameter.
+  ///
+  /// Receives the last page, all pages, the last page parameter, and all page
+  /// parameters. Return `null` when there is no next page.
   final TPageParam? Function(TData, List<TData>, TPageParam, List<TPageParam>)
       getNextPageParam;
 
-  /// Optional function to get the previous page parameter based on the first page, all pages, first page parameter, and all page parameters.
+  /// Function that returns the previous page parameter.
+  ///
+  /// Receives the first page, all pages, the first page parameter, and all page
+  /// parameters. Return `null` when there is no previous page.
   final TPageParam? Function(TData, List<TData>, TPageParam, List<TPageParam>)?
       getPreviousPageParam;
 
-  /// The maximum number of pages to keep in the cache. If the number of pages exceeds this limit, the oldest page will be removed.
+  /// The maximum number of pages to keep in the cache.
+  ///
+  /// When this limit is reached, fetching a new forward page removes the first
+  /// page, and fetching a new backward page removes the last page.
   int? maxPages;
 
   /// Creates a new instance of [InfiniteQueryOptions].
@@ -218,11 +253,21 @@ class InfiniteQueryOptions<TData, TError, TPageParam> extends BaseQueryOptions {
   });
 }
 
+/// Data stored by an infinite query.
+///
+/// [pages] contains the fetched page values in order. [pageParams] contains the
+/// page parameter used to fetch each page at the same index.
 class InfiniteQueryData<TPage, TPageParam> {
+  /// The fetched pages, ordered from first to last.
   List<TPage> pages;
+
+  /// The page parameters corresponding to [pages].
   List<TPageParam> pageParams;
+
+  /// Creates a new [InfiniteQueryData] instance.
   InfiniteQueryData({this.pages = const [], this.pageParams = const []});
 
+  /// Returns a copy with the provided fields replaced.
   InfiniteQueryData<TPage, TPageParam> copyWith({
     List<TPage>? pages,
     List<TPageParam>? pageParams,
@@ -236,6 +281,7 @@ class InfiniteQueryData<TPage, TPageParam> {
 
 /// Default options for all queries.
 class DefaultQueryOptions {
+  /// Whether queries are enabled by default.
   final bool enabled;
 
   /// The behavior of the query when the widget is first built and the data is already available.
@@ -268,27 +314,61 @@ class DefaultQueryOptions {
   });
 }
 
-enum QueryStatus { loading, success, error }
+/// The high-level lifecycle status of a query.
+enum QueryStatus {
+  /// The query has no successful data yet and is loading.
+  loading,
 
-enum RefetchOnMount { stale, always, never }
+  /// The query completed successfully.
+  success,
 
+  /// The query encountered an error.
+  error,
+}
+
+/// Controls whether cached data should be refetched when an observer mounts.
+enum RefetchOnMount {
+  /// Refetch only when cached data is stale.
+  stale,
+
+  /// Always refetch when an observer mounts.
+  always,
+
+  /// Never refetch solely because an observer mounted.
+  never,
+}
+
+/// Shared query options used by single and infinite query observers.
 abstract class BaseQueryOptions {
+  /// The key that identifies the query in the cache.
   final QueryKey queryKey;
 
-  // Tells whether the query is enabled
+  /// Whether the query is allowed to fetch.
   final bool? enabled;
 
-  /// Specifies the behavior of the query instance when the widget is first built and the data is already available.
+  /// Specifies how an observer behaves on mount when cached data already exists.
+  ///
   /// - `RefetchOnMount.always` - will always re-fetch when the widget is built.
   /// - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`).
   /// - `RefetchOnMount.never` - will never re-fetch.
   final RefetchOnMount? refetchOnMount;
+
+  /// Duration after which successful query data is considered stale.
   final Duration? staleDuration;
+
+  /// Duration to retain unused query data in the cache.
   final Duration? cacheDuration;
+
+  /// Interval used for automatic refetching.
   final Duration? refetchInterval;
+
+  /// Number of retry attempts after a failed fetch.
   final int? retryCount;
+
+  /// Delay between retry attempts.
   final Duration? retryDelay;
 
+  /// Creates shared query options.
   BaseQueryOptions({
     required this.queryKey,
     this.enabled,
@@ -301,12 +381,24 @@ abstract class BaseQueryOptions {
   });
 }
 
-enum FetchDirection { forward, backward }
+/// Direction of an infinite query page fetch.
+enum FetchDirection {
+  /// Fetching a page after the current last page.
+  forward,
 
+  /// Fetching a page before the current first page.
+  backward,
+}
+
+/// Metadata associated with an in-flight query fetch.
 class FetchMeta {
+  /// The direction of an infinite query page fetch.
   FetchDirection direction;
+
+  /// Creates fetch metadata for the given [direction].
   FetchMeta({required this.direction});
 
+  /// Returns a copy with the provided fields replaced.
   FetchMeta copyWith({FetchDirection? direction}) {
     return FetchMeta(direction: direction ?? this.direction);
   }
@@ -327,7 +419,10 @@ abstract class Query<TData, TError extends Exception>
   /// Tells if the query is in error state.
   bool get isError => status == QueryStatus.error;
 
-  /// Creates a new instance of [Query].
+  /// Creates a new query state snapshot.
+  ///
+  /// [key] identifies the query in the cache. The remaining fields describe the
+  /// latest data, error, timestamps, fetch metadata, and lifecycle flags.
   const factory Query(
     QueryKey key, {
     TData? data,

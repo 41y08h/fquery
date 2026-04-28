@@ -23,17 +23,24 @@ class QueryNotFoundException implements Exception {
   String toString() => "QueryNotFoundException: $message";
 }
 
-/// The cache that holds all the queries.
+/// Stores query state and coordinates notifications to query observers.
+///
+/// The cache is the central state container for queries. It can build, read,
+/// update, invalidate, and remove cached query entries, and it garbage-collects
+/// unused entries after their configured cache duration.
 class QueryCache with Observable {
   final QueriesMap _queries = {};
   final Map<QueryKey, List<Observer>> _observers = {};
   final Map<QueryKey, Timer> _gcTimers = {};
   final Map<QueryKey, Duration> _maxCacheDurations = {};
+
+  /// Defaults applied to query observers when an option is omitted.
   final DefaultQueryOptions defaultQueryOptions;
 
-  /// Returns an unmodifiable view of the queries in the cache.
+  /// The queries currently stored in the cache.
   QueriesMap get queries => _queries;
 
+  /// Creates a query cache with optional [defaultQueryOptions].
   QueryCache({DefaultQueryOptions? defaultQueryOptions})
       : defaultQueryOptions = defaultQueryOptions ??
             DefaultQueryOptions(
@@ -150,7 +157,7 @@ class QueryCache with Observable {
     _gcRoutine();
   }
 
-  /// This is called when an observer is disposed
+  /// Detaches [observer] and schedules garbage collection if it was the last one.
   void dismantle(Observer observer) {
     // Set max cache duration before removing the observer
     final queryKey = observer.queryKey;
@@ -170,7 +177,7 @@ class QueryCache with Observable {
     _gcRoutine();
   }
 
-  /// Dispatches an action to the reducer and notifies observers
+  /// Dispatches an action to the reducer and notifies observers.
   void dispatch<TData, TError extends Exception>(
     QueryKey queryKey,
     DispatchAction action,
@@ -217,7 +224,7 @@ class QueryCache with Observable {
     _gcTimers[queryKey] = Timer(cacheDuration, onGc);
   }
 
-  /// Sets the query cache idendifiable by the given query key.
+  /// Sets cached query data identified by the given query key.
   /// If the query data doesn't exist already in the cache (that's why `previous` is nullable),
   /// it'll be created.
   /// The type of returned data from the updater function
@@ -281,27 +288,27 @@ class QueryCache with Observable {
     // No concurrent modification error is probable
     // because we are not removing from the map
     // but just consistency with `removeQueries`
-      final toInvalidate = <Query<TData, TError>>[];
+    final toInvalidate = <Query<TData, TError>>[];
 
-      queries.forEach((queryKey, query) {
-        if (exact) {
-          if (queryKey.serialized == QueryKey(key).serialized &&
-              query is Query<TData, TError>) {
-            toInvalidate.add(query);
-          }
-        } else {
-          final isPartialMatch = queryKey.raw.length >= key.length &&
-              QueryKey(queryKey.raw.sublist(0, key.length)) == QueryKey(key);
-
-          if (isPartialMatch && query is Query<TData, TError>) {
-            toInvalidate.add(query);
-          }
+    queries.forEach((queryKey, query) {
+      if (exact) {
+        if (queryKey.serialized == QueryKey(key).serialized &&
+            query is Query<TData, TError>) {
+          toInvalidate.add(query);
         }
-      });
+      } else {
+        final isPartialMatch = queryKey.raw.length >= key.length &&
+            QueryKey(queryKey.raw.sublist(0, key.length)) == QueryKey(key);
 
-      for (final query in toInvalidate) {
-        dispatch(query.key, DispatchAction.invalidate, null);
+        if (isPartialMatch && query is Query<TData, TError>) {
+          toInvalidate.add(query);
+        }
       }
+    });
+
+    for (final query in toInvalidate) {
+      dispatch(query.key, DispatchAction.invalidate, null);
+    }
   }
 
   /// Removes queries from the cache.
@@ -334,8 +341,8 @@ class QueryCache with Observable {
     }
   }
 
-  /// Returns the number of queries that are currently fetching.
-  get isFetching {
+  /// The number of queries that are currently fetching.
+  int get isFetching {
     return queries.entries
         .where((queryMap) => queryMap.value.isFetching)
         .length;

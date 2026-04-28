@@ -8,18 +8,23 @@ List<T> _difference<T>(List<T> array1, List<T> array2) {
   return array1.where((x) => !array2.contains(x)).toList();
 }
 
-/// An observer for multiple queries in parallel, uses [QueryObserver] internally
-/// It's different from other observer in two aspects -
-///  - It doesn't inherit from [Observer],
-///  - Tt doesn't subscribe to query cache.
-/// It is nevertheless an [Observable]
-
+/// Observes multiple queries in parallel.
+///
+/// This class owns one [QueryObserver] for each configured query option and
+/// forwards child observer notifications to its own subscribers. Unlike the
+/// single-query observers, it does not extend [Observer] and does not subscribe
+/// directly to the query cache.
 class QueriesObserver<TData, TError extends Exception> with Observable {
+  /// The active child observers, in the same order as the latest options list.
   List<QueryObserver<TData, TError>> observers = [];
+
+  /// The cache used by all child query observers.
   final QueryCache cache;
 
+  /// Creates a [QueriesObserver] backed by [cache].
   QueriesObserver({required this.cache});
 
+  /// Disposes all child observers and removes subscribers.
   void dispose() {
     disposeSubscribers();
     for (var observer in observers) {
@@ -27,6 +32,10 @@ class QueriesObserver<TData, TError extends Exception> with Observable {
     }
   }
 
+  /// Reconciles child observers with [options].
+  ///
+  /// Existing observers with matching query keys are reused and updated. New
+  /// observers are created and initialized, while removed observers are disposed.
   void setOptions(List<QueryOptions<TData, TError>> options) {
     final previousObservers = observers;
 

@@ -5,50 +5,113 @@ import 'package:fquery_core/src/query.dart';
 import 'package:fquery_core/src/retry_resolver.dart';
 import 'package:collection/collection.dart';
 
+/// A mixin that provides observer pattern functionality.
+///
+/// Allows classes to manage a list of subscribers and notify them when
+/// state changes occur. Subscribers are identified by unique integer IDs.
 mixin Observable {
+  /// Map of listener ID to listener function.
   final Map<int, Function> _listeners = {};
+
+  /// Subscribes a listener with the given ID.
+  ///
+  /// The [listener] function will be called whenever [notifyObservers] is invoked.
+  /// If a listener with the same ID already exists, it will be replaced.
+  ///
+  /// Parameters:
+  /// - `listenerId`: A unique identifier for this listener
+  /// - `listener`: The callback function to invoke on notifications
   void subscribe(int listenerId, Function listener) {
     _listeners[listenerId] = listener;
   }
 
+  /// Unsubscribes a listener with the given ID.
+  ///
+  /// The listener will no longer receive notifications.
+  /// Safe to call even if the listener doesn't exist.
+  ///
+  /// Parameters:
+  /// - `observerId`: The ID of the listener to remove
   void unsubscribe(int observerId) {
     _listeners.remove(observerId);
   }
 
+  /// Notifies all subscribed listeners.
+  ///
+  /// Calls each listener function in the [_listeners] map.
+  /// This is typically used to signal that an observed state has changed.
   void notifyObservers() {
     _listeners.forEach((observerId, listener) {
       listener();
     });
   }
 
+  /// Clears all listeners.
+  ///
+  /// Removes all subscribed listeners, effectively disconnecting all observers.
+  /// Useful for cleanup when the observable is being disposed.
   void disposeSubscribers() {
     _listeners.clear();
   }
 }
 
+/// Base class for all observers.
+///
+/// Provides common functionality for observing and managing queries including
+/// lifecycle management, configuration options, and refetch scheduling.
+///
+/// Type parameters:
+/// - `TData`: The type of data being queried
+/// - `TError`: The type of error that can occur
+/// - `TOptions`: The type of options for configuring the observer
 abstract class Observer<TData, TError extends Exception,
     TOptions extends BaseQueryOptions> with Observable {
+  /// The query cache this observer is connected to.
   late final QueryCache cache;
+
+  /// Timer for scheduling periodic refetches.
   Timer? _refetchTimer;
 
+  /// The key that uniquely identifies this query.
   final QueryKey queryKey;
-  // Tells whether the query is enabled
+
+  /// Whether this observer is enabled.
+  ///
+  /// When disabled, the observer won't fetch data or refetch automatically.
   late bool enabled;
 
-  /// Specifies the behavior of the query instance when the widget is first built and the data is already available.
-  /// - `RefetchOnMount.always` - will always re-fetch when the widget is built.
-  /// - `RefetchOnMount.stale` - will fetch the data if it is stale (see `staleDuration`).
-  /// - `RefetchOnMount.never` - will never re-fetch.
+  /// Specifies when to refetch when the observer is first initialized.
+  ///
+  /// Options:
+  /// - `RefetchOnMount.always` - Always refetch on mount
+  /// - `RefetchOnMount.stale` - Refetch only if data is stale
+  /// - `RefetchOnMount.never` - Never refetch on mount
   late RefetchOnMount refetchOnMount;
+
+  /// Duration after which query data is considered stale.
+  ///
+  /// Used by `RefetchOnMount.stale` to determine if a refetch is needed.
   late Duration staleDuration;
+
+  /// Duration that fetched data is kept in cache before being removed.
   late Duration cacheDuration;
+
+  /// Interval for automatic periodic refetches.
+  ///
+  /// If set, the query will automatically refetch at this interval.
+  /// If `null`, no automatic refetching is done.
   late Duration? refetchInterval;
+
+  /// Number of times to retry failed queries.
   late int retryCount;
+
+  /// Delay between retry attempts.
   late Duration retryDelay;
 
-  /// Query to which the observer is subscribed to
+  /// The query being managed by this observer.
   Query get query;
 
+  /// Creates a new observer instance.
   Observer({
     required this.cache,
     required this.queryKey,
@@ -61,6 +124,10 @@ abstract class Observer<TData, TError extends Exception,
     required this.retryDelay,
   });
 
+  /// Applies options to this observer.
+  ///
+  /// Extracts values from [options] and applies them, using cache defaults
+  /// for any options that are null.
   void _setOptions(TOptions options) {
     enabled = options.enabled ?? cache.defaultQueryOptions.enabled;
     refetchOnMount =
@@ -75,48 +142,82 @@ abstract class Observer<TData, TError extends Exception,
     retryDelay = options.retryDelay ?? cache.defaultQueryOptions.retryDelay;
   }
 
-  /// Callback function for receiving notifications
-  /// from the query cache, typically when query is updated
+  /// Callback for when the query cache is updated.
+  ///
+  /// Called by the query cache when this observer's query is modified.
+  /// Typically triggers [notifyObservers] to propagate changes to listeners.
   // ignore: unused_element
   void _onQueryCacheNotification();
 
-  /// Schedules the next fetch if the [refetchInterval] is set.
+  /// Schedules the next automatic refetch based on [refetchInterval].
+  ///
+  /// Cancels any existing scheduled refetch and schedules a new one.
+  /// Does nothing if [refetchInterval] is null.
   void _scheduleRefetch() {
     if (refetchInterval == null) return;
     _refetchTimer?.cancel();
     _refetchTimer = Timer(refetchInterval as Duration, fetch);
   }
 
-  /// Cancels any scheduled refetch
+  /// Cancels any scheduled refetch.
   void _cancelRefetch() {
     _refetchTimer?.cancel();
   }
 
-  /// The function responsible for fetching the data
+  /// Fetches the query data.
+  ///
+  /// This is the main method responsible for executing the query function
+  /// and updating the cache with the result. Implementations should handle
+  /// errors, retries, and cache updates.
   Future<void> fetch();
 
-  /// Updates the options and produces any side effects required
+  /// Updates the observer with new options.
+  ///
+  /// Applies new configuration options and handles any necessary side effects
+  /// (e.g., stopping/starting automatic refetches, re-fetching if enabled changed).
+  ///
+  /// Parameters:
+  /// - `newOptions`: The new options to apply
   void updateOptions(TOptions newOptions);
 
-  /// Starts the initial fetch routine
+  /// Initializes the observer.
+  ///
+  /// Called when the observer is first created. Determines whether to fetch
+  /// based on [enabled], [refetchOnMount], and whether data is already cached.
   void initialize();
 
-  /// Disposes the observer
+  /// Disposes the observer.
+  ///
+  /// Cancels any scheduled refetches and cleans up resources.
+  /// Called when the observer is no longer needed.
   void dispose() {
     _refetchTimer?.cancel();
   }
 }
 
-/// A function that fetches data for a query.
+/// A function that fetches query data.
+///
+/// Returns a [FutureOr] of type [TData], allowing both sync and async functions.
 typedef QueryFn<TData> = FutureOr<TData> Function();
 
-/// An observer is a class which subscribes to a query and updates its state when the query changes.
-/// It is responsible for fetching the query and updating the cache.
-/// There can be multiple observers for the same query and hence
-/// sharing the same piece of data throughout the whole application.
+/// Manages a single query and its state.
+///
+/// Responsible for:
+/// - Fetching query data using a provided function
+/// - Managing fetch state (loading, success, error)
+/// - Handling retries on error
+/// - Scheduling automatic refetches at intervals
+/// - Notifying subscribers of state changes
+/// - Updating the shared query cache
+///
+/// Type parameters:
+/// - `TData`: The type of data returned by the query
+/// - `TError`: The type of error that can be thrown by the query
 class QueryObserver<TData, TError extends Exception>
     extends Observer<TData, TError, QueryOptions<TData, TError>> {
   final _resolver = RetryResolver();
+
+  /// The function used to fetch data for this observer's query.
   late QueryFn<TData> queryFn;
 
   @override
@@ -293,6 +394,10 @@ class QueryObserver<TData, TError extends Exception>
 }
 
 /// Observer for infinite queries.
+///
+/// Manages a paginated query where each page is fetched with a page parameter.
+/// It supports fetching forward and backward, refetching all cached pages, and
+/// trimming cached pages with [maxPages].
 class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
     extends Observer<TData, TError,
         InfiniteQueryOptions<TData, TError, TPageParam>> {
@@ -302,12 +407,21 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   late TPageParam _paramFlag;
   late FetchMeta _metaFlag;
 
+  /// The function used to fetch a page for the current page parameter.
   late InfiniteQueryFn<TData, TPageParam> queryFn;
+
+  /// The first page parameter used when the query has no cached pages.
   late TPageParam initialPageParam;
+
+  /// Computes the next page parameter from the current page data.
   late TPageParam? Function(TData, List<TData>, TPageParam, List<TPageParam>)
       getNextPageParam;
+
+  /// Computes the previous page parameter from the current page data.
   late TPageParam? Function(TData, List<TData>, TPageParam, List<TPageParam>)?
       getPreviousPageParam;
+
+  /// The maximum number of pages to keep in the cache.
   late int? maxPages;
 
   @override
@@ -517,7 +631,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
         retryDelay: retryDelay,
         onResolve: (refetchedData) {
           // Make a copy of pages to replace with refetched
-          // data without directly mutataing the old `pages`
+          // data without directly mutating the old `pages`
           final newPages = [...data.pages];
           newPages[i] = refetchedData;
 
