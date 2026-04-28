@@ -3,11 +3,12 @@ import 'package:basic/widgets/todo_list_tile.dart';
 import 'package:basic/models/todos.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery/fquery.dart';
 
 import 'package:fquery_core/fquery_core.dart';
 
-class TodosPage extends StatefulWidget {
+class TodosPage extends StatefulHookWidget {
   const TodosPage({super.key});
 
   @override
@@ -15,7 +16,7 @@ class TodosPage extends StatefulWidget {
 }
 
 class _TodosPageState extends State<TodosPage> {
-  bool isEnabled = true;
+  bool isEnabled = false;
   final todoInputController = TextEditingController();
 
   @override
@@ -32,15 +33,16 @@ class _TodosPageState extends State<TodosPage> {
     //     enabled: isEnabled,
     //   ),
     // );
+    final todos = useQuery(
+      ['todos'],
+      todosAPI.getAll,
+      context: context,
+      refetchOnMount: RefetchOnMount.never,
+      enabled: isEnabled,
+    );
 
-    return QueryBuilder<List<Todo>, Exception>(
-      options: QueryOptions(
-        queryKey: QueryKey(['todos']),
-        queryFn: todosAPI.getAll,
-        refetchOnMount: RefetchOnMount.never,
-        enabled: isEnabled,
-      ),
-      builder: (context, todos) {
+    return Builder(
+      builder: (context) {
         return CupertinoPageScaffold(
           navigationBar: CupertinoNavigationBar(
             leading: Row(
@@ -53,22 +55,22 @@ class _TodosPageState extends State<TodosPage> {
                       CupertinoIcons.chevron_back,
                       size: 25,
                     )),
-                QueryBuilder(
-                  options: QueryOptions(
-                    enabled: todos.data != null,
-                    queryKey: QueryKey(['wow']),
-                    queryFn: () async {
-                      await MockServer.delay();
-                      return 'wow, ${todos.data!.length} todos';
-                    },
-                  ),
-                  builder: (context, wow) {
-                    return Text(
-                      'wow: ${wow.status.toString()}',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    );
-                  },
-                ),
+                // QueryBuilder(
+                //   options: QueryOptions(
+                //     enabled: todos.data != null,
+                //     queryKey: QueryKey(['wow']),
+                //     queryFn: () async {
+                //       await MockServer.delay();
+                //       return 'wow, ${todos.data!.length} todos';
+                //     },
+                //   ),
+                //   builder: (context, wow) {
+                //     return Text(
+                //       'wow: ${wow.status.toString()}',
+                //       style: TextStyle(fontWeight: FontWeight.bold),
+                //     );
+                //   },
+                // ),
               ],
             ),
             trailing: Row(

@@ -12,7 +12,8 @@ typedef InfiniteQueryFn<TData, TPageParam> = FutureOr<TData> Function(
     TPageParam);
 
 /// Query options
-class QueryOptions<TData, TError extends Exception> extends BaseQueryOptions {
+class QueryOptions<TData, TError extends Exception>
+    extends BaseQueryOptions<TData, TError> {
   /// The query function used to fetch the data
   final QueryFn<TData> queryFn;
 
@@ -101,7 +102,7 @@ typedef RawQueryKey = List<Object?>;
 ///
 /// Uses `DeepCollectionEquality` for equality and hashing,
 /// and `jsonEncode` only for debugging/serialization purposes.
-class QueryKey {
+class QueryKey<TData, TError extends Exception> {
   /// The original, user-defined query key.
   final RawQueryKey raw;
 
@@ -183,7 +184,8 @@ class InfiniteQueryResult<TData, TError extends Exception, TPageParam>
   });
 }
 
-class InfiniteQueryOptions<TData, TError, TPageParam> extends BaseQueryOptions {
+class InfiniteQueryOptions<TData, TError extends Exception, TPageParam>
+    extends BaseQueryOptions<InfiniteQueryData<TData, TPageParam>, TError> {
   /// The query function responsible for fetching the query
   final InfiniteQueryFn<TData, TPageParam> queryFn;
 
@@ -273,8 +275,8 @@ enum QueryStatus { loading, success, error }
 
 enum RefetchOnMount { stale, always, never }
 
-abstract class BaseQueryOptions {
-  final QueryKey queryKey;
+abstract class BaseQueryOptions<TData, TError extends Exception> {
+  final QueryKey<TData, TError> queryKey;
 
   // Tells whether the query is enabled
   final bool? enabled;

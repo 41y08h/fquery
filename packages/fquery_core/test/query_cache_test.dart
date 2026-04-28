@@ -10,11 +10,11 @@ void main() {
     test('build creates a query and get returns it', () {
       final cache = QueryCache();
 
-      final query = cache.build<int, Exception>(
-        queryKey: QueryKey(['counter']),
-      );
+      final key = QueryKey<int, Exception>(['counter']);
 
-      final fetched = cache.get<int, Exception>(QueryKey(['counter']));
+      final query = cache.build(queryKey: key);
+
+      final fetched = cache.get(key);
 
       expect(fetched, same(query));
     });
@@ -22,8 +22,10 @@ void main() {
     test('get throws if query not found', () {
       final cache = QueryCache();
 
+      final key = QueryKey<int, Exception>(['missing']);
+
       expect(
-        () => cache.get<int, Exception>(QueryKey(['missing'])),
+        () => cache.get(key),
         throwsA(isA<QueryNotFoundException>()),
       );
     });
@@ -33,17 +35,17 @@ void main() {
     test('sets data and status to success', () {
       final cache = QueryCache();
 
-      final key = QueryKey(['todos']);
+      final key = QueryKey<List<String>, Exception>(['todos']);
 
-      cache.build<List<String>, Exception>(queryKey: key);
+      cache.build(queryKey: key);
 
-      cache.dispatch<List<String>, Exception>(
+      cache.dispatch(
         key,
         DispatchAction.success,
         ['a', 'b'],
       );
 
-      final query = cache.get<List<String>, Exception>(key);
+      final query = cache.get(key);
 
       expect(query.status, QueryStatus.success);
       expect(query.data, ['a', 'b']);
@@ -54,17 +56,18 @@ void main() {
   group('dispatch fetch', () {
     test('sets isFetching true and status loading if no data', () {
       final cache = QueryCache();
-      final key = QueryKey(['user']);
 
-      cache.build<int, Exception>(queryKey: key);
+      final key = QueryKey<int, Exception>(['user']);
 
-      cache.dispatch<int, Exception>(
+      cache.build(queryKey: key);
+
+      cache.dispatch(
         key,
         DispatchAction.fetch,
         null,
       );
 
-      final query = cache.get<int, Exception>(key);
+      final query = cache.get(key);
 
       expect(query.isFetching, true);
       expect(query.status, QueryStatus.loading);
@@ -75,12 +78,14 @@ void main() {
     test('creates query if missing and sets data', () {
       final cache = QueryCache();
 
+      final key = QueryKey<int, Exception>(['count']);
+
       cache.setQueryData<int, Exception>(
-        ['count'],
+        key.raw,
         (prev) => (prev ?? 0) + 1,
       );
 
-      final value = cache.getQueryData<int, Exception>(['count']);
+      final value = cache.getQueryData(key.raw);
 
       expect(value, 1);
     });
@@ -88,10 +93,12 @@ void main() {
     test('updates existing data', () {
       final cache = QueryCache();
 
-      cache.setQueryData<int, Exception>(['count'], (_) => 5);
-      cache.setQueryData<int, Exception>(['count'], (prev) => prev! + 2);
+      final key = QueryKey<int, Exception>(['count']);
 
-      final value = cache.getQueryData<int, Exception>(['count']);
+      cache.setQueryData<int, Exception>(key.raw, (_) => 5);
+      cache.setQueryData<int, Exception>(key.raw, (prev) => prev! + 2);
+
+      final value = cache.getQueryData(key.raw);
 
       expect(value, 7);
     });
@@ -101,19 +108,19 @@ void main() {
     test('invalidates matching queries', () {
       final cache = QueryCache();
 
-      final key = QueryKey(['posts']);
+      final key = QueryKey<List<int>, Exception>(['posts']);
 
-      cache.build<List<int>, Exception>(queryKey: key);
+      cache.build(queryKey: key);
 
-      cache.dispatch<List<int>, Exception>(
+      cache.dispatch(
         key,
         DispatchAction.success,
         [1, 2],
       );
 
-      cache.invalidateQueries<List<int>, Exception>(['posts']);
+      cache.invalidateQueries(key.raw);
 
-      final query = cache.get<List<int>, Exception>(key);
+      final query = cache.get(key);
 
       expect(query.isInvalidated, true);
     });
@@ -123,14 +130,14 @@ void main() {
     test('removes matching queries', () {
       final cache = QueryCache();
 
-      final key = QueryKey(['posts']);
+      final key = QueryKey<List<int>, Exception>(['posts']);
 
-      cache.build<List<int>, Exception>(queryKey: key);
+      cache.build(queryKey: key);
 
-      cache.removeQueries<List<int>, Exception>(['posts']);
+      cache.removeQueries(key.raw);
 
       expect(
-        () => cache.get<List<int>, Exception>(key),
+        () => cache.get(key),
         throwsA(isA<QueryNotFoundException>()),
       );
     });
@@ -140,13 +147,13 @@ void main() {
     test('counts fetching queries', () {
       final cache = QueryCache();
 
-      final key1 = QueryKey(['a']);
-      final key2 = QueryKey(['b']);
+      final key1 = QueryKey<int, Exception>(['a']);
+      final key2 = QueryKey<int, Exception>(['b']);
 
-      cache.build<int, Exception>(queryKey: key1);
-      cache.build<int, Exception>(queryKey: key2);
+      cache.build(queryKey: key1);
+      cache.build(queryKey: key2);
 
-      cache.dispatch<int, Exception>(key1, DispatchAction.fetch, null);
+      cache.dispatch(key1, DispatchAction.fetch, null);
 
       expect(cache.isFetching, 1);
     });
@@ -157,13 +164,12 @@ void main() {
       fakeAsync((async) {
         final cache = QueryCache();
 
-        final key = QueryKey(['temp']);
+        final key = QueryKey<int, Exception>(['temp']);
 
         // create initial query
-        cache.build<int, Exception>(queryKey: key);
+        cache.build(queryKey: key);
 
-        // create a concrete observer instead of abstract Observer
-        final observer = QueryObserver<int, Exception>(
+        final observer = QueryObserver(
           cache: cache,
           queryKey: key,
           queryFn: () async => 1,
@@ -171,20 +177,18 @@ void main() {
         );
 
         // attach observer to cache
-        cache.build<int, Exception>(queryKey: key, observer: observer);
+        cache.build(queryKey: key, observer: observer);
 
-        // simulate dispose (this triggers dismantle internally)
+        // simulate dispose
         observer.dispose();
 
-        // fast-forward time
         async.elapse(const Duration(seconds: 2));
 
-        expect(() => cache.get<int, Exception>(key), returnsNormally);
+        expect(() => cache.get(key), returnsNormally);
 
         async.elapse(const Duration(seconds: 3));
-
         expect(
-          () => cache.get<int, Exception>(key),
+          () => cache.get(key),
           throwsA(isA<QueryNotFoundException>()),
         );
       });

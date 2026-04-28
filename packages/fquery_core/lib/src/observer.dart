@@ -27,11 +27,11 @@ mixin Observable {
 }
 
 abstract class Observer<TData, TError extends Exception,
-    TOptions extends BaseQueryOptions> with Observable {
+    TOptions extends BaseQueryOptions<TData, TError>> with Observable {
   late final QueryCache cache;
   Timer? _refetchTimer;
 
-  final QueryKey queryKey;
+  final QueryKey<TData, TError> queryKey;
   // Tells whether the query is enabled
   late bool enabled;
 
@@ -47,7 +47,7 @@ abstract class Observer<TData, TError extends Exception,
   late Duration retryDelay;
 
   /// Query to which the observer is subscribed to
-  Query get query;
+  Query<TData, TError> get query;
 
   Observer({
     required this.cache,
@@ -127,7 +127,7 @@ class QueryObserver<TData, TError extends Exception>
   /// Creates a new [QueryObserver] instance.
   QueryObserver({
     required super.cache,
-    required QueryKey queryKey,
+    required QueryKey<TData, TError> queryKey,
     required QueryFn<TData> queryFn,
     bool? enabled,
     RefetchOnMount? refetchOnMount,
@@ -294,7 +294,7 @@ class QueryObserver<TData, TError extends Exception>
 
 /// Observer for infinite queries.
 class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
-    extends Observer<TData, TError,
+    extends Observer<InfiniteQueryData<TData, TPageParam>, TError,
         InfiniteQueryOptions<TData, TError, TPageParam>> {
   var _refetchResolvers = <RetryResolver>[];
   final _resolver = RetryResolver();
@@ -321,7 +321,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   /// Creates a new instance of [InfiniteQueryObserver].
   InfiniteQueryObserver({
     required super.cache,
-    required QueryKey queryKey,
+    required QueryKey<InfiniteQueryData<TData, TPageParam>, TError> queryKey,
     required InfiniteQueryFn<TData, TPageParam> queryFn,
     bool? enabled,
     RefetchOnMount? refetchOnMount,
