@@ -66,8 +66,7 @@ class RetryResolver {
     _isRunning = true;
 
     final maxAttempts = retryCount + 1;
-    var attempts = 0;
-    while (attempts++ <= maxAttempts) {
+    for (var attempts = 1; attempts <= maxAttempts; attempts++) {
       if (!_isRunning) return;
       final isLastAttempt = attempts == maxAttempts;
       try {
