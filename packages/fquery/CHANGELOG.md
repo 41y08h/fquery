@@ -119,3 +119,8 @@
 ## 3.0.2+1
 
 - bump `fquery_core` version
+
+## 3.1.0
+
+- Fix listening behavior instance classes by using the new `isReadOnly` (fquery_core-v3.1.0) parameter of observer classes.
+- Refactor and fix other bugs of builder widgets
