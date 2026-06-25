@@ -3,8 +3,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fquery_core/fquery_core.dart';
 
 T useObservableSelector<T>(Observable observable, T Function() getValue) {
-  final state = useState<T>(getValue());
   final mounted = useRef(true);
+  final getValueRef = useRef(getValue);
+  getValueRef.value = getValue; // updates every render, no re-subscription
+
+  final state = useState<T>(getValue());
 
   useEffect(() {
     mounted.value = true;
@@ -19,11 +22,11 @@ T useObservableSelector<T>(Observable observable, T Function() getValue) {
         // During build, defer to next frame
         schedulerBinding.addPostFrameCallback((_) {
           if (mounted.value) {
-            state.value = getValue();
+            state.value = getValueRef.value();
           }
         });
       } else {
-        state.value = getValue();
+        state.value = getValueRef.value();
       }
     }
 

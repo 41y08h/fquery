@@ -8,6 +8,7 @@ class InfiniteQueryInstance {
           InfiniteQueryOptions<TData, TError, TPageParam> options) {
     final cache = CacheProvider.get(context);
     final observer = InfiniteQueryObserver<TData, TError, TPageParam>(
+      isReadOnly: true,
       cache: cache,
       queryFn: options.queryFn,
       queryKey: options.queryKey,

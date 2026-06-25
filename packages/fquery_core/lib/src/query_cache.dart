@@ -30,7 +30,7 @@ class QueryNotFoundException implements Exception {
 /// unused entries after their configured cache duration.
 class QueryCache with Observable {
   final QueriesMap _queries = {};
-  final Map<QueryKey, List<Observer>> _observers = {};
+  final Map<QueryKey, Set<Observer>> _observers = {};
   final Map<QueryKey, Timer> _gcTimers = {};
 
   /// Defaults applied to query observers when an option is omitted.
@@ -155,7 +155,7 @@ class QueryCache with Observable {
   }
 
   void _addObserver(Observer observer) {
-    _observers.putIfAbsent(observer.queryKey, () => []).add(observer);
+    _observers.putIfAbsent(observer.queryKey, () => {}).add(observer);
     _gcRoutine(observer.queryKey);
   }
 
@@ -189,7 +189,7 @@ class QueryCache with Observable {
   void _gcRoutine<TData, TError extends Exception>(
       QueryKey<TData, TError> queryKey,
       {bool isDisposed = false}) {
-    final observers = _observers[queryKey] ?? [];
+    final observers = _observers[queryKey] ?? {};
 
     final cacheDuration = observers.isEmpty
         ? Duration.zero

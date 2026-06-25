@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:fquery/src/widgets/cache_provider.dart';
-import 'package:fquery_core/src/query_cache.dart';
+import 'package:fquery_core/fquery_core.dart';
 
 /// Builder widget that provides the number of active fetches across all queries.
 class IsFetchingBuilder extends StatefulWidget {
@@ -15,14 +15,14 @@ class IsFetchingBuilder extends StatefulWidget {
 }
 
 class _IsFetchingBuilderState extends State<IsFetchingBuilder> {
-  late QueryCache cache;
+  late final QueryCache cache;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    cache = CacheProvider.get(context);
-    cache.subscribe(hashCode, () {
-      setState(() {});
-    });
+    cache = CacheProvider.get(context)
+      ..subscribe(hashCode, () {
+        setState(() {});
+      });
   }
 
   @override

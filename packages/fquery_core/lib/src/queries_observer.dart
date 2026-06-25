@@ -17,12 +17,13 @@ List<T> _difference<T>(List<T> array1, List<T> array2) {
 class QueriesObserver<TData, TError extends Exception> with Observable {
   /// The active child observers, in the same order as the latest options list.
   List<QueryObserver<TData, TError>> observers = [];
+  bool isReadOnly;
 
   /// The cache used by all child query observers.
   final QueryCache cache;
 
   /// Creates a [QueriesObserver] backed by [cache].
-  QueriesObserver({required this.cache});
+  QueriesObserver({this.isReadOnly = false, required this.cache});
 
   /// Disposes all child observers and removes subscribers.
   void dispose() {
@@ -45,6 +46,7 @@ class QueriesObserver<TData, TError extends Exception> with Observable {
             (observer) => observer.queryKey == option.queryKey,
           ) ??
           QueryObserver(
+            isReadOnly: isReadOnly,
             cache: cache,
             queryKey: option.queryKey,
             queryFn: option.queryFn,

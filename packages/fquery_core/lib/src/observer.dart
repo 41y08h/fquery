@@ -111,8 +111,11 @@ abstract class Observer<TData, TError extends Exception,
   /// The query being managed by this observer.
   Query<TData, TError> get query;
 
+  bool isReadOnly;
+
   /// Creates a new observer instance.
   Observer({
+    this.isReadOnly = false,
     required this.cache,
     required this.queryKey,
     required this.enabled,
@@ -156,8 +159,10 @@ abstract class Observer<TData, TError extends Exception,
   void _scheduleRefetch() {
     if (refetchInterval == null) return;
     _refetchTimer?.cancel();
-    _refetchTimer = Timer(refetchInterval as Duration, fetch);
+    _refetchTimer = Timer(refetchInterval as Duration, refetch);
   }
+
+  void refetch() {}
 
   /// Cancels any scheduled refetch.
   void _cancelRefetch() {
@@ -227,6 +232,7 @@ class QueryObserver<TData, TError extends Exception>
 
   /// Creates a new [QueryObserver] instance.
   QueryObserver({
+    super.isReadOnly,
     required super.cache,
     required QueryKey<TData, TError> queryKey,
     required QueryFn<TData> queryFn,
@@ -264,8 +270,9 @@ class QueryObserver<TData, TError extends Exception>
         retryDelay: retryDelay,
       ),
     );
-    cache.build<TData, TError>(queryKey: queryKey);
-    cache.subscribe(hashCode, _onQueryCacheNotification);
+    cache.build<TData, TError>(
+        queryKey: queryKey, observer: isReadOnly ? null : this);
+    if (!isReadOnly) cache.subscribe(hashCode, _onQueryCacheNotification);
   }
 
   @override
@@ -331,6 +338,11 @@ class QueryObserver<TData, TError extends Exception>
         _cancelRefetch();
       }
     }
+  }
+
+  @override
+  void refetch() {
+    fetch();
   }
 
   @override
@@ -434,6 +446,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
 
   /// Creates a new instance of [InfiniteQueryObserver].
   InfiniteQueryObserver({
+    super.isReadOnly,
     required super.cache,
     required QueryKey<InfiniteQueryData<TData, TPageParam>, TError> queryKey,
     required InfiniteQueryFn<TData, TPageParam> queryFn,
@@ -482,10 +495,12 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
         maxPages: maxPages,
       ),
     );
+
     cache.build<InfiniteQueryData<TData, TPageParam>, TError>(
       queryKey: queryKey,
+      observer: isReadOnly ? null : this,
     );
-    cache.subscribe(hashCode, _onQueryCacheNotification);
+    if (!isReadOnly) cache.subscribe(hashCode, _onQueryCacheNotification);
     _paramFlag = initialPageParam;
     _metaFlag = query.fetchMeta ?? FetchMeta(direction: FetchDirection.forward);
   }
@@ -609,6 +624,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
   }
 
   /// Used to refetch query, it fetches all the pages sequentially.
+  @override
   void refetch() {
     if (!enabled || query.isFetching) {
       return;

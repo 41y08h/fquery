@@ -23,8 +23,8 @@ class QueriesBuilder<TData, TError extends Exception> extends StatefulWidget {
 
 class _QueriesBuilderState<TData, TError extends Exception>
     extends State<QueriesBuilder<TData, TError>> {
-  late QueryCache cache;
-  late QueriesObserver<TData, TError> observer;
+  late final QueryCache cache;
+  late final QueriesObserver<TData, TError> observer;
 
   @override
   void didChangeDependencies() {
@@ -34,16 +34,14 @@ class _QueriesBuilderState<TData, TError extends Exception>
     observer = QueriesObserver<TData, TError>(cache: cache);
     observer.setOptions(widget.options);
     observer.subscribe(hashCode, () {
-      Future.delayed(Duration.zero, () {
-        setState(() {});
-      });
+      setState(() {});
     });
   }
 
   @override
   void didUpdateWidget(covariant QueriesBuilder<TData, TError> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget != oldWidget) observer.setOptions(widget.options);
+    observer.setOptions(widget.options);
   }
 
   @override

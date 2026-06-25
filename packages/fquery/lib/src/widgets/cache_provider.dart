@@ -12,8 +12,10 @@ class CacheProvider extends InheritedWidget {
     required super.child,
   });
 
+  // Cache is `final` so no dependencies change and we're only
+  // using inherited widget to provide the cache throughout the widget tree
   @override
-  bool updateShouldNotify(InheritedWidget oldWidget) => oldWidget != this;
+  bool updateShouldNotify(InheritedWidget oldWidget) => false;
 
   static QueryCache get(BuildContext context) {
     final CacheProvider? result =

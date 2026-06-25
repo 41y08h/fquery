@@ -19,8 +19,8 @@ class QueryBuilder<TData, TError extends Exception> extends StatefulWidget {
 
 class _QueryBuilderState<TData, TError extends Exception>
     extends State<QueryBuilder<TData, TError>> {
-  late QueryCache cache;
-  late QueryObserver<TData, TError> observer;
+  late final QueryCache cache;
+  late final QueryObserver<TData, TError> observer;
 
   @override
   void didChangeDependencies() {
@@ -38,25 +38,19 @@ class _QueryBuilderState<TData, TError extends Exception>
       retryCount: widget.options.retryCount,
       retryDelay: widget.options.retryDelay,
       staleDuration: widget.options.staleDuration,
-    );
-
-    observer.subscribe(hashCode, () {
-      Future.delayed(Duration.zero, () {
+    )
+      ..subscribe(hashCode, () {
         if (mounted) {
           setState(() {});
         }
-      });
-    });
-
-    observer.initialize();
+      })
+      ..initialize();
   }
 
   @override
   void didUpdateWidget(covariant QueryBuilder<TData, TError> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.options != oldWidget.options) {
-      observer.updateOptions(widget.options);
-    }
+    observer.updateOptions(widget.options);
   }
 
   @override

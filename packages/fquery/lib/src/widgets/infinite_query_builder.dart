@@ -22,11 +22,16 @@ class InfiniteQueryBuilder<TData, TError extends Exception, TPageParam>
 class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
     extends State<InfiniteQueryBuilder<TData, TError, TPageParam>> {
   late final QueryCache cache;
-  late InfiniteQueryObserver<TData, TError, TPageParam> observer;
+  late final InfiniteQueryObserver<TData, TError, TPageParam> observer;
+  bool initialized = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    if (initialized) return;
+    initialized = true;
+
     cache = CacheProvider.get(context);
     observer = InfiniteQueryObserver(
       cache: cache,
@@ -43,24 +48,20 @@ class _InfiniteQueryBuilderState<TData, TError extends Exception, TPageParam>
       initialPageParam: widget.options.initialPageParam,
       getPreviousPageParam: widget.options.getPreviousPageParam,
       maxPages: widget.options.maxPages,
-    );
-
-    observer.subscribe(hashCode, () {
-      Future.delayed(Duration.zero, () {
+    )
+      ..subscribe(hashCode, () {
         if (mounted) {
           setState(() {});
         }
-      });
-    });
-
-    observer.initialize();
+      })
+      ..initialize();
   }
 
   @override
   void didUpdateWidget(
       covariant InfiniteQueryBuilder<TData, TError, TPageParam> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget != oldWidget) observer.updateOptions(widget.options);
+    observer.updateOptions(widget.options);
   }
 
   @override

@@ -7,6 +7,7 @@ class QueryInstance {
       BuildContext context, QueryOptions<TData, TError> options) {
     final cache = CacheProvider.get(context);
     final observer = QueryObserver<TData, TError>(
+      isReadOnly: true,
       cache: cache,
       queryFn: options.queryFn,
       queryKey: options.queryKey,

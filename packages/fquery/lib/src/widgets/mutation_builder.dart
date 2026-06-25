@@ -45,7 +45,7 @@ class _MutationBuilderState<TData, TError extends Exception, TVariables,
         TContext>
     extends State<MutationBuilder<TData, TError, TVariables, TContext>> {
   late final QueryCache cache;
-  late MutationObserver<TData, TError, TVariables, TContext> observer;
+  late final MutationObserver<TData, TError, TVariables, TContext> observer;
 
   // Initialization of the observer
   @override
@@ -61,13 +61,9 @@ class _MutationBuilderState<TData, TError extends Exception, TVariables,
         onError: widget.onError,
         onSettled: widget.onSettled,
       ),
-    );
-
-    observer.subscribe(hashCode, () {
-      Future.delayed(Duration.zero, () {
+    )..subscribe(hashCode, () {
         setState(() {});
       });
-    });
   }
 
   @override
@@ -81,15 +77,13 @@ class _MutationBuilderState<TData, TError extends Exception, TVariables,
       covariant MutationBuilder<TData, TError, TVariables, TContext>
           oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget != oldWidget) {
-      observer.options = MutationOptions(
-        mutationFn: widget.mutationFn,
-        onMutate: widget.onMutate,
-        onSuccess: widget.onSuccess,
-        onError: widget.onError,
-        onSettled: widget.onSettled,
-      );
-    }
+    observer.options = MutationOptions(
+      mutationFn: widget.mutationFn,
+      onMutate: widget.onMutate,
+      onSuccess: widget.onSuccess,
+      onError: widget.onError,
+      onSettled: widget.onSettled,
+    );
   }
 
   @override
