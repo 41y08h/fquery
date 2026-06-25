@@ -46,11 +46,16 @@ class _MutationBuilderState<TData, TError extends Exception, TVariables,
     extends State<MutationBuilder<TData, TError, TVariables, TContext>> {
   late final QueryCache cache;
   late final MutationObserver<TData, TError, TVariables, TContext> observer;
+  bool initialized = false;
 
   // Initialization of the observer
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    if (initialized) return;
+    initialized = true;
+
     cache = CacheProvider.get(context);
 
     observer = MutationObserver<TData, TError, TVariables, TContext>(

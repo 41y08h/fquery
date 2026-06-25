@@ -21,10 +21,15 @@ class _QueryBuilderState<TData, TError extends Exception>
     extends State<QueryBuilder<TData, TError>> {
   late final QueryCache cache;
   late final QueryObserver<TData, TError> observer;
+  bool initialized = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    if (initialized) return;
+    initialized = true;
+
     cache = CacheProvider.get(context);
 
     observer = QueryObserver(

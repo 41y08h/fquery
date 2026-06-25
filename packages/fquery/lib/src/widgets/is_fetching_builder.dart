@@ -16,9 +16,15 @@ class IsFetchingBuilder extends StatefulWidget {
 
 class _IsFetchingBuilderState extends State<IsFetchingBuilder> {
   late final QueryCache cache;
+  bool initialized = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    if (initialized) return;
+    initialized = true;
+
     cache = CacheProvider.get(context)
       ..subscribe(hashCode, () {
         setState(() {});
