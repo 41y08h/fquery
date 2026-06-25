@@ -91,7 +91,6 @@ class QueryCache with Observable {
         return state.copyWith(isInvalidated: true);
       case DispatchAction.refetchSequence:
         return state.copyWith(
-          error: null,
           data: data as TData,
           dataUpdatedAt: DateTime.now(),
           isInvalidated: false,

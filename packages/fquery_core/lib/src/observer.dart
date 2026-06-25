@@ -630,6 +630,15 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
       return;
     }
 
+    final isRetryingForInitialData = query.error != null && query.data == null;
+    if (isRetryingForInitialData) {
+      _paramFlag = initialPageParam;
+      _metaFlag =
+          query.fetchMeta ?? FetchMeta(direction: FetchDirection.forward);
+      fetch();
+      return;
+    } // else normal sequential refetch
+
     // Can't refetch if there's no data already
     final data = query.data;
     if (data == null) return;
