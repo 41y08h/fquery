@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math';
 
+import 'package:fquery_core/src/cache_map.dart';
 import 'package:fquery_core/src/observer.dart';
 import 'package:fquery_core/src/query.dart';
 
@@ -23,21 +25,27 @@ class QueryNotFoundException implements Exception {
   String toString() => "QueryNotFoundException: $message";
 }
 
+typedef QueriesCacheMap = Map<QueryKey, CacheMap>;
+
 /// Stores query state and coordinates notifications to query observers.
 ///
 /// The cache is the central state container for queries. It can build, read,
 /// update, invalidate, and remove cached query entries, and it garbage-collects
 /// unused entries after their configured cache duration.
 class QueryCache with Observable {
-  final QueriesMap _queries = {};
-  final Map<QueryKey, Set<Observer>> _observers = {};
-  final Map<QueryKey, Timer> _gcTimers = {};
+  final QueriesCacheMap _queriesCacheMap = {};
 
   /// Defaults applied to query observers when an option is omitted.
   final DefaultQueryOptions defaultQueryOptions;
 
   /// The queries currently stored in the cache.
-  QueriesMap get queries => UnmodifiableMapView(_queries);
+  QueriesMap get queries => UnmodifiableMapView(
+        Map.fromEntries(
+          _queriesCacheMap.entries.map(
+            (entry) => MapEntry(entry.key, entry.value.query),
+          ),
+        ),
+      );
 
   /// Creates a query cache with optional [defaultQueryOptions].
   QueryCache({DefaultQueryOptions? defaultQueryOptions})
@@ -112,23 +120,17 @@ class QueryCache with Observable {
   /// Returns a query identified by the query key.
   Query<TData, TError> get<TData, TError extends Exception>(
       QueryKey<TData, TError> queryKey) {
-    final query = _queries[queryKey];
-    if (query == null) {
+    final cacheMap = _queriesCacheMap[queryKey];
+    if (cacheMap == null) {
       throw QueryNotFoundException(queryKey);
     }
-    return query as Query<TData, TError>;
-  }
-
-  void _add<TData, TError extends Exception>(
-    QueryKey queryKey,
-    Query<TData, TError> query,
-  ) {
-    _queries[queryKey] = query;
+    return cacheMap.query as Query<TData, TError>;
   }
 
   /// Removes a query from the cache.
   void _remove<TData, TError extends Exception>(Query<TData, TError> query) {
-    _queries.remove(query.key);
+    _cancelGc(query.key);
+    _queriesCacheMap.remove(query.key);
   }
 
   /// Returns a query identified by the query key.
@@ -140,31 +142,60 @@ class QueryCache with Observable {
   }) {
     late final Query<TData, TError> query;
     try {
-      query = get(queryKey);
+      final cacheMap = _queriesCacheMap[queryKey];
+      if (cacheMap == null) throw QueryNotFoundException(queryKey);
+
+      query = cacheMap.query as Query<TData, TError>;
+
+      _queriesCacheMap[queryKey] = cacheMap.copyWith(
+        observers: (observer == null)
+            ? cacheMap.observers
+            : {...cacheMap.observers, observer},
+        cacheDuration: Duration(
+          milliseconds: max(
+            cacheMap.cacheDuration.inMilliseconds,
+            observer?.cacheDuration.inMilliseconds ?? 0,
+          ),
+        ),
+        query: cacheMap.query,
+      );
     } on QueryNotFoundException {
       query = Query(queryKey);
+      _queriesCacheMap[queryKey] = CacheMap(
+        observers: (observer == null) ? {} : {observer},
+        cacheDuration:
+            observer?.cacheDuration ?? defaultQueryOptions.cacheDuration,
+        query: query,
+      );
     }
-
-    _add(queryKey, query);
-    if (observer != null) {
-      _addObserver(observer);
-    }
+    _gcRoutine(queryKey);
 
     return query;
   }
 
-  void _addObserver(Observer observer) {
-    _observers.putIfAbsent(observer.queryKey, () => {}).add(observer);
-    _gcRoutine(observer.queryKey);
+  void _gcRoutine(QueryKey queryKey) {
+    final cacheMap = _queriesCacheMap[queryKey];
+    if (cacheMap == null) return;
+    if (cacheMap.observers.isEmpty) {
+      _scheduleGc(queryKey, cacheMap.cacheDuration);
+    } else {
+      _cancelGc(queryKey);
+    }
   }
 
   /// Detaches [observer] and schedules garbage collection if it was the last one.
   void dismantle(Observer observer) {
-    // Call before removing to preserv cacheDuration
-    _gcRoutine(observer.queryKey, isDisposed: true);
+    final cacheMap = _queriesCacheMap[observer.queryKey];
+    if (cacheMap == null) return;
 
-    final observers = _observers[observer.queryKey];
-    observers?.remove(observer);
+    final observers = Set<Observer>.from(cacheMap.observers);
+    observers.remove(observer);
+
+    _queriesCacheMap[observer.queryKey] = cacheMap.copyWith(
+      observers: observers,
+    );
+
+    _gcRoutine(observer.queryKey);
   }
 
   /// Dispatches an action to the reducer and notifies observers.
@@ -173,52 +204,45 @@ class QueryCache with Observable {
     DispatchAction action,
     Object? data,
   ) {
+    final cacheMap = _queriesCacheMap[queryKey];
+    if (cacheMap == null) return;
     try {
-      _queries[queryKey] = _reducer<TData, TError>(
-        get<TData, TError>(queryKey),
+      final query = _reducer(
+        cacheMap.query,
         action,
         data,
       );
+      _queriesCacheMap[queryKey] = cacheMap.copyWith(query: query);
       notifyObservers();
     } on QueryNotFoundException {
       return;
     }
   }
 
-  void _gcRoutine<TData, TError extends Exception>(
-      QueryKey<TData, TError> queryKey,
-      {bool isDisposed = false}) {
-    final observers = _observers[queryKey] ?? {};
-
-    final cacheDuration = observers.isEmpty
-        ? Duration.zero
-        : observers.map((o) => o.cacheDuration).reduce((a, b) => a > b ? a : b);
-
-    if (observers.isEmpty || isDisposed) {
-      _scheduleGc(queryKey, cacheDuration);
-    } else {
-      _cancelGc(queryKey);
-    }
-  }
-
   void _cancelGc(QueryKey queryKey) {
-    _gcTimers[queryKey]?.cancel();
-    _gcTimers.remove(queryKey);
+    final cacheMap = _queriesCacheMap[queryKey];
+    if (cacheMap == null) return;
+    var timer = cacheMap.gcTimer;
+    timer?.cancel();
+
+    _queriesCacheMap[queryKey] = cacheMap.copyWith(gcTimer: null);
   }
 
   void _scheduleGc(QueryKey queryKey, Duration cacheDuration) {
-    _cancelGc(queryKey);
-    final query = _queries[queryKey];
+    final cacheMap = _queriesCacheMap[queryKey];
+    if (cacheMap == null) return;
+    final timer = cacheMap.gcTimer;
+    if (timer != null && timer.isActive) return;
 
     void onGc() {
-      if (query != null) {
-        _remove(query);
-      }
-      _observers.remove(queryKey);
-      _gcTimers.remove(queryKey);
+      final cacheMap = _queriesCacheMap[queryKey];
+      if (cacheMap == null) return;
+      _remove(cacheMap.query);
     }
 
-    _gcTimers[queryKey] = Timer(cacheDuration, onGc);
+    _queriesCacheMap[queryKey] = cacheMap.copyWith(
+      gcTimer: Timer(cacheDuration, onGc),
+    );
   }
 
   /// Sets cached query data identified by the given query key.
@@ -337,8 +361,6 @@ class QueryCache with Observable {
     for (final query in toRemove) {
       _remove(query);
     }
-    _observers.remove(QueryKey(key));
-    _gcTimers.remove(QueryKey(key));
   }
 
   /// The number of queries that are currently fetching.
