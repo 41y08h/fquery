@@ -32,7 +32,7 @@ typedef QueriesCacheMap = Map<QueryKey, CacheMap>;
 /// The cache is the central state container for queries. It can build, read,
 /// update, invalidate, and remove cached query entries, and it garbage-collects
 /// unused entries after their configured cache duration.
-class QueryCache with Observable {
+class QueryCache with Observable<QueryKey> {
   final QueriesCacheMap _queriesCacheMap = {};
 
   /// Defaults applied to query observers when an option is omitted.
@@ -94,6 +94,7 @@ class QueryCache with Observable {
           isFetching: false,
           isInvalidated: false,
           fetchMeta: null,
+          isRefetchError: false,
         );
       case DispatchAction.invalidate:
         return state.copyWith(isInvalidated: true);
@@ -145,6 +146,10 @@ class QueryCache with Observable {
       final cacheMap = _queriesCacheMap[queryKey];
       if (cacheMap == null) throw QueryNotFoundException(queryKey);
 
+      // if (cacheMap.query.data.runtimeType != TData) {
+      //   print(cacheMap);
+      //   throw Exception('hell, ${cacheMap.query.data.runtimeType}');
+      // }
       query = cacheMap.query as Query<TData, TError>;
 
       _queriesCacheMap[queryKey] = cacheMap.copyWith(
@@ -213,7 +218,7 @@ class QueryCache with Observable {
         data,
       );
       _queriesCacheMap[queryKey] = cacheMap.copyWith(query: query);
-      notifyObservers();
+      notifyObservers(scope: queryKey);
     } on QueryNotFoundException {
       return;
     }

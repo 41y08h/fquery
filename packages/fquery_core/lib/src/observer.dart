@@ -9,9 +9,9 @@ import 'package:collection/collection.dart';
 ///
 /// Allows classes to manage a list of subscribers and notify them when
 /// state changes occur. Subscribers are identified by unique integer IDs.
-mixin Observable {
-  /// Map of listener ID to listener function.
+mixin Observable<NotificationScope> {
   final Map<int, Function> _listeners = {};
+  final Map<NotificationScope, Map<int, Function>> _scopedListeners = {};
 
   /// Subscribes a listener with the given ID.
   ///
@@ -21,8 +21,19 @@ mixin Observable {
   /// Parameters:
   /// - `listenerId`: A unique identifier for this listener
   /// - `listener`: The callback function to invoke on notifications
-  void subscribe(int listenerId, Function listener) {
-    _listeners[listenerId] = listener;
+  void subscribe(
+    int id,
+    Function listener, {
+    NotificationScope? scope,
+  }) {
+    if (scope == null) {
+      _listeners[id] = listener;
+      return;
+    }
+
+    final listeners = _scopedListeners.putIfAbsent(scope, () => {});
+
+    listeners[id] = listener;
   }
 
   /// Unsubscribes a listener with the given ID.
@@ -32,18 +43,48 @@ mixin Observable {
   ///
   /// Parameters:
   /// - `observerId`: The ID of the listener to remove
-  void unsubscribe(int observerId) {
-    _listeners.remove(observerId);
+  void unsubscribe(
+    int id, {
+    NotificationScope? scope,
+  }) {
+    if (scope == null) {
+      _listeners.remove(id);
+      return;
+    }
+
+    final listeners = _scopedListeners[scope];
+
+    if (listeners == null) return;
+
+    listeners.remove(id);
+
+    if (listeners.isEmpty) {
+      _scopedListeners.remove(scope);
+    }
   }
 
   /// Notifies all subscribed listeners.
   ///
   /// Calls each listener function in the [_listeners] map.
   /// This is typically used to signal that an observed state has changed.
-  void notifyObservers() {
-    _listeners.forEach((observerId, listener) {
+  void notifyObservers({
+    NotificationScope? scope,
+  }) {
+    if (scope == null) {
+      for (final listener in _listeners.values) {
+        listener();
+      }
+
+      return;
+    }
+
+    final listeners = _scopedListeners[scope];
+
+    if (listeners == null) return;
+
+    for (final listener in listeners.values) {
       listener();
-    });
+    }
   }
 
   /// Clears all listeners.
@@ -52,6 +93,7 @@ mixin Observable {
   /// Useful for cleanup when the observable is being disposed.
   void disposeSubscribers() {
     _listeners.clear();
+    _scopedListeners.clear();
   }
 }
 
@@ -65,7 +107,8 @@ mixin Observable {
 /// - `TError`: The type of error that can occur
 /// - `TOptions`: The type of options for configuring the observer
 abstract class Observer<TData, TError extends Exception,
-    TOptions extends BaseQueryOptions<TData, TError>> with Observable {
+        TOptions extends BaseQueryOptions<TData, TError>>
+    with Observable<QueryKey<TData, TError>> {
   /// The query cache this observer is connected to.
   late final QueryCache cache;
 
@@ -272,7 +315,9 @@ class QueryObserver<TData, TError extends Exception>
     );
     cache.build<TData, TError>(
         queryKey: queryKey, observer: isReadOnly ? null : this);
-    if (!isReadOnly) cache.subscribe(hashCode, _onQueryCacheNotification);
+    if (!isReadOnly) {
+      cache.subscribe(hashCode, _onQueryCacheNotification, scope: queryKey);
+    }
   }
 
   @override
@@ -500,7 +545,9 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
       queryKey: queryKey,
       observer: isReadOnly ? null : this,
     );
-    if (!isReadOnly) cache.subscribe(hashCode, _onQueryCacheNotification);
+    if (!isReadOnly) {
+      cache.subscribe(hashCode, _onQueryCacheNotification, scope: queryKey);
+    }
     _paramFlag = initialPageParam;
     _metaFlag = query.fetchMeta ?? FetchMeta(direction: FetchDirection.forward);
   }
