@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:test/test.dart';
+import 'package:fake_async/fake_async.dart';
 
 import 'package:fquery_core/fquery_core.dart';
 
@@ -59,4 +60,119 @@ void main() async {
     // 1+1 because of `fetch` and `success` notifications from o1
     expect(count, equals(2));
   });
+
+  test('Query initial state is sane', () async {
+    final cache = QueryCache();
+
+    final o1 = QueryObserver(
+        cache: cache, queryKey: QueryKey(['q1']), queryFn: () => 1);
+
+    expect(o1.query.isFetching, isFalse);
+    expect(o1.query.data, isNull);
+    expect(o1.query.error, isNull);
+    expect(o1.query.status, equals(QueryStatus.loading));
+    expect(o1.query.dataUpdatedAt, isNull);
+    expect(o1.query.errorUpdatedAt, isNull);
+    expect(o1.query.fetchMeta, isNull);
+    expect(o1.query.isInvalidated, isFalse);
+    expect(o1.query.isRefetchError, isFalse);
+  });
+
+  test('Query fetch state is sane', () async {
+    final cache = QueryCache();
+
+    final o1 = QueryObserver(
+        cache: cache, queryKey: QueryKey(['q1']), queryFn: () => 1);
+
+    o1.initialize();
+
+    expect(o1.query.isFetching, isTrue);
+    expect(o1.query.data, isNull);
+    expect(o1.query.error, isNull);
+    expect(o1.query.status, equals(QueryStatus.loading));
+    expect(o1.query.dataUpdatedAt, isNull);
+    expect(o1.query.errorUpdatedAt, isNull);
+    expect(o1.query.fetchMeta, isNull);
+    expect(o1.query.isInvalidated, isFalse);
+    expect(o1.query.isRefetchError, isFalse);
+  });
+
+  test('Query success state is sane', () async {
+    final cache = QueryCache();
+
+    final o1 = QueryObserver(
+        cache: cache,
+        queryKey: QueryKey(['q1']),
+        queryFn: () async {
+          await Future.delayed(Duration(milliseconds: 1));
+          return 1;
+        });
+
+    final initialTimestamp = DateTime.now();
+    o1.initialize();
+    await Future.delayed(Duration(milliseconds: 10));
+
+    expect(o1.query.isFetching, isFalse);
+    expect(o1.query.data, isNotNull);
+    expect(o1.query.error, isNull);
+    expect(o1.query.status, equals(QueryStatus.success));
+    expect(initialTimestamp.isBefore(o1.query.dataUpdatedAt!), isTrue);
+    expect(o1.query.errorUpdatedAt, isNull);
+    expect(o1.query.fetchMeta, isNull);
+    expect(o1.query.isInvalidated, isFalse);
+    expect(o1.query.isRefetchError, isFalse);
+  });
+
+  test('Query error state is sane', () async {
+    final cache = QueryCache();
+
+    final o1 = QueryObserver(
+        cache: cache,
+        queryKey: QueryKey(['q1']),
+        retryCount: 0,
+        queryFn: () async {
+          await Future.delayed(Duration(milliseconds: 1));
+          throw Exception('error');
+        });
+
+    final initialTimestamp = DateTime.now();
+    o1.initialize();
+    await Future.delayed(Duration(milliseconds: 10));
+
+    expect(o1.query.isFetching, isFalse);
+    expect(o1.query.data, isNull);
+    expect(o1.query.error, isNotNull);
+    expect(o1.query.status, equals(QueryStatus.error));
+    expect(o1.query.dataUpdatedAt, isNull);
+    expect(initialTimestamp.isBefore(o1.query.errorUpdatedAt!), isTrue);
+    expect(o1.query.fetchMeta, isNull);
+    expect(o1.query.isInvalidated, isFalse);
+    expect(o1.query.isRefetchError, isFalse);
+  });
+
+  // test('Refetch schedules successfully', () async {
+  //   final cache = QueryCache();
+
+  //   fakeAsync((async) {
+  //     final o1 = QueryObserver(
+  //         cache: cache,
+  //         queryKey: QueryKey(['q1']),
+  //         refetchInterval: Duration(milliseconds: 20),
+  //         queryFn: () async {
+  //           print('fetching...');
+  //           return Future.delayed(Duration(milliseconds: 1)).then((_) => 1);
+  //         });
+
+  //     o1.initialize();
+  //     while (o1.query.dataUpdatedAt == null) {
+  //       Future.delayed(Duration.zero);
+  //     }
+  //     final firstUpdatedAt = o1.query.dataUpdatedAt;
+  //     expect(firstUpdatedAt, isNotNull);
+
+  //     final secondUpdatedAt = o1.query.dataUpdatedAt;
+  //     expect(secondUpdatedAt, isNotNull);
+  //     expect(firstUpdatedAt!.isBefore(secondUpdatedAt!), isTrue);
+  //   });
+  // });
 }
