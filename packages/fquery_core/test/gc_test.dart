@@ -150,29 +150,51 @@ void main() async {
     expect(o1.query.isRefetchError, isFalse);
   });
 
-  // test('Refetch schedules successfully', () async {
-  //   final cache = QueryCache();
+  test('Refetch schedules successfully', () async {
+    final cache = QueryCache();
 
-  //   fakeAsync((async) {
-  //     final o1 = QueryObserver(
-  //         cache: cache,
-  //         queryKey: QueryKey(['q1']),
-  //         refetchInterval: Duration(milliseconds: 20),
-  //         queryFn: () async {
-  //           print('fetching...');
-  //           return Future.delayed(Duration(milliseconds: 1)).then((_) => 1);
-  //         });
+    final o1 = QueryObserver(
+        cache: cache,
+        queryKey: QueryKey(['q1']),
+        refetchInterval: Duration(milliseconds: 20),
+        cacheDuration: null,
+        queryFn: () {
+          return Future.delayed(Duration(milliseconds: 1)).then((_) => 1);
+        });
 
-  //     o1.initialize();
-  //     while (o1.query.dataUpdatedAt == null) {
-  //       Future.delayed(Duration.zero);
-  //     }
-  //     final firstUpdatedAt = o1.query.dataUpdatedAt;
-  //     expect(firstUpdatedAt, isNotNull);
+    o1.initialize();
+    while (o1.query.dataUpdatedAt == null) {
+      await Future.delayed(Duration.zero);
+    }
+    final firstUpdatedAt = o1.query.dataUpdatedAt;
+    expect(firstUpdatedAt, isNotNull);
 
-  //     final secondUpdatedAt = o1.query.dataUpdatedAt;
-  //     expect(secondUpdatedAt, isNotNull);
-  //     expect(firstUpdatedAt!.isBefore(secondUpdatedAt!), isTrue);
-  //   });
-  // });
+    await Future.delayed(Duration(milliseconds: 50));
+
+    final secondUpdatedAt = o1.query.dataUpdatedAt;
+    expect(secondUpdatedAt, isNotNull);
+    expect(firstUpdatedAt!.isBefore(secondUpdatedAt!), isTrue);
+
+    o1.dispose();
+  });
+
+  test('Retries before giving up', () async {
+    final cache = QueryCache();
+
+    var count = 0;
+    final o1 = QueryObserver(
+        cache: cache,
+        queryKey: QueryKey(['q1']),
+        retryCount: 3,
+        retryDelay: Duration(milliseconds: 0),
+        queryFn: () {
+          count++;
+          throw Exception('error');
+        });
+
+    o1.initialize();
+    await Future.delayed(Duration(milliseconds: 500));
+
+    expect(count, equals(4));
+  });
 }
