@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:test/test.dart';
-import 'package:fake_async/fake_async.dart';
 
 import 'package:fquery_core/fquery_core.dart';
 
@@ -150,32 +149,23 @@ void main() async {
     expect(o1.query.isRefetchError, isFalse);
   });
 
-  test('Refetch schedules successfully', () async {
+  test('Refetches in specified intervals', () async {
     final cache = QueryCache();
 
+    var count = 0;
     final o1 = QueryObserver(
         cache: cache,
         queryKey: QueryKey(['q1']),
         refetchInterval: Duration(milliseconds: 20),
-        cacheDuration: null,
         queryFn: () {
-          return Future.delayed(Duration(milliseconds: 1)).then((_) => 1);
+          count++;
+          return 1;
         });
 
     o1.initialize();
-    while (o1.query.dataUpdatedAt == null) {
-      await Future.delayed(Duration.zero);
-    }
-    final firstUpdatedAt = o1.query.dataUpdatedAt;
-    expect(firstUpdatedAt, isNotNull);
-
     await Future.delayed(Duration(milliseconds: 50));
 
-    final secondUpdatedAt = o1.query.dataUpdatedAt;
-    expect(secondUpdatedAt, isNotNull);
-    expect(firstUpdatedAt!.isBefore(secondUpdatedAt!), isTrue);
-
-    o1.dispose();
+    expect(count, greaterThan(1));
   });
 
   test('Retries before giving up', () async {
