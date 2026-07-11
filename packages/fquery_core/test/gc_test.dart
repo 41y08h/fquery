@@ -3,6 +3,8 @@ import 'package:test/test.dart';
 
 import 'package:fquery_core/fquery_core.dart';
 
+// TODO: use fake_async to test timers and intervals instead of relying on real time delays
+
 void main() async {
   test('GC uses the longest cache duration of the lifetime', () async {
     final cache = QueryCache();
@@ -186,5 +188,83 @@ void main() async {
     await Future.delayed(Duration(milliseconds: 500));
 
     expect(count, equals(4));
+  });
+
+  test('Enable/disable side effects work', () async {
+    final cache = QueryCache();
+
+    var count = 0;
+    final o1 = QueryObserver(
+        cache: cache,
+        queryKey: QueryKey(['q1']),
+        enabled: false,
+        queryFn: () {
+          count++;
+          return 1;
+        });
+
+    o1.initialize();
+    await Future.delayed(Duration(milliseconds: 50));
+
+    expect(count, equals(0));
+
+    o1.updateOptions(
+      QueryOptions(enabled: true, queryKey: o1.queryKey, queryFn: o1.queryFn),
+    );
+
+    await Future.delayed(Duration(milliseconds: 50));
+    expect(count, equals(1));
+  });
+
+  test('Refetch interval changes are respected', () async {
+    final cache = QueryCache();
+
+    var count = 0;
+    final o1 = QueryObserver(
+        cache: cache,
+        queryKey: QueryKey(['q1']),
+        refetchInterval: Duration(milliseconds: 100),
+        queryFn: () {
+          count++;
+          return 1;
+        });
+
+    o1.initialize();
+    await Future.delayed(Duration(milliseconds: 50));
+
+    expect(count, equals(1));
+
+    o1.updateOptions(
+      QueryOptions(
+          refetchInterval: Duration(milliseconds: 10),
+          queryKey: o1.queryKey,
+          queryFn: o1.queryFn),
+    );
+
+    await Future.delayed(Duration(milliseconds: 50));
+    expect(count, greaterThan(2));
+  });
+
+  test('Query is refetched when invalidated', () async {
+    final cache = QueryCache();
+
+    var count = 0;
+    final o1 = QueryObserver(
+        cache: cache,
+        queryKey: QueryKey(['q1']),
+        queryFn: () {
+          count++;
+          return 1;
+        });
+
+    o1.initialize();
+    await Future.delayed(Duration(milliseconds: 50));
+
+    expect(count, equals(1));
+
+    cache.invalidateQueries(['q1']);
+
+    await Future.delayed(Duration(milliseconds: 50));
+    expect(count, equals(2));
   });
 }
