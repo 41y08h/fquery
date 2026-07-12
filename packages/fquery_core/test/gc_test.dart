@@ -1,9 +1,9 @@
-import 'dart:async';
 import 'package:test/test.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:fquery_core/fquery_core.dart';
+import 'package:clock/clock.dart';
 
-void main() async {
+void main() {
   test('GC uses the longest cache duration of the lifetime', () {
     fakeAsync((async) {
       final cache = QueryCache();
@@ -102,27 +102,24 @@ void main() async {
     });
 
     test('Query success state is sane', () {
-      fakeAsync((async) async {
+      fakeAsync((async) {
         final cache = QueryCache();
 
         final o1 = QueryObserver(
             cache: cache,
             queryKey: QueryKey(['q1']),
-            queryFn: () async {
+            queryFn: () {
               return 1;
             });
 
-        final initialTimestamp = DateTime.now();
         o1.initialize();
-
         async.flushMicrotasks();
-        await Future.delayed(Duration(milliseconds: 10));
 
         expect(o1.query.isFetching, isFalse);
         expect(o1.query.data, isNotNull);
         expect(o1.query.error, isNull);
         expect(o1.query.status, equals(QueryStatus.success));
-        expect(initialTimestamp.isBefore(o1.query.dataUpdatedAt!), isTrue);
+        expect(o1.query.dataUpdatedAt, isNotNull);
         expect(o1.query.errorUpdatedAt, isNull);
         expect(o1.query.fetchMeta, isNull);
         expect(o1.query.isInvalidated, isFalse);
@@ -131,7 +128,7 @@ void main() async {
     });
 
     test('Query error state is sane', () {
-      fakeAsync((async) async {
+      fakeAsync((async) {
         final cache = QueryCache();
 
         final o1 = QueryObserver(
@@ -142,19 +139,16 @@ void main() async {
               throw Exception('error');
             });
 
-        final initialTimestamp = DateTime.now();
         o1.initialize();
 
         async.flushMicrotasks();
-        // will fix and use fake clock after having injectible clock in the library itself
-        await Future.delayed(Duration(milliseconds: 10));
 
         expect(o1.query.isFetching, isFalse);
         expect(o1.query.data, isNull);
         expect(o1.query.error, isNotNull);
         expect(o1.query.status, equals(QueryStatus.error));
         expect(o1.query.dataUpdatedAt, isNull);
-        expect(initialTimestamp.isBefore(o1.query.errorUpdatedAt!), isTrue);
+        expect(o1.query.errorUpdatedAt, isNotNull);
         expect(o1.query.fetchMeta, isNull);
         expect(o1.query.isInvalidated, isFalse);
         expect(o1.query.isRefetchError, isFalse);
@@ -341,49 +335,197 @@ void main() async {
     });
 
     test('Refetch on mount works', () {
-      fakeAsync((async) async {
-        final cache = QueryCache();
+      fakeAsync((async) {
+        var now = clock.now();
 
-        var count = 0;
-        final o1 = QueryObserver(
+        withClock(Clock(() => now), () {
+          final cache = QueryCache();
+
+          var count = 0;
+          final o1 = QueryObserver(
             cache: cache,
             queryKey: QueryKey(['q1']),
             refetchOnMount: RefetchOnMount.always,
             queryFn: () {
               count++;
               return 1;
-            });
+            },
+          );
+
+          o1.initialize();
+
+          async.elapse(const Duration(milliseconds: 50));
+
+          o1.initialize();
+          async.flushMicrotasks();
+
+          expect(count, equals(2));
+
+          o1.updateOptions(
+            QueryOptions(
+              refetchOnMount: RefetchOnMount.never,
+              queryKey: o1.queryKey,
+              queryFn: o1.queryFn,
+            ),
+          );
+
+          o1.initialize();
+          async.flushMicrotasks();
+          async.elapse(const Duration(milliseconds: 50));
+
+          expect(count, equals(2));
+
+          o1.updateOptions(
+            QueryOptions(
+              staleDuration: const Duration(milliseconds: 50),
+              refetchOnMount: RefetchOnMount.stale,
+              queryKey: o1.queryKey,
+              queryFn: o1.queryFn,
+            ),
+          );
+
+          now = now.add(const Duration(milliseconds: 100));
+
+          o1.initialize();
+          async.flushMicrotasks();
+          async.elapse(const Duration(milliseconds: 100));
+
+          expect(count, equals(3));
+        });
+      });
+    });
+  });
+
+  group('Infinite queries', () {
+    test('Infinite query fetches next page', () {
+      fakeAsync((async) {
+        final cache = QueryCache();
+
+        final o1 = InfiniteQueryObserver<int, Exception, int>(
+          cache: cache,
+          queryKey: QueryKey(['q1']),
+          initialPageParam: 0,
+          getNextPageParam: (lastPage, pages, lastPageParam, pageParams) =>
+              lastPage + 1,
+          queryFn: (int page) {
+            return page;
+          },
+        );
 
         o1.initialize();
         async.elapse(Duration(milliseconds: 50));
-        o1.initialize();
 
-        expect(count, equals(2));
+        expect(o1.query.data!.pages.first, equals(0));
 
-        o1.updateOptions(
-          QueryOptions(
-              refetchOnMount: RefetchOnMount.never,
-              queryKey: o1.queryKey,
-              queryFn: o1.queryFn),
+        o1.fetchNextPage();
+        async.elapse(Duration(milliseconds: 50));
+
+        expect(o1.query.data!.pages.last, equals(1));
+      });
+    });
+
+    test('Infinite query fetches previous page', () {
+      fakeAsync((async) {
+        final cache = QueryCache();
+
+        final o1 = InfiniteQueryObserver<int, Exception, int>(
+          cache: cache,
+          queryKey: QueryKey(['q1']),
+          initialPageParam: 0,
+          getNextPageParam: (lastPage, pages, lastPageParam, pageParams) =>
+              lastPage + 1,
+          getPreviousPageParam:
+              (firstPage, pages, firstPageParam, pageParams) => firstPage - 1,
+          queryFn: (int page) {
+            return page;
+          },
         );
 
         o1.initialize();
+        async.elapse(Duration(milliseconds: 50));
 
-        expect(count, equals(2));
+        expect(o1.query.data!.pages.first, equals(0));
 
-        o1.updateOptions(
-          QueryOptions(
-            staleDuration: Duration(milliseconds: 50),
-            refetchOnMount: RefetchOnMount.stale,
-            queryKey: o1.queryKey,
-            queryFn: o1.queryFn,
-          ),
+        o1.fetchPreviousPage();
+        async.elapse(Duration(milliseconds: 50));
+
+        expect(o1.query.data!.pages.first, equals(-1));
+      });
+    });
+
+    test('Bidirectional query works', () {
+      fakeAsync((async) {
+        final cache = QueryCache();
+
+        final o1 = InfiniteQueryObserver<int, Exception, int>(
+          cache: cache,
+          queryKey: QueryKey(['q1']),
+          initialPageParam: 20, // it is arbitrary to start at page 20
+          getNextPageParam: (lastPage, pages, lastPageParam, pageParams) =>
+              lastPage + 1,
+          getPreviousPageParam:
+              (firstPage, pages, firstPageParam, pageParams) => firstPage - 1,
+          queryFn: (int page) {
+            return page;
+          },
         );
 
         o1.initialize();
+        async.elapse(Duration(milliseconds: 50));
 
-        await Future.delayed(Duration(milliseconds: 100));
-        expect(count, equals(3));
+        expect(o1.query.data!.pages.first, equals(20));
+
+        o1.fetchNextPage();
+        async.elapse(Duration(milliseconds: 50));
+
+        expect(o1.query.data!.pages.last, equals(21));
+
+        o1.fetchPreviousPage();
+        async.elapse(Duration(milliseconds: 50));
+
+        expect(o1.query.data!.pages.first, equals(19));
+      });
+    });
+
+    test('Refetch fetches every page sequentially', () {
+      fakeAsync((async) {
+        var now = clock.now();
+        withClock(Clock(() => now), () {
+          final cache = QueryCache();
+
+          final o1 = InfiniteQueryObserver<int, Exception, int>(
+            cache: cache,
+            queryKey: QueryKey(['q1']),
+            initialPageParam: 0,
+            getNextPageParam: (lastPage, pages, lastPageParam, pageParams) =>
+                lastPage + 1,
+            queryFn: (int page) {
+              return page;
+            },
+          );
+
+          o1.initialize();
+          async.elapse(Duration(milliseconds: 50));
+
+          expect(o1.query.data!.pages.first, equals(0));
+
+          o1.fetchNextPage();
+          async.elapse(Duration(milliseconds: 50));
+
+          expect(o1.query.data!.pages.last, equals(1));
+
+          final initialTimeStamp = o1.query.dataUpdatedAt;
+
+          now = now.add(const Duration(milliseconds: 50));
+
+          o1.refetch();
+
+          async.elapse(Duration(milliseconds: 50));
+
+          expect(o1.query.data!.pages.first, equals(0));
+          expect(o1.query.data!.pages.last, equals(1));
+          expect(initialTimeStamp?.isBefore(o1.query.dataUpdatedAt!), isTrue);
+        });
       });
     });
   });

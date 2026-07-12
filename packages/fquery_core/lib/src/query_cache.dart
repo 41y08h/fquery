@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:fquery_core/src/cache_map.dart';
 import 'package:fquery_core/src/observer.dart';
 import 'package:fquery_core/src/query.dart';
@@ -80,7 +81,7 @@ class QueryCache with Observable<QueryKey> {
         return state.copyWith(
           status: QueryStatus.error,
           error: data as TError,
-          errorUpdatedAt: DateTime.now(),
+          errorUpdatedAt: clock.now(),
           isFetching: false,
           isInvalidated: false,
           fetchMeta: null,
@@ -90,7 +91,7 @@ class QueryCache with Observable<QueryKey> {
           status: QueryStatus.success,
           error: null,
           data: data as TData,
-          dataUpdatedAt: DateTime.now(),
+          dataUpdatedAt: clock.now(),
           isFetching: false,
           isInvalidated: false,
           fetchMeta: null,
@@ -101,7 +102,7 @@ class QueryCache with Observable<QueryKey> {
       case DispatchAction.refetchSequence:
         return state.copyWith(
           data: data as TData,
-          dataUpdatedAt: DateTime.now(),
+          dataUpdatedAt: clock.now(),
           isInvalidated: false,
           fetchMeta: null,
         );
@@ -110,7 +111,7 @@ class QueryCache with Observable<QueryKey> {
           isRefetchError: true,
           status: QueryStatus.error,
           error: data as TError,
-          errorUpdatedAt: DateTime.now(),
+          errorUpdatedAt: clock.now(),
           isFetching: false,
           isInvalidated: false,
           fetchMeta: null,

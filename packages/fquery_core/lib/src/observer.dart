@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:fquery_core/src/query_cache.dart';
 import 'package:fquery_core/src/query.dart';
 import 'package:fquery_core/src/retry_resolver.dart';
@@ -352,7 +353,7 @@ class QueryObserver<TData, TError extends Exception>
 
   bool get _isQueryStale {
     DateTime? staleAt = query.dataUpdatedAt?.add(staleDuration);
-    return staleAt?.isBefore(DateTime.now()) ?? true;
+    return staleAt?.isBefore(clock.now()) ?? true;
   }
 
   @override
@@ -361,8 +362,10 @@ class QueryObserver<TData, TError extends Exception>
     // [enabled]
     // [refetchInterval]
 
-    final refetchIntervalChanged = options.refetchInterval != refetchInterval;
-    final isEnabledChanged = options.enabled != enabled;
+    final refetchIntervalChanged = options.refetchInterval != null &&
+        options.refetchInterval != refetchInterval;
+    final isEnabledChanged =
+        options.enabled != null && options.enabled != enabled;
 
     _setOptions(options);
 
@@ -574,7 +577,7 @@ class InfiniteQueryObserver<TData, TError extends Exception, TPageParam>
           break;
         case RefetchOnMount.stale:
           DateTime? staleAt = query.dataUpdatedAt?.add(staleDuration);
-          final isStale = staleAt?.isBefore(DateTime.now()) ?? true;
+          final isStale = staleAt?.isBefore(clock.now()) ?? true;
           if (isStale) refetch();
           break;
         case RefetchOnMount.never:

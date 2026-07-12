@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:fquery_core/src/mutation.dart';
 import 'package:fquery_core/src/observer.dart';
 
@@ -165,7 +166,7 @@ class MutationObserver<TData, TError extends Exception, TVariables, TContext>
       case MutationDispatchAction.mutate:
         return state.copyWith(
           status: MutationStatus.pending,
-          submittedAt: DateTime.now(),
+          submittedAt: clock.now(),
         );
       case MutationDispatchAction.error:
         return state.copyWith(error: data, status: MutationStatus.error);
